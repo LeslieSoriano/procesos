@@ -60,6 +60,33 @@
             height: 2rem;
             margin-right: 0.75rem;
         }
+        .logo-container {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-container img {
+            height: 100px;
+            width: auto;
+            max-width: 100%;
+            object-fit: contain; /* Cambiado de cover a contain */
+            border-radius: 10px;
+        }
+
+        /* Media queries para responsive */
+        @media (max-width: 768px) {
+            .logo-container img {
+                height: 80px; /* Más pequeño en tablets */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo-container img {
+                height: 60px; /* Aún más pequeño en móviles */
+            }
+        }
     </style>
 </head>
 <body>
@@ -68,8 +95,8 @@
     <div class="card card-custom p-4 p-md-5">     
         <div class="d-flex flex-column flex-md-row align-items-center justify-content-between border-bottom pb-3 mb-4">
             <div class="d-flex align-items-center">
-                <div class="logo-container"> 
-                    <img src="img/MIAA.png" class="img-fluid rounded" style="height: 100px; object-fit: cover">
+                <div class="logo-container">
+                    <img src="img/MIAA.png" alt="Logo MIAA" class="img-fluid rounded">
                 </div>
                 <div>
                     <h1 class="h4 fw-bold mb-1 section-title">Bienvenido(a) a la Capacitación</h1>
