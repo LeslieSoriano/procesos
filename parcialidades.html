@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programa de Pago en Parcialidades</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @media print {
+            body {
+                background: white !important;
+            }
+            .slide-container {
+                box-shadow: none !important;
+                page-break-inside: avoid;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .slide-container {
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+            max-width: 1400px;
+            width: 100%;
+            padding: 60px;
+            animation: slideIn 0.8s ease-out;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 5px solid #667eea;
+            position: relative;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 5px;
+            background: #764ba2;
+            border-radius: 3px;
+        }
+
+        .header h1 {
+            color: #1a202c;
+            font-size: 3em;
+            margin-bottom: 15px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            color: #4a5568;
+            font-size: 1.4em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            color: #1a202c;
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .section-title::before {
+            content: "";
+            width: 8px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin-right: 15px;
+            border-radius: 4px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 80px;
+            height: 3px;
+            background: #764ba2;
+            border-radius: 2px;
+        }
+
+        .condition-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 18px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .condition-item:hover {
+            transform: translateX(10px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+        }
+
+        .condition-item::before {
+            content: "✓";
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-right: 15px;
+            flex-shrink: 0;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .condition-text {
+            color: #2d3748;
+            line-height: 1.8;
+            font-size: 1.05em;
+            font-weight: 400;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            color: #d35400;
+            box-shadow: 0 2px 8px rgba(253, 203, 110, 0.3);
+        }
+
+        .table-container {
+            margin-top: 30px;
+            overflow-x: auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 25px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 22px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+            color: #2d3748;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        tbody tr {
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        tbody tr:hover {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            transform: scale(1.02);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .important-box {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            border-left: 8px solid #ff9800;
+            box-shadow: 0 10px 30px rgba(255, 152, 0, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 10px 30px rgba(255, 152, 0, 0.2);
+            }
+            50% {
+                box-shadow: 0 15px 40px rgba(255, 152, 0, 0.35);
+            }
+        }
+
+        .important-box h3 {
+            color: #e65100;
+            margin-bottom: 15px;
+            font-size: 1.6em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .important-box p {
+            color: #5d4037;
+            line-height: 1.8;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .person-type {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 3px solid #1976d2;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(25, 118, 210, 0.2);
+        }
+
+        .person-type strong {
+            color: #0d47a1;
+            font-size: 1.3em;
+            display: block;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .person-type ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .person-type li {
+            padding: 10px 15px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 8px;
+            color: #424242;
+            font-weight: 500;
+            border-left: 4px solid #1976d2;
+            transition: all 0.3s ease;
+        }
+
+        .person-type li:hover {
+            transform: translateX(8px);
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.2);
+        }
+
+        .button-container {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 3px solid #e2e8f0;
+        }
+
+        .print-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.1em;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .print-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.5);
+        }
+
+        .print-btn:active {
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .slide-container {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .header .subtitle {
+                font-size: 1em;
+            }
+
+            .section-title {
+                font-size: 1.4em;
+            }
+
+            .condition-text {
+                font-size: 0.95em;
+            }
+
+            th {
+                padding: 15px;
+                font-size: 1em;
+            }
+
+            td {
+                padding: 12px;
+                font-size: 0.95em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="logo-container">
+                
+                <img src="img/MIAA.png" class="img-fluid rounded" style="height: 100px; object-fit: cover">
+            </div>
+        <div class="header">
+            <h1>Programa de Pago en Parcialidades</h1>
+            <p class="subtitle">Condiciones y Requisitos</p>
+        </div>
+        
+        <div class="important-box">
+            <h3>⚠️ Importante - Quién puede solicitar el programa</h3>
+            <p style="margin-bottom: 20px;">El programa podrá ser realizado por:</p>
+            
+            <div class="person-type">
+                <strong>🏠 Propietario</strong>
+                <p style="color: #424242; margin-bottom: 10px;">Deberá presentar la documentación:</p>
+                <ul>
+                    <li>Identificación oficial (INE, Pasaporte o Licencia de Conducir)</li>
+                    <li>PREDIAL a su nombre que coincida con el domicilio</li>
+                </ul>
+            </div>
+            
+            <div class="person-type">
+                <strong>📄 Arrendatario</strong>
+                <p style="color: #424242; margin-bottom: 10px;">Deberá presentar la documentación:</p>
+                <ul>
+                    <li>Identificación oficial (INE, Pasaporte o Licencia de Conducir)</li>
+                    <li>Copia de INE Propietario</li>
+                    <li>Contrato de arrendamiento vigente o Carta Compromiso "Tercero Solidario" o Comodato</li>
+                    <li>Carta Poder Simple</li>
+                </ul>
+            </div>
+            <div class="person-type">
+                <strong>📄 Si es persona Moral</strong>
+                <p style="color: #424242; margin-bottom: 10px;">Deberá presentar la documentación:</p>
+                <ul>
+                    <li>Constancia de situación Fiscal</li>
+                    <li>Acta Constitutiva</li>
+                    <li>Poder Notarial</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="conditions-section">
+                <h2 class="section-title">📋 Requisitos Generales</h2>
+                
+                <div class="condition-item">
+                    <span class="condition-text">Aplicable a cualquier tipo de usuario: <span class="highlight">Doméstico, Mixto, Rural, Comercial e Industrial, </span></span>
+                </div>
+
+                <div class="condition-item">
+                    <span class="condition-text">Aplica a usuarios que cuenten con <span class="highlight">Descuento FAS</span></span>
+                </div>
+
+                <div class="condition-item">
+                    <span class="condition-text">Usuarios con saldo vencido de <span class="highlight">$2,000 hasta $50,000 pesos</span></span>
+                </div>
+
+                <div class="condition-item">
+                    <span class="condition-text">Usuarios con <span class="highlight">3 periodos o más vencidos</span></span>
+                </div>
+
+                <div class="condition-item">
+                    <span class="condition-text">Usuarios en revisión, se toma el importe total pendiente sin importar el estatus</span>
+                </div>
+                <div class="condition-item">
+                    <span class="condition-text"><span class="highlight">Grandes Usuarios</span> se deben acercar a Departamento de Cobranza</span>
+                </div>
+            </div>
+
+            <div class="conditions-section">
+                <h2 class="section-title">💰 Condiciones de Pago</h2>
+                
+                <div class="condition-item">
+                    <span class="condition-text">Usuario deberá cubrir de manera inicial mínimo el <span class="highlight">20% del total de la deuda</span>. Si este anticipo no es pagado, NO se activa el Programa.</span>
+                </div>
+
+                <div class="condition-item">
+                    <span class="condition-text">Actualización del <span class="highlight">1.26% sobre saldo insoluto</span> mensual.</span>
+                </div>
+
+                <div class="condition-item">
+                    <span class="condition-text">Recargos por mora del <span class="highlight">2% de la parcialidad vencida.</span></span>
+                </div>
+
+                <div class="condition-item">
+                    <span class="condition-text">Usuario <strong>NO</strong> podrá pagar por separado el servicio del periodo y su parcialidad.</span>
+                </div>
+
+                <div class="condition-item">
+                    <span class="condition-text">La parcialidad autorizada <span class="highlight">deberá ser cubierta en su totalidad</span>, de lo contrario el sistema la marca como pendiente.</span>
+                </div>
+            </div>
+
+            <div class="conditions-section">
+                <h2 class="section-title">🚫 Cancelación del Programa</h2>
+                
+                <div class="condition-item">
+                    <span class="condition-text">Al incumplimiento de <span class="highlight">tres parcialidades consecutivas</span> se cancelará automáticamente el programa</span>
+                </div>
+
+                <div class="condition-item">
+                    <span class="condition-text">Una vez cancelado, el <strong>total del saldo insoluto</strong> de las parcialidades pendientes será cargado en el siguiente estado de cuenta emitido</span>
+                </div>
+
+                <div class="condition-item">
+                    <span class="condition-text">Al cancelarse, el sistema generará automáticamente una <span class="highlight">orden de suspensión del servicio</span> aplicando el cargo correspondiente por suspensión y reconexión siempre y cuando la órden de trabajo este ejecutada en sistema.</span>
+                </div>
+
+                <div class="condition-item">
+                    <span class="condition-text">El usuario <strong>NO</strong> podrá solicitar un nuevo programa a menos que haya cubierto el pago del saldo insoluto del programa anterior cancelado</span>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <h2 class="section-title" style="margin-bottom: 0; border: none;">📊 Rangos de Aplicación de Parcialidades</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Monto Desde</th>
+                            <th>Monto Hasta</th>
+                            <th>Número de Parcialidades</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>$2,000.00</strong></td>
+                            <td><strong>$5,000.00</strong></td>
+                            <td>Hasta <span class="highlight">10 parcialidades</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>$5,001.00</strong></td>
+                            <td><strong>$50,000.00</strong></td>
+                            <td>Hasta <span class="highlight">12 parcialidades</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>$50,001.00</strong></td>
+                            <td><strong> Mayor o Igual </strong></td>
+                            <td><span class="highlight">Se deberan direccionar a Departamento de Cobranza</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Grandes Usuarios y mayores a $50,000.00</strong></td>
+                            <td><strong> Mayor o Igual </strong></td>
+                            <td><span class="highlight">Se deberan direccionar a Departamento de Cobranza</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="important-box">
+            <h3>💡 Nota Final</h3>
+            <p>El sistema permitirá ofrecer al usuario opciones en el número y monto de su parcialidad de acuerdo a los rangos establecidos. Es <strong>fundamental</strong> que el usuario comprenda todas las condiciones antes de solicitar el programa, especialmente:</p>
+            <ul style="margin-top: 15px; padding-left: 25px;">
+                <li style="margin: 10px 0; color: #5d4037; font-weight: 500;">El anticipo del 20% es obligatorio para activar el programa</li>
+                <li style="margin: 10px 0; color: #5d4037; font-weight: 500;">Tres parcialidades consecutivas sin pagar cancelan el programa</li>
+                <li style="margin: 10px 0; color: #5d4037; font-weight: 500;">La cancelación genera orden de suspensión automática</li>
+            </ul>
+        </div>
+
+        <div class="button-container no-print">
+            <button class="print-btn" onclick="window.print()">🖨️ Imprimir Documento</button>
+            <a href="{{ route('diagrama') }}" style="text-decoration: none;">
+                <button class="print-btn" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); margin-left: 20px;">
+                    📊 Ver Diagrama de Flujo
+                </button>
+            </a>
+        </div>
+
+        <div style="margin-top: 40px; padding-top: 30px; border-top: 3px solid #e2e8f0; text-align: center;">
+            <p style="color: #4a5568; font-size: 1em; font-weight: 600; margin-bottom: 5px;">Elaborado por:</p>
+            <p style="color: #667eea; font-size: 1.2em; font-weight: 700; margin: 0;">L.T.I. Leslie Guadalupe Ramírez Soriano</p>
+        </div>
+    </div>
+
+    <script>
+        // Animación de elementos al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            const items = document.querySelectorAll('.condition-item');
+            items.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(-20px)';
+                setTimeout(() => {
+                    item.style.transition = 'all 0.5s ease';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateX(0)';
+                }, index * 100);
+            });
+
+            // Efecto hover mejorado
+            items.forEach(item => {
+                item.addEventListener('mouseenter', function() {
+                    this.style.borderLeftWidth = '8px';
+                });
+                item.addEventListener('mouseleave', function() {
+                    this.style.borderLeftWidth = '5px';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
