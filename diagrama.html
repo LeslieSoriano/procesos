@@ -390,6 +390,72 @@
                 height: 100px;
             }
         }
+        .button-container {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 3px solid #e2e8f0;
+}
+
+.btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 18px 40px;
+    font-size: 1.1em;
+    font-weight: 700;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 10px;
+    display: inline-block;
+}
+
+.btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.5);
+}
+
+.btn:active {
+    transform: translateY(-1px);
+}
+
+.btn.home {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    box-shadow: 0 8px 20px rgba(240, 147, 251, 0.4);
+}
+
+.btn.home:hover {
+    box-shadow: 0 12px 30px rgba(240, 147, 251, 0.5);
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .btn {
+        padding: 15px 30px;
+        font-size: 1em;
+        margin: 5px;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn {
+        padding: 12px 25px;
+        font-size: 0.9em;
+        display: block;
+        margin: 10px auto;
+        width: 80%;
+    }
+}
     </style>
 </head>
 <body>
