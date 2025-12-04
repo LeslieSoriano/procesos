@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Dígito Verificador Módulo 10</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            color: #1a202c;
+            font-size: 28px;
+        }
+
+        .info-box {
+            background: #ebf4ff;
+            border-left: 4px solid #4299e1;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+
+        .info-box h3 {
+            color: #2c5282;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .info-box ul {
+            list-style: none;
+            color: #2d3748;
+            font-size: 14px;
+            line-height: 1.8;
+            margin-top: 10px;
+        }
+
+        .info-box ul li {
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .info-box ul li:before {
+            content: "•";
+            position: absolute;
+            left: 5px;
+            color: #4299e1;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input:disabled {
+            background: #f7fafc;
+            color: #4a5568;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 4px;
+        }
+
+        .campos-desglosados {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 8px;
+            border: 2px dashed #cbd5e0;
+        }
+
+        .campo-desglosado {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .campo-desglosado label {
+            font-size: 12px;
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+
+        .campo-desglosado input {
+            font-size: 14px;
+            padding: 8px 12px;
+        }
+
+        .btn-calculate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .resultado {
+            display: none;
+            margin-top: 40px;
+        }
+
+        .resultado.show {
+            display: block;
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(72, 187, 120, 0.3);
+        }
+
+        .dv-number {
+            font-size: 64px;
+            font-weight: bold;
+            text-align: center;
+            background: white;
+            color: #38a169;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .cadena-completa {
+            background: white;
+            color: #2d3748;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .cadena-text {
+            font-family: 'Courier New', monospace;
+            font-size: 20px;
+            word-break: break-all;
+            line-height: 1.6;
+        }
+
+        .color-prefijo { color: #3182ce; }
+        .color-referencia { color: #805ad5; }
+        .color-fecha { color: #dd6b20; }
+        .color-importe { color: #d53f8c; }
+        .color-dv { color: #38a169; font-weight: bold; }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .legend span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend span:before {
+            content: "■";
+            font-size: 16px;
+        }
+
+        .detail-section {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .step-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 12px;
+        }
+
+        table th {
+            background: #667eea;
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        table td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .suma-total {
+            background: #e2e8f0;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .formula-box {
+            background: #edf2f7;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .step-calculation {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .highlight {
+            background: #fef5e7;
+            font-weight: bold;
+        }
+
+        .info-adicional {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .info-column h4 {
+            color: #2d3748;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .info-column ul {
+            list-style: none;
+            font-size: 13px;
+            color: #4a5568;
+            line-height: 1.8;
+        }
+
+        .info-column ul li {
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .info-column ul li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Calculadora de Dígito Verificador Módulo 10</h1>
+        </div>
+
+        <div class="info-box">
+            <h3>📋 Estructura de la Cadena (29 dígitos):</h3>
+            <ul>
+                <li>Posiciones 1-2: Prefijo (2 dígitos)</li>
+                <li>Posiciones 3-11: Referencia (9 dígitos)</li>
+                <li>Posiciones 12-19: Fecha de Vencimiento AAAAMMDD (8 dígitos)</li>
+                <li>Posiciones 20-29: Importe sin punto decimal (10 dígitos)</li>
+            </ul>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="cadenaCompleta">Pega tu cadena de 29 dígitos aquí</label>
+                <input type="text" id="cadenaCompleta" value="76000585332202510190003821700" placeholder="Pega aquí tu cadena de 29 dígitos">
+                <span class="help-text">Los espacios se eliminarán automáticamente. La cadena se desglosará según la estructura definida.</span>
+            </div>
+        </div>
+
+        <div class="campos-desglosados" id="camposDesglosados">
+            <div class="campo-desglosado">
+                <label>Prefijo (Pos. 1-2)</label>
+                <input type="text" id="prefijo" disabled>
+            </div>
+            <div class="campo-desglosado">
+                <label>Referencia (Pos. 3-11)</label>
+                <input type="text" id="referencia" disabled>
+            </div>
+            <div class="campo-desglosado">
+                <label>Fecha (Pos. 12-19)</label>
+                <input type="text" id="fecha" disabled>
+            </div>
+            <div class="campo-desglosado">
+                <label>Importe (Pos. 20-29)</label>
+                <input type="text" id="importe" disabled>
+            </div>
+        </div>
+
+        <button class="btn-calculate" onclick="calcularDV()">Calcular Dígito Verificador</button>
+
+        <div id="resultado" class="resultado"></div>
+    </div>
+
+    <script>
+        // Función para formatear fecha
+        function formatearFecha(fecha) {
+            if (fecha.length === 8) {
+                return `${fecha.substring(6, 8)}/${fecha.substring(4, 6)}/${fecha.substring(0, 4)}`;
+            }
+            return fecha;
+        }
+
+        // Función para formatear importe
+        function formatearImporte(importe) {
+            if (importe.length === 10) {
+                const enteros = parseInt(importe.substring(0, 8)).toLocaleString('es-MX');
+                const decimales = importe.substring(8, 10);
+                return `$${enteros}.${decimales}`;
+            }
+            return importe;
+        }
+
+        // Detectar cambios en el input principal y descomponer
+        document.getElementById('cadenaCompleta').addEventListener('input', function(e) {
+            let cadena = e.target.value.replace(/\s+/g, '');
+            
+            if (cadena.length > 0 && !/^\d*$/.test(cadena)) {
+                alert('Solo se permiten dígitos numéricos');
+                e.target.value = cadena.replace(/\D/g, '');
+                return;
+            }
+            
+            if (cadena.length <= 29) {
+                // Descomponer según posiciones
+                const prefijo = cadena.substring(0, 2);
+                const referencia = cadena.substring(2, 11);
+                const fecha = cadena.substring(11, 19);
+                const importe = cadena.substring(19, 29);
+                
+                document.getElementById('prefijo').value = prefijo;
+                document.getElementById('referencia').value = referencia;
+                document.getElementById('fecha').value = fecha;
+                document.getElementById('importe').value = importe;
+            }
+        });
+
+        function calcularDV() {
+            let cadena = document.getElementById('cadenaCompleta').value.replace(/\s+/g, '');
+            
+            if (cadena.length !== 29) {
+                alert(`La cadena debe tener exactamente 29 dígitos. Actualmente tiene: ${cadena.length}`);
+                return;
+            }
+            
+            if (!/^\d+$/.test(cadena)) {
+                alert('La cadena debe contener solo dígitos');
+                return;
+            }
+
+            // Descomponer la cadena
+            const prefijo = cadena.substring(0, 2);
+            const referencia = cadena.substring(2, 11);
+            const fecha = cadena.substring(11, 19);
+            const importe = cadena.substring(19, 29);
+
+            let suma = 0;
+            const detalles = [];
+
+            // Recorrer de DERECHA a IZQUIERDA
+            // Posición 1 (derecha) multiplica por 1
+            // Posición 2 multiplica por 2
+            // Y así sucesivamente alternando
+            for (let i = 0; i < cadena.length; i++) {
+                const digito = parseInt(cadena[cadena.length - 1 - i], 10); // Base 10 explícita
+                let resultado;
+                let operacion;
+                let seccion = '';
+                
+                // Determinar sección
+                const posReal = cadena.length - i;
+                if (posReal <= 2) seccion = 'Prefijo';
+                else if (posReal <= 11) seccion = 'Referencia';
+                else if (posReal <= 19) seccion = 'Fecha';
+                else seccion = 'Importe';
+                
+                // Posición impar desde la derecha (i=0,2,4...) × 1
+                // Posición par desde la derecha (i=1,3,5...) × 2
+                if (i % 2 === 0) {
+    const producto = digito * 2;
+    if (producto > 9) {
+        const decenas = Math.floor(producto / 10);
+        const unidades = producto % 10;
+        resultado = decenas + unidades;
+        operacion = `${digito} × 2 = ${producto} → ${decenas} + ${unidades} = ${resultado}`;
+    } else {
+        resultado = producto;
+        operacion = `${digito} × 2 = ${resultado}`;
+    }
+} else {
+    resultado = digito * 1;
+    operacion = `${digito} × 1 = ${resultado}`;
+}
+                
+                suma += resultado;
+                
+                detalles.push({
+                    posReal: posReal,
+                    posCalculo: i,
+                    seccion: seccion,
+                    digito: digito,
+                    multiplicador: i % 2 === 0 ? 1 : 2,
+                    operacion: operacion,
+                    resultado: resultado
+                });
+            }
+
+            // Invertir detalles para mostrar en orden original
+            detalles.reverse();
+
+            const modulo = suma % 10;
+            const dv = (10 - modulo) % 10;
+
+            console.log('[v0] Suma total:', suma);
+            console.log('[v0] Módulo 10:', modulo);
+            console.log('[v0] Dígito Verificador:', dv);
+
+            // Generar HTML del resultado
+            let html = `
+                <div class="result-box">
+                    <h2>✓ Resultado Final</h2>
+                    <div class="dv-number">${dv}</div>
+                    <div class="cadena-completa">
+                        <p>Cadena Original (29 dígitos):</p>
+                        <div class="cadena-text">
+                            <span class="color-prefijo">${prefijo}</span><span class="color-referencia">${referencia}</span><span class="color-fecha">${fecha}</span><span class="color-importe">${importe}</span>
+                        </div>
+                        <p style="margin-top: 15px;">Cadena Completa con Dígito Verificador (30 dígitos):</p>
+                        <div class="cadena-text">
+                            <span class="color-prefijo">${prefijo}</span><span class="color-referencia">${referencia}</span><span class="color-fecha">${fecha}</span><span class="color-importe">${importe}</span><span class="color-dv">${dv}</span>
+                        </div>
+                        <div class="legend">
+                            <span class="color-prefijo">■ Prefijo</span>
+                            <span class="color-referencia">■ Referencia</span>
+                            <span class="color-fecha">■ Fecha</span>
+                            <span class="color-importe">■ Importe</span>
+                            <span class="color-dv">■ DV</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>📋 Información Desglosada</h3>
+                    <div class="info-adicional">
+                        <div class="info-column">
+                            <h4>Datos Interpretados:</h4>
+                            <ul>
+                                <li>Prefijo: <strong>${prefijo}</strong></li>
+                                <li>Referencia: <strong>${referencia}</strong></li>
+                                <li>Vencimiento: <strong>${formatearFecha(fecha)}</strong></li>
+                                <li>Importe: <strong>${formatearImporte(importe)}</strong></li>
+                                <li>Dígito Verificador: <strong style="color: #38a169;">${dv}</strong></li>
+                            </ul>
+                        </div>
+                        <div class="info-column">
+                            <h4>Algoritmo Usado:</h4>
+                            <ul>
+                                <li>Tipo: Módulo 10 (Base 10)</li>
+                                <li>Dirección: Derecha → Izquierda</li>
+                                <li>Multiplicadores: 1 y 2 (alternados)</li>
+                                <li>Suma total: ${suma}</li>
+                                <li>Fórmula: (10 - (Σ mod 10)) mod 10</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>📊 Proceso de Cálculo Detallado (Base 10)</h3>
+
+                    <div class="step-box">
+                        <h4>Paso 1: Cadena de Entrada (29 dígitos)</h4>
+                        <div style="background: #f7fafc; padding: 15px; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 18px; word-break: break-all;">
+                            ${cadena}
+                        </div>
+                        <p style="margin-top: 10px; color: #718096; font-size: 14px;">
+                            ⚠️ Se procesa de DERECHA a IZQUIERDA en BASE 10
+                        </p>
+                    </div>
+
+                    <div class="step-box">
+                        <h4>Paso 2: Multiplicación Alternada (1 y 2) - Base 10</h4>
+                        <div style="overflow-x: auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Posición</th>
+                                        <th>Sección</th>
+                                        <th>Dígito</th>
+                                        <th>Índice (der→izq)</th>
+                                        <th>Operación (Base 10)</th>
+                                        <th>Resultado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${detalles.map(d => `
+                                        <tr ${d.posCalculo % 2 === 1 ? 'class="highlight"' : ''}>
+                                            <td>${d.posReal}</td>
+                                            <td style="font-size: 11px;">${d.seccion}</td>
+                                            <td style="font-weight: bold;">${d.digito}</td>
+                                            <td>${d.posCalculo}</td>
+                                            <td style="font-family: 'Courier New', monospace;">${d.operacion}</td>
+                                            <td style="font-weight: 600;">${d.resultado}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="suma-total">
+                            <span>SUMA TOTAL (Σ):</span>
+                            <span>${suma}</span>
+                        </div>
+                    </div>
+
+                    <div class="step-box">
+                        <h4>Paso 3: Calcular Dígito Verificador (Base 10)</h4>
+                        <div class="formula-box">
+                            <code>DV = (10 - (Σ mod 10)) mod 10</code>
+                        </div>
+                        <div class="step-calculation">
+                            <strong>3.1:</strong> Σ mod 10 = ${suma} mod 10 = <strong>${modulo}</strong>
+                        </div>
+                        <div class="step-calculation">
+                            <strong>3.2:</strong> (10 - ${modulo}) mod 10 = <strong style="color: #38a169; font-size: 20px;">${dv}</strong>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.innerHTML = html;
+            resultadoDiv.classList.add('show');
+            resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Descomponer la cadena inicial al cargar
+        window.addEventListener('load', function() {
+            const input = document.getElementById('cadenaCompleta');
+            input.dispatchEvent(new Event('input'));
+            setTimeout(calcularDV, 500);
+        });
+    </script>
+</body>
+</html>

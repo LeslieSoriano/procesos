@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión - Menú Principal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .module-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .module-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .module-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .module-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .processes-list {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .processes-list.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .process-item {
+            display: block;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            color: #555;
+            font-size: 0.95em;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            text-decoration: none;
+        }
+
+        .process-item:hover {
+            background: #667eea;
+            color: white;
+            border-left-color: #764ba2;
+            transform: translateX(5px);
+        }
+
+        .toggle-icon {
+            float: right;
+            transition: transform 0.3s ease;
+            font-size: 0.8em;
+            color: #667eea;
+        }
+
+        .module-card.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏢 Menu de Procesos MIAA</h1>
+            <p>Seleccione un módulo para acceder a sus procesos</p>
+        </div>
+
+        <div class="menu-grid">
+            <!-- Módulo 1: Atención al Público -->
+            <div class="module-card" onclick="toggleModule(this)">
+                <div class="module-icon">👥</div>
+                <div class="module-title">
+                    Atención al Público
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="processes-list">
+                    <a href="./atencionpublico/parcialidades/index.html" class="process-item">📝 Programa de Parcialidades</a>
+                    <a href="#" class="process-item">🪟 Atención en ventanilla</a>
+                    <a href="#" class="process-item">🔍 Consulta de trámites</a>
+                    <a href="#" class="process-item">💬 Quejas y sugerencias</a>
+                    <a href="#" class="process-item">📊 Seguimiento de casos</a>
+                </div>
+            </div>
+
+            <!-- Módulo 2: Área Técnica -->
+            <div class="module-card" onclick="toggleModule(this)">
+                <div class="module-icon">🔧</div>
+                <div class="module-title">
+                    Área Técnica
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="processes-list">
+                    <a href="./areatecnica/procesorden.html" class="process-item">📋 Proceso de ordenes de trabajo</a>
+                    <a href="#" class="process-item">📋 Órdenes de trabajo</a>
+                    <a href="#" class="process-item">🛠️ Mantenimiento preventivo</a>
+                    <a href="#" class="process-item">🔬 Inspecciones técnicas</a>
+                    <a href="#" class="process-item">✅ Control de calidad</a>
+                    <a href="#" class="process-item">📄 Reportes técnicos</a>
+                </div>
+            </div>
+
+            <!-- Módulo 3: Caja -->
+            <div class="module-card" onclick="toggleModule(this)">
+                <div class="module-icon">💰</div>
+                <div class="module-title">
+                    Caja
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="processes-list">
+                    <a href="./cajas/pagos/pagos.html" class="process-item">💵 Flujo de pagos Api, Cajas, Plantilla</a>
+                    <a href="#" class="process-item">💵 Cobros y pagos</a>
+                    <a href="#" class="process-item">🧮 Arqueo de caja</a>
+                    <a href="#" class="process-item">📊 Corte de caja</a>
+                    <a href="#" class="process-item">↩️ Devoluciones</a>
+                    <a href="#" class="process-item">🧾 Facturación</a>
+                </div>
+            </div>
+
+            <!-- Módulo 4: Gestión Comercial -->
+            <div class="module-card" onclick="toggleModule(this)">
+                <div class="module-icon">📈</div>
+                <div class="module-title">
+                    Gestión Comercial
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="processes-list">
+                    <a href="#" class="process-item">📑 Contratos</a>
+                    <a href="#" class="process-item">📃 Facturación masiva</a>
+                    <a href="#" class="process-item">👥 Cartera de clientes</a>
+                    <a href="#" class="process-item">📊 Lecturas y consumos</a>
+                    <a href="#" class="process-item">💳 Cobranza</a>
+                </div>
+            </div>
+
+            <!-- Módulo 5: Bancos -->
+            <div class="module-card" onclick="toggleModule(this)">
+                <div class="module-icon">🏦</div>
+                <div class="module-title">
+                    Bancos
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="processes-list">
+                    <a href="#" class="process-item">🔄 Conciliación bancaria</a>
+                    <a href="#" class="process-item">💸 Movimientos bancarios</a>
+                    <a href="#" class="process-item">↔️ Transferencias</a>
+                    <a href="#" class="process-item">📊 Estado de cuenta</a>
+                    <a href="#" class="process-item">📄 Layout de pagos</a>
+                </div>
+            </div>
+
+            <!-- Módulo 6: Suministro -->
+            <div class="module-card" onclick="toggleModule(this)">
+                <div class="module-icon">💧</div>
+                <div class="module-title">
+                    Suministro
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="processes-list">
+                    <a href="#" class="process-item">📝 Solicitud de servicio</a>
+                    <a href="#" class="process-item">💱 Cambio de tarifa</a>
+                    <a href="#" class="process-item">🔌 Reconexiones</a>
+                    <a href="#" class="process-item">⛔ Suspensiones</a>
+                    <a href="#" class="process-item">📜 Historial de suministro</a>
+                </div>
+            </div>
+
+            <!-- Módulo 7: Reportes -->
+            <div class="module-card" onclick="toggleModule(this)">
+                <div class="module-icon">📊</div>
+                <div class="module-title">
+                    Reportes
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="processes-list">
+                    <a href="#" class="process-item">📈 Reportes operativos</a>
+                    <a href="#" class="process-item">💹 Reportes financieros</a>
+                    <a href="#" class="process-item">📉 Estadísticas</a>
+                    <a href="#" class="process-item">🎯 Indicadores de gestión</a>
+                    <a href="#" class="process-item">💾 Exportar datos</a>
+                </div>
+            </div>
+
+            <!-- Módulo 8: Administración -->
+            <div class="module-card" onclick="toggleModule(this)">
+                <div class="module-icon">⚙️</div>
+                <div class="module-title">
+                    Administración
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="processes-list">
+                    <a href="#" class="process-item">👤 Usuarios y permisos</a>
+                    <a href="#" class="process-item">⚙️ Configuración del sistema</a>
+                    <a href="#" class="process-item">📚 Catálogos</a>
+                    <a href="#" class="process-item">💾 Respaldos</a>
+                    <a href="#" class="process-item">🔍 Auditoría</a>
+                </div>
+            </div>
+
+            <!-- Módulo 9: Almacén -->
+            <div class="module-card" onclick="toggleModule(this)">
+                <div class="module-icon">📦</div>
+                <div class="module-title">
+                    Almacén
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="processes-list">
+                    <a href="#" class="process-item">📋 Control de inventario</a>
+                    <a href="#" class="process-item">↕️ Entradas y salidas</a>
+                    <a href="#" class="process-item">📝 Requisiciones</a>
+                    <a href="#" class="process-item">🏭 Proveedores</a>
+                    <a href="#" class="process-item">📊 Inventario físico</a>
+                </div>
+            </div>
+
+            <!-- Módulo 10: Xook -->
+            <div class="module-card" onclick="toggleModule(this)">
+                <div class="module-icon">🌐</div>
+                <div class="module-title">
+                    Xook
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="processes-list">
+                    <a href="#" class="process-item">🌍 Portal web</a>
+                    <a href="#" class="process-item">💻 Consulta en línea</a>
+                    <a href="#" class="process-item">💳 Pagos en línea</a>
+                    <a href="#" class="process-item">📱 Trámites digitales</a>
+                    <a href="#" class="process-item">🔔 Notificaciones</a>
+                </div>
+            </div>
+
+            <!-- Módulo 11: Contabilidad -->
+            <div class="module-card" onclick="toggleModule(this)">
+                <div class="module-icon">📚</div>
+                <div class="module-title">
+                    Contabilidad
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="processes-list">
+                    <a href="#" class="process-item">📄 Pólizas contables</a>
+                    <a href="#" class="process-item">⚖️ Balance general</a>
+                    <a href="#" class="process-item">📊 Estado de resultados</a>
+                    <a href="#" class="process-item">💸 Cuentas por pagar</a>
+                    <a href="#" class="process-item">💰 Cuentas por cobrar</a>
+                </div>
+            </div>
+
+            <!-- Módulo 12: Toma de Turno -->
+            <div class="module-card" onclick="toggleModule(this)">
+                <div class="module-icon">🎫</div>
+                <div class="module-title">
+                    Toma de Turno
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="processes-list">
+                    <a href="#" class="process-item">🎟️ Generar turno</a>
+                    <a href="#" class="process-item">📢 Llamar turno</a>
+                    <a href="#" class="process-item">📺 Monitor de turnos</a>
+                    <a href="#" class="process-item">⚙️ Configurar áreas</a>
+                    <a href="#" class="process-item">📊 Estadísticas de atención</a>
+                </div>
+            </div>
+            <!-- Módulo 13: Toma de Turno -->
+            <div class="module-card" onclick="toggleModule(this)">
+                <div class="module-icon">💹</div>
+                <div class="module-title">
+                    Recursos Financieros
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="processes-list">
+                    <a href="./recfinancier/iva.html" class="process-item">📋 IVA</a>
+                    <a href="./recfinancier/calculadordv.html" class="process-item">🔢 Calculador de DV</a>
+                    <a href="#" class="process-item">📄 Plantilla</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Todos los derechos reservados Leslie Soriano</p>
+        </div>
+    </div>
+
+    <script>
+        function toggleModule(card) {
+            const processList = card.querySelector('.processes-list');
+            const allCards = document.querySelectorAll('.module-card');
+            const allProcessLists = document.querySelectorAll('.processes-list');
+            
+            // Cerrar todos los demás módulos
+            allCards.forEach(c => {
+                if (c !== card) {
+                    c.classList.remove('active');
+                }
+            });
+            allProcessLists.forEach(p => {
+                if (p !== processList) {
+                    p.classList.remove('active');
+                }
+            });
+            
+            // Toggle del módulo actual
+            card.classList.toggle('active');
+            processList.classList.toggle('active');
+        }
+
+        // Cerrar módulos al hacer clic fuera
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.module-card')) {
+                const allCards = document.querySelectorAll('.module-card');
+                const allProcessLists = document.querySelectorAll('.processes-list');
+                
+                allCards.forEach(card => card.classList.remove('active'));
+                allProcessLists.forEach(list => list.classList.remove('active'));
+            }
+        });
+    </script>
+</body>
+</html>

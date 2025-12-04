@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flujo de Órdenes Técnicas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 1400px;
+            width: 100%;
+            padding: 30px;
+            overflow-x: auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        svg {
+            display: block;
+            margin: 0 auto;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .box {
+            fill: #e3f2fd;
+            stroke: #1976d2;
+            stroke-width: 2;
+        }
+
+        .decision {
+            fill: #fff3e0;
+            stroke: #f57c00;
+            stroke-width: 2;
+        }
+
+        .process {
+            fill: #e8f5e9;
+            stroke: #388e3c;
+            stroke-width: 2;
+        }
+
+        .end {
+            fill: #ffebee;
+            stroke: #c62828;
+            stroke-width: 2;
+        }
+
+        .user-action {
+            fill: #f3e5f5;
+            stroke: #7b1fa2;
+            stroke-width: 2;
+        }
+
+        text {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 12px;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            fill: #333;
+        }
+
+        .arrow {
+            fill: none;
+            stroke: #555;
+            stroke-width: 2;
+            marker-end: url(#arrowhead);
+        }
+
+        .dashed-arrow {
+            fill: none;
+            stroke: #999;
+            stroke-width: 2;
+            stroke-dasharray: 5,5;
+            marker-end: url(#arrowhead-gray);
+        }
+
+        .legend {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-box {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            border: 2px solid;
+        }
+
+        .legend-box.entry { background: #e3f2fd; border-color: #1976d2; }
+        .legend-box.decision { background: #fff3e0; border-color: #f57c00; }
+        .legend-box.process { background: #e8f5e9; border-color: #388e3c; }
+        .legend-box.user { background: #f3e5f5; border-color: #7b1fa2; }
+        .legend-box.end { background: #ffebee; border-color: #c62828; }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 18px;
+            }
+            text {
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Flujo de Consulta, Ejecución y Cancelación de Órdenes de Trabajo e Inspecciones</h1>
+        
+        <svg width="1200" height="1600" viewBox="0 0 1200 1600">
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                    <polygon points="0 0, 10 3, 0 6" fill="#555" />
+                </marker>
+                <marker id="arrowhead-gray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                    <polygon points="0 0, 10 3, 0 6" fill="#999" />
+                </marker>
+            </defs>
+
+            <!-- INICIO - Chat o Call Center -->
+            <rect x="450" y="20" width="300" height="60" rx="30" class="box"/>
+            <text x="600" y="50" font-weight="bold">📞 CHAT O CALL CENTER</text>
+            <text x="600" y="65" font-size="11">Se genera una QUEJA</text>
+
+            <!-- Flecha -->
+            <path d="M 600 80 L 600 120" class="arrow"/>
+
+            <!-- DECISION: ¿Es predio o no? -->
+            <path d="M 600 120 L 700 180 L 600 240 L 500 180 Z" class="decision"/>
+            <text x="600" y="175" font-weight="bold">¿QUEJA</text>
+            <text x="600" y="190" font-weight="bold">RELACIONADA A</text>
+            <text x="600" y="205" font-weight="bold">PREDIO?</text>
+
+            <!-- Rama SI (derecha) -->
+            <path d="M 700 180 L 800 180" class="arrow"/>
+            <text x="750" y="170" font-size="11" font-weight="bold">SÍ</text>
+
+            <rect x="800" y="150" width="200" height="60" rx="5" class="process"/>
+            <text x="900" y="175" font-weight="bold">Búsqueda en</text>
+            <text x="900" y="195" font-weight="bold">Catálogo de Quejas</text>
+
+            <!-- Rama NO (izquierda) -->
+            <path d="M 500 180 L 300 180" class="arrow"/>
+            <text x="380" y="170" font-size="11" font-weight="bold">NO</text>
+
+            <rect x="80" y="150" width="200" height="60" rx="5" class="process"/>
+            <text x="180" y="175" font-weight="bold">Búsqueda en</text>
+            <text x="180" y="195" font-weight="bold">Catálogo de Quejas</text>
+
+            <!-- Convergencia - Mapeo a Orden o Inspección -->
+            <path d="M 280 180 L 400 280" class="arrow"/>
+            <path d="M 1000 180 L 700 280" class="arrow"/>
+
+            <rect x="400" y="250" width="300" height="80" rx="5" class="decision"/>
+            <text x="550" y="275" font-weight="bold">¿MAPEO SEGÚN</text>
+            <text x="550" y="295" font-weight="bold">CATÁLOGO?</text>
+            <text x="550" y="315" font-size="10">- ORDEN de Trabajo</text>
+            <text x="550" y="330" font-size="10">- INSPECCIÓN o</text>
+            <text x="550" y="345" font-size="10">- NADA (NA)</text>
+
+            <!-- Rama: NA (No Aplica) -->
+            <path d="M 400 290 L 250 290" class="arrow"/>
+            <text x="320" y="275" font-size="11" font-weight="bold">NA</text>
+
+            <ellipse cx="150" cy="290" rx="80" ry="40" class="end"/>
+            <text x="150" y="290" font-weight="bold">CIERRE</text>
+            <text x="150" y="308" font-size="10">Sin Orden</text>
+
+            <!-- Rama: ORDEN o INSPECCIÓN -->
+            <path d="M 550 330 L 550 400" class="arrow"/>
+            <text x="560" y="370" font-size="11" font-weight="bold">ORDEN o INSP.</text>
+
+            <rect x="400" y="400" width="300" height="70" rx="5" class="process"/>
+            <text x="550" y="425" font-weight="bold">✓ GENERACIÓN AUTOMÁTICA</text>
+            <text x="550" y="445" font-weight="bold">DE ORDEN O INSPECCIÓN</text>
+
+            <!-- Flecha -->
+            <path d="M 550 470 L 550 520" class="arrow"/>
+
+            <rect x="375" y="520" width="350" height="80" rx="5" class="user-action"/>
+            <text x="550" y="540" font-weight="bold">📋 CLAVE ASIGNADA A ORDEN</text>
+            <text x="550" y="560" font-size="11">La Orden incluye:</text>
+            <text x="550" y="577" font-size="10">- Descripción · Prioridad</text>
+            <text x="550" y="593" font-size="10">- Área responsable · Identificador único</text>
+
+            <!-- Flecha -->
+            <path d="M 550 600 L 550 650" class="arrow"/>
+
+            <!-- ÁREA TÉCNICA - BÚSQUEDA -->
+            <rect x="300" y="650" width="500" height="100" rx="5" class="box"/>
+            <text x="550" y="670" font-weight="bold">🔍 ÁREA TÉCNICA - BÚSQUEDA Y CONSULTA</text>
+            <text x="550" y="690" font-size="11">Opciones de búsqueda:</text>
+            <text x="550" y="707" font-size="10">1️⃣ Por CLAVE  |  2️⃣ Impresión INDIVIDUAL  |  3️⃣ Impresión MASIVA</text>
+            <text x="550" y="723" font-size="10">Consultables: Estado · Prioridad · Personal asignado</text>
+
+            <!-- Flecha -->
+            <path d="M 550 750 L 550 800" class="arrow"/>
+
+            <!-- DECISIÓN: ¿Ejecutar o No? -->
+            <path d="M 550 800 L 650 860 L 550 920 L 450 860 Z" class="decision"/>
+            <text x="550" y="855" font-weight="bold">¿EJECUTAR</text>
+            <text x="550" y="873" font-weight="bold">ORDEN?</text>
+
+            <!-- NO - Cancelación -->
+            <path d="M 450 860 L 300 860" class="arrow"/>
+            <text x="360" y="850" font-size="11" font-weight="bold">NO</text>
+
+            <ellipse cx="180" cy="860" rx="80" ry="40" class="end"/>
+            <text x="180" y="860" font-weight="bold">CANCELACIÓN</text>
+            <text x="180" y="878" font-size="10">Orden cerrada sin ejecución</text>
+
+            <!-- SÍ - Ejecución -->
+            <path d="M 650 860 L 800 860" class="arrow"/>
+            <text x="725" y="850" font-size="11" font-weight="bold">SÍ</text>
+
+            <rect x="800" y="820" width="280" height="80" rx="5" class="process"/>
+            <text x="940" y="840" font-weight="bold">👥 ASIGNACIÓN DE PERSONAL</text>
+            <text x="940" y="860" font-size="11">Técnico/Operativo asignado</text>
+            <text x="940" y="878" font-size="10">para ejecución en campo</text>
+
+            <!-- Flecha -->
+            <path d="M 940 900 L 940 950" class="arrow"/>
+
+            <rect x="800" y="950" width="280" height="90" rx="5" class="process"/>
+            <text x="940" y="970" font-weight="bold">🛠️ EJECUCIÓN EN CAMPO</text>
+            <text x="940" y="990" font-size="11">Registro de:</text>
+            <text x="940" y="1008" font-size="10">• Personal que ejecutó</text>
+            <text x="940" y="1023" font-size="10">• Materiales utilizados</text>
+            <text x="940" y="1038" font-size="10">• Trabajos realizados</text>
+
+            <!-- Flecha -->
+            <path d="M 940 1040 L 940 1090" class="arrow"/>
+
+            <!-- REVISIÓN USUARIO TÉCNICO -->
+            <rect x="750" y="1090" width="380" height="100" rx="5" class="user-action"/>
+            <text x="940" y="1110" font-weight="bold">👤 REVISIÓN Y CIERRE POR USUARIO TÉCNICO</text>
+            <text x="940" y="1130" font-size="11">Usuario valida:</text>
+            <text x="940" y="1147" font-size="10">✓ Datos del personal · Materiales usados</text>
+            <text x="940" y="1163" font-size="10">✓ Tareas completadas · Observaciones</text>
+
+            <!-- Flecha -->
+            <path d="M 940 1190 L 940 1240" class="arrow"/>
+
+            <!-- DECISIÓN FINAL -->
+            <path d="M 940 1240 L 1040 1300 L 940 1360 L 840 1300 Z" class="decision"/>
+            <text x="940" y="1295" font-weight="bold">¿VALIDACIÓN</text>
+            <text x="940" y="1313" font-weight="bold">CORRECTA?</text>
+
+            <!-- NO VÁLIDA - Rechazo -->
+            <path d="M 840 1300 L 600 1300" class="arrow"/>
+            <text x="710" y="1290" font-size="11" font-weight="bold">NO</text>
+
+            <rect x="400" y="1270" width="200" height="60" rx="5" class="end"/>
+            <text x="500" y="1295" font-weight="bold">🔄 REENVIADA A</text>
+            <text x="500" y="1315" font-weight="bold">CAMPO (Correcciones)</text>
+
+            <path d="M 500 1270 L 500 1200 L 760 1140" class="dashed-arrow"/>
+
+            <!-- SÍ VÁLIDA - Cancelación Exitosa -->
+            <path d="M 1040 1300 L 1120 1300" class="arrow"/>
+            <text x="1080" y="1290" font-size="11" font-weight="bold">SÍ</text>
+
+            <ellipse cx="1180" cy="1300" rx="80" ry="40" class="end"/>
+            <text x="1180" y="1300" font-weight="bold">✅ CANCELADA</text>
+            <text x="1180" y="1318" font-size="10">Completada y cerrada</text>
+
+            <!-- Referencias finales -->
+            <text x="50" y="1500" font-size="10" fill="#666">Registros mantenidos: Catálogo de Órdenes · Catálogo de Quejas · Base de Inspecciones</text>
+        </svg>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box entry"></div>
+                <span><strong>Entrada/Proceso:</strong> Inicio del sistema</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box decision"></div>
+                <span><strong>Decisión:</strong> Evaluación/validación</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box process"></div>
+                <span><strong>Proceso:</strong> Acción ejecutada</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box user"></div>
+                <span><strong>Intervención:</strong> Acción del usuario</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box end"></div>
+                <span><strong>Resultado Final:</strong> Cierre de proceso</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

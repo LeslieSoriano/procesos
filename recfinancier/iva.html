@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IVA en Servicios de Agua - Aguascalientes 2025 MIAA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0077be 0%, #00a8e8 50%, #4dd0e1 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 51, 102, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #004a7c;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        /* h1::before {
+            content: "💧";
+            position: absolute;
+            left: 50px;
+            animation: waterDrop 3s ease-in-out infinite;
+        }
+        
+        h1::after {
+            content: "💧";
+            position: absolute;
+            right: 50px;
+            animation: waterDrop 3s ease-in-out infinite 1.5s;
+        } */
+        
+        @keyframes waterDrop {
+            0%, 100% { transform: translateY(0); opacity: 0.8; }
+            50% { transform: translateY(-10px); opacity: 1; }
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #546e7a;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+        
+        .main-diagram {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0, 77, 153, 0.15);
+            transition: all 0.3s ease;
+            border-top: 4px solid;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            opacity: 0.1;
+            transition: opacity 0.3s ease;
+        }
+        
+        .section:hover::before {
+            opacity: 0.2;
+        }
+        
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 77, 153, 0.25);
+        }
+        
+        .section-legal {
+            border-top-color: #01579b;
+            background: linear-gradient(to bottom, #e1f5fe, white);
+        }
+        
+        .section-legal::before {
+            background: linear-gradient(to bottom, #0288d1, transparent);
+        }
+        
+        .section-conceptos {
+            border-top-color: #006064;
+            background: linear-gradient(to bottom, #e0f7fa, white);
+        }
+        
+        .section-conceptos::before {
+            background: linear-gradient(to bottom, #00acc1, transparent);
+        }
+        
+        .section-tarifas {
+            border-top-color: #1565c0;
+            background: linear-gradient(to bottom, #e3f2fd, white);
+        }
+        
+        .section-tarifas::before {
+            background: linear-gradient(to bottom, #1976d2, transparent);
+        }
+        
+        .section-obligaciones {
+            border-top-color: #0277bd;
+            background: linear-gradient(to bottom, #b3e5fc, white);
+        }
+        
+        .section-obligaciones::before {
+            background: linear-gradient(to bottom, #039be5, transparent);
+        }
+        
+        .section-excepciones {
+            border-top-color: #4527a0;
+            background: linear-gradient(to bottom, #e8eaf6, white);
+        }
+        
+        .section-excepciones::before {
+            background: linear-gradient(to bottom, #5e35b1, transparent);
+        }
+        
+        h2 {
+            color: #01579b;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .icon {
+            width: 35px;
+            height: 35px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 1.2em;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .icon-legal { 
+            background: linear-gradient(135deg, #0288d1, #01579b); 
+            color: white; 
+        }
+        
+        .icon-conceptos { 
+            background: linear-gradient(135deg, #00acc1, #006064); 
+            color: white; 
+        }
+        
+        .icon-tarifas { 
+            background: linear-gradient(135deg, #1976d2, #1565c0); 
+            color: white; 
+        }
+        
+        .icon-obligaciones { 
+            background: linear-gradient(135deg, #039be5, #0277bd); 
+            color: white; 
+        }
+        
+        .icon-excepciones { 
+            background: linear-gradient(135deg, #5e35b1, #4527a0); 
+            color: white; 
+        }
+        
+        ul {
+            list-style: none;
+            padding-left: 0;
+            position: relative;
+            z-index: 1;
+        }
+        
+        li {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.9);
+            border-left: 3px solid;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        li::before {
+            content: "▸";
+            position: absolute;
+            left: -15px;
+            color: #0288d1;
+            font-weight: bold;
+        }
+        
+        li:hover {
+            transform: translateX(5px);
+            background: rgba(255,255,255,1);
+            box-shadow: 0 2px 10px rgba(0, 77, 153, 0.1);
+        }
+        
+        .section-legal li { border-left-color: #01579b; }
+        .section-conceptos li { border-left-color: #006064; }
+        .section-tarifas li { border-left-color: #1565c0; }
+        .section-obligaciones li { border-left-color: #0277bd; }
+        .section-excepciones li { border-left-color: #4527a0; }
+        
+        .subsection {
+            margin-top: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 119, 190, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .subsection h3 {
+            color: #004a7c;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .tasa-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-right: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .tasa-0 {
+            background: linear-gradient(135deg, #b2dfdb, #4db6ac);
+            color: #00695c;
+        }
+        
+        .tasa-16 {
+            background: linear-gradient(135deg, #ffccbc, #ff7043);
+            color: #bf360c;
+        }
+        
+        .tasa-exento {
+            background: linear-gradient(135deg, #c5cae9, #7986cb);
+            color: #283593;
+        }
+        
+        .flowchart {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 50%, #81d4fa 100%);
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 77, 153, 0.2);
+        }
+        
+        .flow-title {
+            text-align: center;
+            color: #01579b;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 3px rgba(255,255,255,0.5);
+        }
+        
+        .flow-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .flow-box {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, white, #f5f5f5);
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 77, 153, 0.2);
+            position: relative;
+            min-width: 200px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .flow-box:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 77, 153, 0.3);
+            border-color: #0288d1;
+            background: white;
+        }
+        
+        .arrow {
+            font-size: 24px;
+            color: #0288d1;
+            font-weight: bold;
+        }
+        
+        .calculation-example {
+            background: linear-gradient(135deg, #ffffff, #eceff1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 2px dashed #0288d1;
+            box-shadow: inset 0 2px 5px rgba(0, 77, 153, 0.05);
+        }
+        
+        .calc-title {
+            font-weight: bold;
+            color: #01579b;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .calc-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #b3e5fc;
+        }
+        
+        .calc-total {
+            font-weight: bold;
+            color: #00695c;
+            font-size: 1.2em;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #00acc1;
+        }
+        
+        .note {
+            background: linear-gradient(135deg, #fff9c4, #ffecb3);
+            padding: 15px;
+            border-left: 4px solid #f9a825;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-style: italic;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .footer-note {
+            text-align: center;
+            color: #37474f;
+            margin-top: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #eceff1, #cfd8dc);
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 77, 153, 0.1);
+            border: 1px solid rgba(0, 119, 190, 0.2);
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 168, 232, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 10px 5px rgba(0, 168, 232, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 168, 232, 0); }
+        }
+        
+        .important {
+            animation: pulse 2s infinite;
+            background: linear-gradient(135deg, #ffeb3b, #ffc107);
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        /* Efectos de agua */
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        .water-effect {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: linear-gradient(90deg, 
+                rgba(0, 119, 190, 0.1) 0%, 
+                rgba(0, 168, 232, 0.2) 50%, 
+                rgba(0, 119, 190, 0.1) 100%);
+            animation: wave 10s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Aplicación del IVA a Servicios de Agua, Alcantarillado y Saneamiento MIAA</h1>
+        <p class="subtitle">Marco Normativo Fiscal - Aguascalientes 2025-2026</p>
+        
+        <div class="main-diagram">
+            <!-- Sección 1: Base Legal -->
+            <div class="section section-legal">
+                <h2><span class="icon icon-legal">📜</span> Base Legal</h2>
+                <ul>
+                    <li><strong>Ley del IVA Federal:</strong> Artículo 2-A, Fracción II, inciso h)</li>
+                    <li><strong>Ley de Hacienda del Estado de Aguascalientes</strong> (Actualizada 2025)</li>
+                    <li><strong>Ley de Ingresos del Estado de Aguascalientes 2025</strong></li>
+                    <li><strong>Ley de Ingresos Municipal de Aguascalientes 2025</strong></li>
+                    <li><strong>Resolución Miscelánea Fiscal 2025</strong></li>
+                </ul>
+                <div class="note">
+                    <strong>Principio General:</strong> El IVA en servicios de agua se rige principalmente por la legislación federal, con aplicación uniforme en todo el territorio nacional.
+                </div>
+            </div>
+            
+            <!-- Sección 2: Conceptos Gravados y Exentos -->
+            <div class="section section-conceptos">
+                <h2><span class="icon icon-conceptos">💧</span> Conceptos Gravados y Exentos</h2>
+                
+                <div class="subsection">
+                    <h3>✅ Tasa 0% IVA</h3>
+                    <ul>
+                        <li><span class="tasa-badge tasa-0">0%</span> <strong>Agua potable para uso doméstico</strong></li>
+                        <li><span class="tasa-badge tasa-0">0%</span> <strong>Recargos por falta de pago</strong> (uso doméstico)</li>
+                    </ul>
+                </div>
+                
+                <div class="subsection">
+                    <h3>🔴 Tasa 16% IVA</h3>
+                    <ul>
+                        <li><span class="tasa-badge tasa-16">16%</span> <strong>Productos</strong></li>
+                    </ul>
+                </div>
+                
+                <div class="subsection">
+                    <h3>🔵 Exentos</h3>
+                    <ul>
+                        <li><span class="tasa-badge tasa-exento">EXENTO</span> <strong>Agua natural a granel</strong></li>
+                    </ul>
+                </div>
+                <div class="subsection">
+                    <h3>🔵 No Afectos</h3>
+                    <ul>
+                        <li><span class="tasa-badge tasa-exento">No Afectos</span> <strong>Derechos</strong></li>
+                        <li><span class="tasa-badge tasa-exento">No Afectos</span> <strong>Aprovechamientos</strong></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Sección 3: Tarifas y Cálculo -->
+            <div class="section section-tarifas">
+                <h2><span class="icon icon-tarifas">💰</span> Formas de Cálculo del IVA</h2>
+                
+                <div class="calculation-example">
+                    <div class="calc-title">📝 Ejemplo Estado de cuenta Uso Doméstico</div>
+                    <div class="calc-item">
+                        <span>Consumo agua (30 m³):</span>
+                        <span>$250.00</span>
+                    </div>
+                    <div class="calc-item">
+                        <span>Alcantarillado (30%):</span>
+                        <span>$75.00</span>
+                    </div>
+                    <div class="calc-item">
+                        <span>Saneamiento (20%):</span>
+                        <span>$50.00</span>
+                    </div>
+                    <div class="calc-item">
+                        <span>Subtotal:</span>
+                        <span>$375.00</span>
+                    </div>
+                    <div class="calc-item">
+                        <span>IVA (0%):</span>
+                        <span class="tasa-badge tasa-0">$0.00</span>
+                    </div>
+                    <div class="calc-total">
+                        <span>Total a pagar:</span>
+                        <span>$375.00</span>
+                    </div>
+                </div>
+                
+                <div class="calculation-example">
+                    <div class="calc-title">📝 Ejemplo Estado de cuenta Uso Comercial</div>
+                    <div class="calc-item">
+                        <span>Consumo agua (100 m³):</span>
+                        <span>$1,500.00</span>
+                    </div>
+                    <div class="calc-item">
+                        <span>Alcantarillado (30%):</span>
+                        <span>$450.00</span>
+                    </div>
+                    <div class="calc-item">
+                        <span>Saneamiento (20%):</span>
+                        <span>$300.00</span>
+                    </div>
+                    <div class="calc-item">
+                        <span>Subtotal:</span>
+                        <span>$2,250.00</span>
+                    </div>
+                    <div class="calc-item">
+                        <span>IVA No afecto</span>
+                    </div>
+                    <div class="calc-total">
+                        <span>Total a pagar:</span>
+                        <span>$2,250.00</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección 4: Obligaciones -->
+            <div class="section section-obligaciones">
+                <h2><span class="icon icon-obligaciones">📋</span> Obligaciones</h2>
+                
+                <div class="subsection">
+                    <h3>Para el Proveedor del Servicio</h3>
+                    <ul>
+                        <li>✓ Emitir CFDI con desglose correcto del IVA</li>
+                        <li>✓ Aplicar tasa 0% para uso doméstico</li>
+                        <li>✓ Distinguir claramente tipo de usuario</li>
+                        <li>✓ Presentar declaraciones mensuales de IVA</li>
+                        <li>✓ Mantener registros contables separados</li>
+                        <li>✓ Cumplir con auditorías fiscales</li>
+                    </ul>
+                </div>
+                
+                <div class="subsection">
+                    <h3>Para el Contribuyente</h3>
+                    <ul>
+                        <li>✓ Declarar correctamente el uso del servicio</li>
+                        <li>✓ Conservar comprobantes fiscales</li>
+                        <li>✓ Prorratear el acreditamiento del IVA(tasa 0%)</li>
+                        <li>✓ Actualizar datos ante cambio de uso</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Sección 5: Excepciones -->
+            <div class="section section-excepciones">
+                <h2><span class="icon icon-excepciones">⚠️</span> Excepciones y Situaciones Especiales</h2>
+                <ul>
+                    <li><strong>Uso Mixto:</strong> Se prorratea según porcentaje de uso</li>
+                    <li><strong>Comunidades Rurales:</strong> Pueden tener exención total</li>
+                    <li><strong>Pozos Propios:</strong> Régimen especial de tributación</li>
+                    <li><strong>Predios en Revision:</strong></li>
+                    <li><strong>Escuelas Públicas:</strong> Tratamiento como uso doméstico o Comercial</li>
+                    <li><strong>Hospitales Públicos:</strong> Régimen como Uso Domestico o Comercial</li>
+                </ul>
+                
+                <div class="note">
+                    <strong>Importante:</strong> En caso de cambio de uso del inmueble, debe notificarse al organismo operador dentro de los 30 días siguientes para ajustar la tasa de IVA aplicable.
+                </div>
+                <div class="note">
+                    📌
+                    <strong> Consultas de sistemas</strong>
+                    <ul>
+                        <li>Entonces en el Estado de cuenta no se describe el iva solo en la factura individual y global(Se pondra el 0%) en estado de cuenta de manera informativa</li>
+                        <li>Que pasa con el adeudo anterior? se caclcula o no se calcula el iva. Respuesta: Si se calcula se va a separar hasta el CFDI</li>
+                        <li>Que pasa con el adeudo anterior? pero esta en Parcialidades. Respuesta: Cuando se hace un convenio se debe realizar un PPD ? solo cuando tiene un rfc registrado. </li>
+                        <li>Que pasa si hay un CFDI sin IVA y se requiere hacer una sustitución o nota de crédito que reglas se llevaran en el sistema: Esta regla me la porporcionara el área Comercial</li>
+                        <li>Que pasa si cambia de tipo de USO de uno que cause IVA a uno que no cause o viceversa con el adeudo anterior.van a querer que se recalcule el IVA? Respuesta: SI</li>
+                    </ul>
+                </div>
+            </div>
+        </div>  
+        <!-- Diagrama de Flujo del Proceso -->
+        <div class="flowchart">
+            <h2 class="flow-title">🔄 Flujo de Determinación del IVA</h2>
+            
+            <div class="flow-row">
+                <div class="flow-box" style="background: linear-gradient(135deg, #e1f5fe, #b3e5fc);">
+                    <strong>1. IDENTIFICACIÓN</strong><br>
+                    Tipo de servicio solicitado
+                </div>
+                <span class="arrow">→</span>
+                <div class="flow-box" style="background: linear-gradient(135deg, #e0f7fa, #b2ebf2);">
+                    <strong>2. CLASIFICACIÓN</strong><br>
+                    Uso doméstico vs. comercial
+                </div>
+                <span class="arrow">→</span>
+                <div class="flow-box" style="background: linear-gradient(135deg, #e0f2f1, #b2dfdb);">
+                    <strong>3. DETERMINACIÓN</strong><br>
+                    Tasa aplicable (0% o No Afecto)
+                </div>
+            </div>
+            
+            <div class="flow-row">
+                <div class="flow-box" style="background: linear-gradient(135deg, #e8eaf6, #c5cae9);">
+                    <strong>4. CÁLCULO</strong><br>
+                    Aplicación de la tasa al servicio
+                </div>
+                <span class="arrow">→</span>
+                <div class="flow-box" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb);">
+                    <strong>5. FACTURACIÓN</strong><br>
+                    Emisión de CFDI con IVA correcto
+                </div>
+            </div>
+        </div>
+        
+        <!-- Diferenciación de Servicios -->
+        <div class="flowchart" style="background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 50%, #039be5 100%);">
+            <h2 class="flow-title" style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">🚰 Diferenciación de Servicios</h2>
+            
+            <div class="flow-row">
+                <div class="flow-box" style="background: linear-gradient(135deg, #ffffff, #e1f5fe); flex: 1;">
+                    <strong style="color: #01579b;">💧 AGUA POTABLE</strong><br><br>
+                    • Suministro directo<br>
+                    • Medición por m³<br>
+                    • Tasa 0% doméstico<br>
+                    • Tasa No Afecto Comercial
+                </div>
+                
+                <div class="flow-box" style="background: linear-gradient(135deg, #ffffff, #e0f7fa); flex: 1;">
+                    <strong style="color: #006064;">🏭 ALCANTARILLADO</strong><br><br>
+                    • Desalojo de aguas residuales<br>
+                    • % sobre consumo de agua<br>
+                    • Sigue tasa del servicio principal Se deja a No afecto<br>
+                    • Facturación conjunta
+                </div>
+                
+                <div class="flow-box" style="background: linear-gradient(135deg, #ffffff, #e0f2f1); flex: 1;">
+                    <strong style="color: #00695c;">♻️ SANEAMIENTO</strong><br><br>
+                    • Tratamiento de aguas<br>
+                    • Cuota fija o variable<br>
+                    • Misma tasa que agua Se genera al no Afecto<br>
+                    • Puede facturarse por separado
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-note">
+            <strong>📌 Nota Legal:</strong> Este diagrama es una representación esquemática basada en la normativa fiscal federal aplicable en México. 
+            Para casos específicos en Aguascalientes, se recomienda consultar directamente la Ley de Hacienda del Estado vigente y las disposiciones 
+            municipales correspondientes, así como asesorarse con un contador o fiscal especializado.
+            <br><br>
+            <em>Última actualización normativa considerada: Octubre 2025</em>
+        </div>
+    </div>
+</body>
+</html>
