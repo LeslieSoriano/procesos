@@ -258,7 +258,7 @@
         </div>
 
         <div id="columnSelector" style="display: none; margin-bottom: 20px;">
-            <h2>Selecciona 2 columnas a analizar</h2>
+            <h2>Selecciona 3 columnas a analizar</h2>
             <div class="column-selector-group">
                 <div class="column-input">
                     <label for="columnSelect1">Primera Columna:</label>
@@ -267,6 +267,10 @@
                 <div class="column-input">
                     <label for="columnSelect2">Segunda Columna:</label>
                     <select id="columnSelect2"></select>
+                </div>
+                <div class="column-input">
+                    <label for="columnSelect3">Tercera Columna:</label>
+                    <select id="columnSelect3"></select>
                 </div>
             </div>
             <div class="action-buttons">
@@ -366,10 +370,12 @@
         function populateColumnSelector(data) {
             const columnSelect1 = document.getElementById('columnSelect1');
             const columnSelect2 = document.getElementById('columnSelect2');
+            const columnSelect3 = document.getElementById('columnSelect3');
             const headers = data[0];
             
             columnSelect1.innerHTML = '';
             columnSelect2.innerHTML = '';
+            columnSelect3.innerHTML = '';
             
             headers.forEach((header, index) => {
                 const option1 = document.createElement('option');
@@ -381,10 +387,18 @@
                 option2.value = index;
                 option2.textContent = header || `Columna ${index + 1}`;
                 columnSelect2.appendChild(option2);
+
+                const option3 = document.createElement('option');
+                option3.value = index;
+                option3.textContent = header || `Columna ${index + 1}`;
+                columnSelect3.appendChild(option3);
             });
 
             if (headers.length > 1) {
                 columnSelect2.value = 1;
+            }
+            if (headers.length > 2) {
+                columnSelect3.value = 2;
             }
 
             document.getElementById('columnSelector').style.display = 'block';
@@ -393,37 +407,41 @@
         function analyzeColumns() {
             const col1Index = parseInt(document.getElementById('columnSelect1').value);
             const col2Index = parseInt(document.getElementById('columnSelect2').value);
+            const col3Index = parseInt(document.getElementById('columnSelect3').value);
 
-            if (col1Index === col2Index) {
-                showError('Debes seleccionar 2 columnas diferentes.');
+            if (col1Index === col2Index || col2Index === col3Index || col1Index === col3Index) {
+                showError('Debes seleccionar 3 columnas diferentes.');
                 return;
             }
 
             const col1Header = allData[0][col1Index];
             const col2Header = allData[0][col2Index];
+            const col3Header = allData[0][col3Index];
 
             const columnData = allData.slice(1).map(row => ({
                 col1: row[col1Index],
-                col2: row[col2Index]
-            })).filter(val => val.col1 !== undefined && val.col1 !== null && val.col1 !== '' && val.col2 !== undefined && val.col2 !== null && val.col2 !== '');
+                col2: row[col2Index],
+                col3: row[col3Index]
+            })).filter(val => val.col1 !== undefined && val.col1 !== null && val.col1 !== '' && val.col2 !== undefined && val.col2 !== null && val.col2 !== '' && val.col3 !== undefined && val.col3 !== null && val.col3 !== '');
 
             const counts = {};
             const combinations = [];
             
             columnData.forEach(item => {
-                const key = `${item.col1}|${item.col2}`;
+                const key = `${item.col1}|${item.col2}|${item.col3}`;
                 counts[key] = (counts[key] || 0) + 1;
                 combinations.push(item);
             });
 
             const duplicates = Object.entries(counts).filter(([_, count]) => count > 1).map(([key, count]) => {
-                const [col1Val, col2Val] = key.split('|');
-                return { col1: col1Val, col2: col2Val, count };
+                const [col1Val, col2Val, col3Val] = key.split('|');
+                return { col1: col1Val, col2: col2Val, col3: col3Val, count };
             });
 
             currentResults = {
                 col1Header,
                 col2Header,
+                col3Header,
                 columnData,
                 duplicates,
                 total: columnData.length,
@@ -450,7 +468,7 @@
                     div.className = 'duplicate-item';
                     div.innerHTML = `
                         <div class="duplicate-value">
-                            <strong>${results.col1Header}:</strong> ${item.col1} | <strong>${results.col2Header}:</strong> ${item.col2}
+                            <strong>${results.col1Header}:</strong> ${item.col1} | <strong>${results.col2Header}:</strong> ${item.col2} | <strong>${results.col3Header}:</strong> ${item.col3}
                         </div>
                         <span class="duplicate-count">${item.count} veces</span>
                     `;
@@ -465,11 +483,11 @@
             if (!currentResults) return;
 
             const data = [
-                [currentResults.col1Header, currentResults.col2Header, 'Cantidad de Repeticiones']
+                [currentResults.col1Header, currentResults.col2Header, currentResults.col3Header, 'Cantidad de Repeticiones']
             ];
 
             currentResults.duplicates.forEach(item => {
-                data.push([item.col1, item.col2, item.count]);
+                data.push([item.col1, item.col2, item.col3, item.count]);
             });
 
             const ws = XLSX.utils.aoa_to_sheet(data);
@@ -477,6 +495,7 @@
             XLSX.utils.book_append_sheet(wb, ws, 'Duplicados');
 
             ws['!cols'] = [
+                { wch: 30 },
                 { wch: 30 },
                 { wch: 30 },
                 { wch: 20 }
