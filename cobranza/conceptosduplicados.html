@@ -54,7 +54,7 @@
             margin-bottom: 30px;
         }
 
-        .upload-area:hover {
+        .upload-area:hover:not(.disabled) {
             background: #eef1ff;
             border-color: #764ba2;
         }
@@ -62,6 +62,11 @@
         .upload-area.dragover {
             background: #e0e7ff;
             border-color: #4c51bf;
+        }
+
+        .upload-area.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .upload-icon {
@@ -85,7 +90,21 @@
             margin-top: 10px;
         }
 
-        .btn:hover {
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #10b981;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
             transform: translateY(-2px);
         }
 
@@ -123,7 +142,7 @@
             background: #f8f9ff;
             border-radius: 12px;
             padding: 20px;
-            max-height: 400px;
+            max-height: 500px;
             overflow-y: auto;
         }
 
@@ -141,6 +160,7 @@
         .duplicate-value {
             font-weight: 600;
             color: #333;
+            flex: 1;
         }
 
         .duplicate-count {
@@ -169,31 +189,90 @@
             border-left: 4px solid #dc2626;
         }
 
+        .success {
+            background: #dcfce7;
+            color: #15803d;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #15803d;
+        }
+
         h2 {
             color: #333;
             margin-bottom: 20px;
             font-size: 20px;
+        }
+
+        .column-selector-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .column-input {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .column-input label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .column-input select {
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .file-name {
+            color: #10b981;
+            font-weight: 600;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🔍 Detector de Duplicados en Excel</h1>
-        <p class="subtitle">Sube tu archivo Excel o TXT para detectar valores duplicados en la columna seleccionada</p>
+        <p class="subtitle">Sube tu archivo Excel o CSV para detectar valores duplicados en 2 columnas</p>
         
         <div class="upload-area" id="uploadArea">
             <div class="upload-icon">📁</div>
             <p style="margin-bottom: 10px; color: #333; font-weight: 600;">Arrastra tu archivo aquí o haz clic para seleccionar</p>
-            <p style="color: #666; font-size: 14px;">Formatos compatibles: .xlsx, .xls, .txt, .csv</p>
-            <input type="file" id="fileInput" accept=".xlsx,.xls,.txt,.csv">
-            <button class="btn" onclick="document.getElementById('fileInput').click()">Seleccionar Archivo</button>
+            <p style="color: #666; font-size: 14px;">Formatos compatibles: .xlsx, .xls, .csv</p>
+            <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+            <button class="btn" id="selectFileBtn" onclick="document.getElementById('fileInput').click()">Seleccionar Archivo</button>
+            <div class="file-name" id="fileName"></div>
         </div>
 
         <div id="columnSelector" style="display: none; margin-bottom: 20px;">
-            <label for="columnSelect" style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">Selecciona la columna a analizar:</label>
-            <select id="columnSelect" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;">
-            </select>
-            <button class="btn" onclick="analyzeColumn()" style="margin-top: 15px;">Analizar Duplicados</button>
+            <h2>Selecciona 2 columnas a analizar</h2>
+            <div class="column-selector-group">
+                <div class="column-input">
+                    <label for="columnSelect1">Primera Columna:</label>
+                    <select id="columnSelect1"></select>
+                </div>
+                <div class="column-input">
+                    <label for="columnSelect2">Segunda Columna:</label>
+                    <select id="columnSelect2"></select>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="btn" onclick="analyzeColumns()">Analizar Duplicados</button>
+                <button class="btn btn-secondary" onclick="resetFile()">Cambiar Archivo</button>
+            </div>
         </div>
 
         <div id="results" class="results" style="display: none;">
@@ -208,27 +287,36 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="duplicateRecords">0</div>
-                    <div class="stat-label">Valores Duplicados</div>
+                    <div class="stat-label">Combinaciones Duplicadas</div>
                 </div>
             </div>
 
             <h2>📋 Lista de Duplicados</h2>
             <div class="duplicates-list" id="duplicatesList"></div>
+            
+            <div class="action-buttons" style="margin-top: 30px;">
+                <button class="btn btn-secondary" onclick="downloadResults()">📥 Descargar Resultados (Excel)</button>
+                <button class="btn" onclick="resetFile()">Analizar Otro Archivo</button>
+            </div>
         </div>
     </div>
 
     <script>
         let fileData = null;
         let allData = null;
+        let currentResults = null;
 
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
+        const selectFileBtn = document.getElementById('selectFileBtn');
 
-        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('click', () => {
+            if (!fileData) fileInput.click();
+        });
 
         uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
-            uploadArea.classList.add('dragover');
+            if (!fileData) uploadArea.classList.add('dragover');
         });
 
         uploadArea.addEventListener('dragleave', () => {
@@ -238,8 +326,10 @@
         uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
             uploadArea.classList.remove('dragover');
-            const file = e.dataTransfer.files[0];
-            if (file) handleFile(file);
+            if (!fileData) {
+                const file = e.dataTransfer.files[0];
+                if (file) handleFile(file);
+            }
         });
 
         fileInput.addEventListener('change', (e) => {
@@ -258,6 +348,12 @@
                     const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
                     
                     allData = jsonData;
+                    fileData = file;
+                    
+                    uploadArea.classList.add('disabled');
+                    selectFileBtn.disabled = true;
+                    document.getElementById('fileName').textContent = `📄 Archivo cargado: ${file.name}`;
+                    
                     populateColumnSelector(jsonData);
                 } catch (error) {
                     showError('Error al leer el archivo. Asegúrate de que sea un archivo Excel válido.');
@@ -268,58 +364,138 @@
         }
 
         function populateColumnSelector(data) {
-            const columnSelect = document.getElementById('columnSelect');
+            const columnSelect1 = document.getElementById('columnSelect1');
+            const columnSelect2 = document.getElementById('columnSelect2');
             const headers = data[0];
             
-            columnSelect.innerHTML = '';
+            columnSelect1.innerHTML = '';
+            columnSelect2.innerHTML = '';
+            
             headers.forEach((header, index) => {
-                const option = document.createElement('option');
-                option.value = index;
-                option.textContent = header || `Columna ${index + 1}`;
-                columnSelect.appendChild(option);
+                const option1 = document.createElement('option');
+                option1.value = index;
+                option1.textContent = header || `Columna ${index + 1}`;
+                columnSelect1.appendChild(option1);
+
+                const option2 = document.createElement('option');
+                option2.value = index;
+                option2.textContent = header || `Columna ${index + 1}`;
+                columnSelect2.appendChild(option2);
             });
+
+            if (headers.length > 1) {
+                columnSelect2.value = 1;
+            }
 
             document.getElementById('columnSelector').style.display = 'block';
         }
 
-        function analyzeColumn() {
-            const columnIndex = parseInt(document.getElementById('columnSelect').value);
-            const columnData = allData.slice(1).map(row => row[columnIndex]).filter(val => val !== undefined && val !== null && val !== '');
+        function analyzeColumns() {
+            const col1Index = parseInt(document.getElementById('columnSelect1').value);
+            const col2Index = parseInt(document.getElementById('columnSelect2').value);
+
+            if (col1Index === col2Index) {
+                showError('Debes seleccionar 2 columnas diferentes.');
+                return;
+            }
+
+            const col1Header = allData[0][col1Index];
+            const col2Header = allData[0][col2Index];
+
+            const columnData = allData.slice(1).map(row => ({
+                col1: row[col1Index],
+                col2: row[col2Index]
+            })).filter(val => val.col1 !== undefined && val.col1 !== null && val.col1 !== '' && val.col2 !== undefined && val.col2 !== null && val.col2 !== '');
 
             const counts = {};
-            columnData.forEach(value => {
-                counts[value] = (counts[value] || 0) + 1;
+            const combinations = [];
+            
+            columnData.forEach(item => {
+                const key = `${item.col1}|${item.col2}`;
+                counts[key] = (counts[key] || 0) + 1;
+                combinations.push(item);
             });
 
-            const duplicates = Object.entries(counts).filter(([_, count]) => count > 1);
-            
-            displayResults(columnData.length, Object.keys(counts).length, duplicates);
+            const duplicates = Object.entries(counts).filter(([_, count]) => count > 1).map(([key, count]) => {
+                const [col1Val, col2Val] = key.split('|');
+                return { col1: col1Val, col2: col2Val, count };
+            });
+
+            currentResults = {
+                col1Header,
+                col2Header,
+                columnData,
+                duplicates,
+                total: columnData.length,
+                unique: Object.keys(counts).length
+            };
+
+            displayResults(currentResults);
         }
 
-        function displayResults(total, unique, duplicates) {
-            document.getElementById('totalRecords').textContent = total;
-            document.getElementById('uniqueRecords').textContent = unique;
-            document.getElementById('duplicateRecords').textContent = duplicates.length;
+        function displayResults(results) {
+            document.getElementById('totalRecords').textContent = results.total;
+            document.getElementById('uniqueRecords').textContent = results.unique;
+            document.getElementById('duplicateRecords').textContent = results.duplicates.length;
 
             const duplicatesList = document.getElementById('duplicatesList');
             duplicatesList.innerHTML = '';
 
-            if (duplicates.length === 0) {
-                duplicatesList.innerHTML = '<div class="no-duplicates">✅ No se encontraron valores duplicados</div>';
+            if (results.duplicates.length === 0) {
+                duplicatesList.innerHTML = '<div class="no-duplicates">✅ No se encontraron combinaciones duplicadas</div>';
             } else {
-                duplicates.sort((a, b) => b[1] - a[1]);
-                duplicates.forEach(([value, count]) => {
-                    const item = document.createElement('div');
-                    item.className = 'duplicate-item';
-                    item.innerHTML = `
-                        <span class="duplicate-value">${value}</span>
-                        <span class="duplicate-count">${count} veces</span>
+                results.duplicates.sort((a, b) => b.count - a.count);
+                results.duplicates.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'duplicate-item';
+                    div.innerHTML = `
+                        <div class="duplicate-value">
+                            <strong>${results.col1Header}:</strong> ${item.col1} | <strong>${results.col2Header}:</strong> ${item.col2}
+                        </div>
+                        <span class="duplicate-count">${item.count} veces</span>
                     `;
-                    duplicatesList.appendChild(item);
+                    duplicatesList.appendChild(div);
                 });
             }
 
             document.getElementById('results').style.display = 'block';
+        }
+
+        function downloadResults() {
+            if (!currentResults) return;
+
+            const data = [
+                [currentResults.col1Header, currentResults.col2Header, 'Cantidad de Repeticiones']
+            ];
+
+            currentResults.duplicates.forEach(item => {
+                data.push([item.col1, item.col2, item.count]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Duplicados');
+
+            ws['!cols'] = [
+                { wch: 30 },
+                { wch: 30 },
+                { wch: 20 }
+            ];
+
+            XLSX.writeFile(wb, 'resultados_duplicados.xlsx');
+            showSuccess('✅ Archivo descargado correctamente');
+        }
+
+        function resetFile() {
+            fileData = null;
+            allData = null;
+            currentResults = null;
+            fileInput.value = '';
+            uploadArea.classList.remove('disabled');
+            selectFileBtn.disabled = false;
+            document.getElementById('fileName').textContent = '';
+            document.getElementById('columnSelector').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
         }
 
         function showError(message) {
@@ -328,6 +504,14 @@
             errorDiv.textContent = message;
             document.querySelector('.container').appendChild(errorDiv);
             setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+            document.querySelector('.container').appendChild(successDiv);
+            setTimeout(() => successDiv.remove(), 5000);
         }
     </script>
 </body>

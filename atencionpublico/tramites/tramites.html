@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión Dinámico de Trámites</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        header h1 {
+            color: #333;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #4caf50;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+        }
+
+        .btn-danger {
+            background: #f44336;
+        }
+
+        .btn-danger:hover {
+            background: #da190b;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .filtros {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filtros label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .filtros input, .filtros select {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .filtros input:focus, .filtros select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .categorias {
+            display: grid;
+            gap: 25px;
+        }
+
+        .categoria {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .categoria-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: transform 0.3s;
+        }
+
+        .categoria-header:hover {
+            transform: translateX(5px);
+        }
+
+        .categoria-header h2 {
+            font-size: 20px;
+        }
+
+        .toggle-icon {
+            font-size: 24px;
+            transition: transform 0.3s;
+        }
+
+        .categoria.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .categoria-content {
+            padding: 20px;
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .categoria.collapsed .categoria-content {
+            max-height: 0;
+            padding: 0 20px;
+        }
+
+        .tramites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .tramite-card {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tramite-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+            transform: translateY(-3px);
+        }
+
+        .tramite-card h3 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .tramite-card p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .tramite-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .tramite-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .estado-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .estado-agregar { background: #4caf50; color: white; }
+        .estado-eliminar { background: #f44336; color: white; }
+        .estado-modificar { background: #ff9800; color: white; }
+        .estado-igual { background: #2196f3; color: white; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 3% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 95%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover { color: #000; }
+
+        .modal h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .etapas-section {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .etapa-item {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .etapa-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .etapa-item h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .etapa-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            justify-content: flex-end;
+        }
+
+        .btn-modal {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-guardar {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-guardar:hover {
+            background: #45a049;
+        }
+
+        .btn-cancelar {
+            background: #ddd;
+            color: #333;
+        }
+
+        .btn-cancelar:hover {
+            background: #ccc;
+        }
+
+        .btn-agregar-etapa {
+            background: #2196f3;
+            color: white;
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+        }
+
+        .btn-agregar-etapa:hover {
+            background: #0b7dda;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tramite-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tramite-card:hover .tramite-actions {
+            opacity: 1;
+        }
+
+        .add-tramite-btn {
+            width: 100%;
+            padding: 15px;
+            background: #f0f0f0;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #667eea;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .add-tramite-btn:hover {
+            background: #e8eaff;
+            border-color: #5568d3;
+        }
+
+        .contador {
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Sistema de Gestión Dinámico de Trámites</h1>
+            <div class="header-buttons">
+                <button class="btn-primary" onclick="abrirNuevoTramite()">➕ Nuevo Trámite</button>
+                <button class="btn-primary" onclick="guardarJSON()">💾 Descargar JSON</button>
+            </div>
+        </header>
+
+        <div class="filtros">
+            <label for="filtroNombre">🔍 Buscar trámite:</label>
+            <input type="text" id="filtroNombre" placeholder="Ingresa el nombre del trámite...">
+            
+            <label for="filtroCategoria">📂 Categoría:</label>
+            <select id="filtroCategoria">
+                <option value="">Todas las categorías</option>
+            </select>
+
+            <button class="btn-primary" onclick="resetFiltros()">🔄 Limpiar filtros</button>
+        </div>
+
+        <div class="categorias" id="categoriasContainer"></div>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal()">&times;</span>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="cambiarTab(this, 'info')">📋 Información</button>
+                <button class="tab" onclick="cambiarTab(this, 'etapas')">📍 Etapas</button>
+                <button class="tab" onclick="cambiarTab(this, 'requisitos')">✅ Requisitos</button>
+            </div>
+
+            <div id="info" class="tab-content active">
+                <div class="form-group">
+                    <label for="nombreTramite">Nombre del Trámite *</label>
+                    <input type="text" id="nombreTramite" placeholder="Ej: Invitación al pago">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="claveTramite">Clave *</label>
+                        <input type="number" id="claveTramite" placeholder="Ej: 14">
+                    </div>
+                    <div class="form-group">
+                        <label for="estadoTramite">Estado *</label>
+                        <select id="estadoTramite">
+                            <option>Se queda igual</option>
+                            <option>Se modificó</option>
+                            <option>Agregar</option>
+                            <option>Eliminar</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="categoriaTramite">Categoría *</label>
+                        <select id="categoriaTramite"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filtrosTramite">Filtros</label>
+                        <input type="text" id="filtrosTramite" placeholder="Ej: Usuarios con servicio Doméstico">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="descripcionTramite">Descripción *</label>
+                    <textarea id="descripcionTramite" placeholder="Describe el trámite..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="presupuestoTramite">Presupuesto</label>
+                    <input type="text" id="presupuestoTramite" placeholder="Ej: (204) Reconexión de toma">
+                </div>
+
+                <div class="form-group">
+                    <label for="resultadoTramite">Resultado / Observaciones</label>
+                    <textarea id="resultadoTramite" placeholder="Resultado esperado..."></textarea>
+                </div>
+            </div>
+
+            <div id="etapas" class="tab-content">
+                <div class="etapas-section" id="etapasContainer"></div>
+                <button class="btn-primary btn-agregar-etapa" onclick="agregarEtapa()">➕ Agregar Etapa</button>
+            </div>
+
+            <div id="requisitos" class="tab-content">
+                <div class="form-group">
+                    <label for="requisitosTramite">Requisitos a Validar en Sistema *</label>
+                    <textarea id="requisitosTramite" placeholder="Estados de servicio: Real. Situaciones comerciales: Activo, Susp. Caja..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="ordenesTrabajo">Órdenes de Trabajo (separadas por coma)</label>
+                    <input type="text" id="ordenesTrabajo" placeholder="Ej: OT-2026-001, OT-2026-002">
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-modal btn-guardar" onclick="guardarTramite()">💾 Guardar</button>
+                <button class="btn-modal btn-cancelar" onclick="cerrarModal()">❌ Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let datosGlobales = {
+            categorias: [
+                {
+                    id: 1,
+                    nombre: "Control de Obligaciones",
+                    tramites: [
+                        {
+                            clave: 14,
+                            nombre: "Invitación al pago",
+                            estado: "Se queda igual",
+                            filtros: "Usuarios con servicio Domestico",
+                            descripcion: "Trámite para generación de carta invitación a usuarios doméstico, no genera seguimiento",
+                            requisitos: "Estados de servicio: Real. Situaciones comerciales: Activo, Susp. Caja, Susp. Columpio, Susp. Toma.",
+                            etapas: [
+                                { nombre: "Carga de archivo", descripcion: "Se sube el archivo de usuarios" },
+                                { nombre: "Generación de carta", descripcion: "Sistema genera cartas de invitación" },
+                                { nombre: "Descarga e impresión", descripcion: "Se descargan en histórico y se imprimen" }
+                            ],
+                            presupuesto: "NA",
+                            resultado: "Una vez que se sube el archivo y se generá la carta invitación al pago, se descargan en el histórico de cartas en el predio correspondiente y se mandan a imprimir.",
+                            ordenesTrabajo: []
+                        }
+                    ]
+                },
+                { id: 2, nombre: "Notificaciones y Cobranza", tramites: [] },
+                { id: 3, nombre: "Contratación", tramites: [] },
+                { id: 4, nombre: "Contratación en Parcialidades", tramites: [] },
+                { id: 5, nombre: "Especial", tramites: [] },
+                { id: 6, nombre: "General", tramites: [] },
+                { id: 7, nombre: "Medidores", tramites: [] },
+                { id: 8, nombre: "Grandes Usuarios", tramites: [] },
+                { id: 9, nombre: "Mantenimiento", tramites: [] },
+                { id: 10, nombre: "Padrón y Lectura", tramites: [] }
+            ]
+        };
+
+        let tramiteEnEdicion = null;
+
+        function inicializarDatos() {
+            renderizar();
+            actualizarSelectCategoria();
+            cargarDatos();
+        }
+
+        function cargarDatos() {
+            const datos = localStorage.getItem('tramitesData');
+            if (datos) {
+                datosGlobales = JSON.parse(datos);
+                renderizar();
+            }
+        }
+
+        function guardarDatos() {
+            localStorage.setItem('tramitesData', JSON.stringify(datosGlobales));
+        }
+
+        function renderizar() {
+            const container = document.getElementById('categoriasContainer');
+            const filtroNombre = document.getElementById('filtroNombre').value.toLowerCase();
+            const filtroCategoria = document.getElementById('filtroCategoria').value;
+
+            container.innerHTML = '';
+
+            datosGlobales.categorias.forEach(categoria => {
+                if (filtroCategoria && categoria.id != filtroCategoria) return;
+
+                const tramitesFiltrados = categoria.tramites.filter(tramite =>
+                    tramite.nombre.toLowerCase().includes(filtroNombre) ||
+                    tramite.descripcion.toLowerCase().includes(filtroNombre)
+                );
+
+                const div = document.createElement('div');
+                div.className = 'categoria';
+                
+                let tramitesHTML = '';
+                if (tramitesFiltrados.length > 0) {
+                    tramitesHTML = tramitesFiltrados.map(tramite => `
+                        <div class="tramite-card">
+                            <div class="tramite-actions">
+                                <button class="btn-primary btn-sm" onclick="editarTramite(${tramite.clave}, ${categoria.id})">✏️ Editar</button>
+                                <button class="btn-danger btn-sm" onclick="eliminarTramite(${tramite.clave}, ${categoria.id})">🗑️ Eliminar</button>
+                            </div>
+                            <h3>${tramite.nombre}</h3>
+                            <p>${tramite.descripcion}</p>
+                            <div class="tramite-badges">
+                                <span class="tramite-badge">📋 ${tramite.etapas.length} etapas</span>
+                                <span class="estado-badge estado-${tramite.estado.toLowerCase().replace(/\s+/g, '-')}">${tramite.estado}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                div.innerHTML = `
+                    <div class="categoria-header" onclick="toggleCategoria(this)">
+                        <div>
+                            <h2>${categoria.nombre}</h2>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span class="contador">${tramitesFiltrados.length} trámite${tramitesFiltrados.length !== 1 ? 's' : ''}</span>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                    </div>
+                    <div class="categoria-content">
+                        <div class="tramites-grid">
+                            ${tramitesHTML}
+                            <div class="add-tramite-btn" onclick="abrirNuevoTramiteCategoria(${categoria.id})">
+                                ➕ Agregar Trámite
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleCategoria(header) {
+            header.closest('.categoria').classList.toggle('collapsed');
+        }
+
+        function abrirNuevoTramite() {
+            tramiteEnEdicion = null;
+            limpiarFormulario();
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function abrirNuevoTramiteCategoria(categoriaId) {
+            tramiteEnEdicion = null;
+            limpiarFormulario();
+            document.getElementById('categoriaTramite').value = categoriaId;
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function editarTramite(clave, categoriaId) {
+            const categoria = datosGlobales.categorias.find(c => c.id === categoriaId);
+            const tramite = categoria.tramites.find(t => t.clave === clave);
+
+            tramiteEnEdicion = { clave, categoriaId };
+
+            document.getElementById('nombreTramite').value = tramite.nombre;
+            document.getElementById('claveTramite').value = tramite.clave;
+            document.getElementById('estadoTramite').value = tramite.estado;
+            document.getElementById('categoriaTramite').value = categoriaId;
+            document.getElementById('filtrosTramite').value = tramite.filtros || '';
+            document.getElementById('descripcionTramite').value = tramite.descripcion;
+            document.getElementById('presupuestoTramite').value = tramite.presupuesto || '';
+            document.getElementById('requisitosTramite').value = tramite.requisitos;
+            document.getElementById('ordenesTrabajo').value = (tramite.ordenesTrabajo || []).join(', ');
+            document.getElementById('resultadoTramite').value = tramite.resultado || '';
+
+            renderizarEtapas(tramite.etapas || []);
+
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function limpiarFormulario() {
+            document.getElementById('nombreTramite').value = '';
+            document.getElementById('claveTramite').value = '';
+            document.getElementById('estadoTramite').value = 'Se queda igual';
+            document.getElementById('categoriaTramite').value = '';
+            document.getElementById('filtrosTramite').value = '';
+            document.getElementById('descripcionTramite').value = '';
+            document.getElementById('presupuestoTramite').value = '';
+            document.getElementById('requisitosTramite').value = '';
+            document.getElementById('ordenesTrabajo').value = '';
+            document.getElementById('resultadoTramite').value = '';
+            document.getElementById('etapasContainer').innerHTML = '';
+        }
+
+        function renderizarEtapas(etapas) {
+            const container = document.getElementById('etapasContainer');
+            container.innerHTML = etapas.map((etapa, idx) => `
+                <div class="etapa-item">
+                    <div class="etapa-item-header">
+                        <h4>Etapa ${idx + 1}</h4>
+                        <button class="btn-danger btn-sm" onclick="eliminarEtapa(${idx})">🗑️</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre de la Etapa</label>
+                        <input type="text" value="${etapa.nombre}" onchange="actualizarEtapa(${idx}, 'nombre', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <input type="text" value="${etapa.descripcion}" onchange="actualizarEtapa(${idx}, 'descripcion', this.value)">
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function actualizarEtapa(idx, campo, valor) {
+            const inputs = document.querySelectorAll('.etapa-item');
+            const etapas = Array.from(inputs).map((item, i) => {
+                const nombre = item.querySelector('input').value;
+                const descripcion = item.querySelectorAll('input')[1].value;
+                return { nombre, descripcion };
+            });
+            window.etapasActuales = etapas;
+        }
+
+        function agregarEtapa() {
+            const inputs = document.querySelectorAll('.etapa-item input');
+            const etapas = [];
+            for (let i = 0; i < inputs.length; i += 2) {
+                if (inputs[i].value && inputs[i + 1].value) {
+                    etapas.push({
+                        nombre: inputs[i].value,
+                        descripcion: inputs[i + 1].value
+                    });
+                }
+            }
+            etapas.push({ nombre: '', descripcion: '' });
+            renderizarEtapas(etapas);
+        }
+
+        function eliminarEtapa(idx) {
+            const inputs = document.querySelectorAll('.etapa-item input');
+            const etapas = [];
+            for (let i = 0; i < inputs.length; i += 2) {
+                if (i / 2 !== idx) {
+                    etapas.push({
+                        nombre: inputs[i].value,
+                        descripcion: inputs[i + 1].value
+                    });
+                }
+            }
+            renderizarEtapas(etapas);
+        }
+
+        function guardarTramite() {
+            const nombre = document.getElementById('nombreTramite').value.trim();
+            const clave = parseInt(document.getElementById('claveTramite').value);
+            const estado = document.getElementById('estadoTramite').value;
+            const categoriaId = parseInt(document.getElementById('categoriaTramite').value);
+            const filtros = document.getElementById('filtrosTramite').value.trim();
+            const descripcion = document.getElementById('descripcionTramite').value.trim();
+            const requisitos = document.getElementById('requisitosTramite').value.trim();
+            const presupuesto = document.getElementById('presupuestoTramite').value.trim();
+            const resultado = document.getElementById('resultadoTramite').value.trim();
+            const ordenesTrabajo = document.getElementById('ordenesTrabajo').value.split(',').map(ot => ot.trim()).filter(ot => ot);
+
+            const inputs = document.querySelectorAll('.etapa-item input');
+            const etapas = [];
+            for (let i = 0; i < inputs.length; i += 2) {
+                if (inputs[i].value.trim()) {
+                    etapas.push({
+                        nombre: inputs[i].value.trim(),
+                        descripcion: inputs[i + 1]?.value.trim() || ''
+                    });
+                }
+            }
+
+            if (!nombre || !clave || !categoriaId || !descripcion || !requisitos) {
+                alert('Por favor completa los campos obligatorios (*)');
+                return;
+            }
+
+            const categoria = datosGlobales.categorias.find(c => c.id === categoriaId);
+            if (!categoria) {
+                alert('Categoría no encontrada');
+                return;
+            }
+
+            const nuevoTramite = {
+                clave, nombre, estado, filtros, descripcion, requisitos,
+                etapas, presupuesto, resultado, ordenesTrabajo
+            };
+
+            if (tramiteEnEdicion) {
+                const idx = categoria.tramites.findIndex(t => t.clave === tramiteEnEdicion.clave);
+                categoria.tramites[idx] = nuevoTramite;
+            } else {
+                const existe = categoria.tramites.some(t => t.clave === clave);
+                if (existe) {
+                    alert('Ya existe un trámite con esta clave en esta categoría');
+                    return;
+                }
+                categoria.tramites.push(nuevoTramite);
+            }
+
+            guardarDatos();
+            cerrarModal();
+            renderizar();
+        }
+
+        function eliminarTramite(clave, categoriaId) {
+            if (confirm('¿Estás seguro de que deseas eliminar este trámite?')) {
+                const categoria = datosGlobales.categorias.find(c => c.id === categoriaId);
+                categoria.tramites = categoria.tramites.filter(t => t.clave !== clave);
+                guardarDatos();
+                renderizar();
+            }
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal').style.display = 'none';
+            tramiteEnEdicion = null;
+        }
+
+        function cambiarTab(btn, tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function resetFiltros() {
+            document.getElementById('filtroNombre').value = '';
+            document.getElementById('filtroCategoria').value = '';
+            renderizar();
+        }
+
+        function actualizarSelectCategoria() {
+            const select = document.getElementById('categoriaTramite');
+            const opciones = datosGlobales.categorias.map(cat => 
+                `<option value="${cat.id}">${cat.nombre}</option>`
+            ).join('');
+            select.innerHTML = opciones;
+
+            const selectFiltro = document.getElementById('filtroCategoria');
+            const opcionesFiltro = datosGlobales.categorias.map(cat => 
+                `<option value="${cat.id}">${cat.nombre}</option>`
+            ).join('');
+            selectFiltro.innerHTML = '<option value="">Todas las categorías</option>' + opcionesFiltro;
+        }
+
+        function guardarJSON() {
+            const dataStr = JSON.stringify(datosGlobales, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `tramites_${new Date().getTime()}.json`;
+            link.click();
+        }
+
+        document.getElementById('filtroNombre').addEventListener('input', renderizar);
+        document.getElementById('filtroCategoria').addEventListener('change', renderizar);
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+                tramiteEnEdicion = null;
+            }
+        };
+
+        inicializarDatos();
+    </script>
+</body>
+</html>
