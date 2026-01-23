@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparador de Archivos Excel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .upload-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover:not(.disabled) {
+            background: #eef1ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #e0e7ff;
+            border-color: #4c51bf;
+        }
+
+        .upload-area.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 16px;
+        }
+
+        .upload-area h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-top: 10px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #10b981;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+        }
+
+        .file-name {
+            color: #10b981;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .column-selector-section {
+            background: #f8f9ff;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .column-selector-section.active {
+            display: block;
+        }
+
+        .selector-title {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .column-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .file-columns {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+        }
+
+        .file-columns h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            color: #333;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .comparison-list {
+            background: #f8f9ff;
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .comparison-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #ef4444;
+        }
+
+        .comparison-item.match {
+            border-left-color: #10b981;
+        }
+
+        .item-label {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .item-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .item-column {
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .item-column strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #10b981;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #dc2626;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #15803d;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #15803d;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .upload-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .column-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .item-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Comparador de Archivos Excel</h1>
+        <p class="subtitle">Sube dos archivos y compara columnas de ambos</p>
+        
+        <div class="upload-section">
+            <div>
+                <div class="upload-area" id="uploadArea1">
+                    <div class="upload-icon">📁</div>
+                    <h3>Archivo 1</h3>
+                    <p style="margin-bottom: 10px; color: #333; font-weight: 600;">Arrastra aquí o haz clic</p>
+                    <p style="color: #666; font-size: 14px;">Formatos: .xlsx, .xls, .csv</p>
+                    <input type="file" id="fileInput1" accept=".xlsx,.xls,.csv">
+                    <button class="btn" onclick="document.getElementById('fileInput1').click()">Seleccionar</button>
+                    <div class="file-name" id="fileName1"></div>
+                </div>
+            </div>
+            <div>
+                <div class="upload-area" id="uploadArea2">
+                    <div class="upload-icon">📁</div>
+                    <h3>Archivo 2</h3>
+                    <p style="margin-bottom: 10px; color: #333; font-weight: 600;">Arrastra aquí o haz clic</p>
+                    <p style="color: #666; font-size: 14px;">Formatos: .xlsx, .xls, .csv</p>
+                    <input type="file" id="fileInput2" accept=".xlsx,.xls,.csv">
+                    <button class="btn" onclick="document.getElementById('fileInput2').click()">Seleccionar</button>
+                    <div class="file-name" id="fileName2"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="columnSelector" class="column-selector-section">
+            <div class="selector-title">Selecciona las columnas a comparar</div>
+            <div class="column-grid">
+                <div class="file-columns">
+                    <h4>Columnas del Archivo 1</h4>
+                    <div class="checkbox-group" id="columns1"></div>
+                </div>
+                <div class="file-columns">
+                    <h4>Columnas del Archivo 2</h4>
+                    <div class="checkbox-group" id="columns2"></div>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="btn" onclick="compareFiles()">Comparar Archivos</button>
+                <button class="btn btn-danger" onclick="resetFiles()">Cambiar Archivos</button>
+            </div>
+        </div>
+
+        <div id="results" class="results">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalMatches">0</div>
+                    <div class="stat-label">Coincidencias</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalDifferences">0</div>
+                    <div class="stat-label">Diferencias</div>
+                </div>
+            </div>
+
+            <h2>📋 Resultados de Comparación</h2>
+            <div class="comparison-list" id="comparisonList"></div>
+            
+            <div class="action-buttons" style="margin-top: 30px;">
+                <button class="btn btn-secondary" onclick="downloadResults()">📥 Descargar Resultados</button>
+                <button class="btn btn-danger" onclick="resetFiles()">Analizar Otros Archivos</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let file1Data = null;
+        let file2Data = null;
+        let allData1 = null;
+        let allData2 = null;
+        let currentComparison = null;
+
+        setupFileUpload(1);
+        setupFileUpload(2);
+
+        function setupFileUpload(fileNumber) {
+            const uploadArea = document.getElementById(`uploadArea${fileNumber}`);
+            const fileInput = document.getElementById(`fileInput${fileNumber}`);
+
+            uploadArea.addEventListener('click', () => {
+                if (fileNumber === 1 && !file1Data) fileInput.click();
+                if (fileNumber === 2 && !file2Data) fileInput.click();
+            });
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                if ((fileNumber === 1 && !file1Data) || (fileNumber === 2 && !file2Data)) {
+                    uploadArea.classList.add('dragover');
+                }
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file) handleFile(file, fileNumber);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) handleFile(file, fileNumber);
+            });
+        }
+
+        function handleFile(file, fileNumber) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                    
+                    if (fileNumber === 1) {
+                        allData1 = jsonData;
+                        file1Data = file;
+                        document.getElementById('fileName1').textContent = `📄 ${file.name}`;
+                    } else {
+                        allData2 = jsonData;
+                        file2Data = file;
+                        document.getElementById('fileName2').textContent = `📄 ${file.name}`;
+                    }
+
+                    if (file1Data && file2Data) {
+                        populateColumnSelectors();
+                    }
+                } catch (error) {
+                    showError(`Error al leer archivo ${fileNumber}. Asegúrate de que sea un archivo Excel válido.`);
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function populateColumnSelectors() {
+            const columns1Container = document.getElementById('columns1');
+            const columns2Container = document.getElementById('columns2');
+            const headers1 = allData1[0];
+            const headers2 = allData2[0];
+            
+            columns1Container.innerHTML = '';
+            columns2Container.innerHTML = '';
+            
+            headers1.forEach((header, index) => {
+                const div = document.createElement('div');
+                div.className = 'checkbox-item';
+                const id = `col1_${index}`;
+                div.innerHTML = `
+                    <input type="checkbox" id="${id}" value="${index}">
+                    <label for="${id}">${header || `Columna ${index + 1}`}</label>
+                `;
+                columns1Container.appendChild(div);
+            });
+
+            headers2.forEach((header, index) => {
+                const div = document.createElement('div');
+                div.className = 'checkbox-item';
+                const id = `col2_${index}`;
+                div.innerHTML = `
+                    <input type="checkbox" id="${id}" value="${index}">
+                    <label for="${id}">${header || `Columna ${index + 1}`}</label>
+                `;
+                columns2Container.appendChild(div);
+            });
+
+            document.getElementById('columnSelector').classList.add('active');
+        }
+
+        function compareFiles() {
+            const selectedCols1 = Array.from(document.querySelectorAll('#columns1 input[type="checkbox"]:checked')).map(cb => ({
+                index: parseInt(cb.value),
+                header: allData1[0][parseInt(cb.value)]
+            }));
+            
+            const selectedCols2 = Array.from(document.querySelectorAll('#columns2 input[type="checkbox"]:checked')).map(cb => ({
+                index: parseInt(cb.value),
+                header: allData2[0][parseInt(cb.value)]
+            }));
+
+            if (selectedCols1.length === 0 || selectedCols2.length === 0) {
+                showError('Debes seleccionar al menos una columna de cada archivo.');
+                return;
+            }
+
+            const data1 = allData1.slice(1).map(row => selectedCols1.map(col => row[col.index]));
+            const data2 = allData2.slice(1).map(row => selectedCols2.map(col => row[col.index]));
+
+            const results = {
+                selectedCols1,
+                selectedCols2,
+                data1,
+                data2,
+                matches: [],
+                differences: []
+            };
+
+            data1.forEach((row1, idx1) => {
+                const row1Str = row1.join('|');
+                data2.forEach((row2, idx2) => {
+                    const row2Str = row2.join('|');
+                    if (row1Str === row2Str) {
+                        results.matches.push({ row1: row1, row2: row2, rowIdx1: idx1, rowIdx2: idx2 });
+                    }
+                });
+            });
+
+            // Recolectar diferencias con conteo
+            const differencesMap = {};
+
+            data1.forEach((row1, idx1) => {
+                const row1Str = row1.join('|');
+                let found = false;
+                data2.forEach((row2) => {
+                    if (row1Str === row2.join('|')) found = true;
+                });
+                if (!found) {
+                    if (!differencesMap[row1Str]) {
+                        differencesMap[row1Str] = { row: row1, source: 'archivo1', count: 0, indices: [] };
+                    }
+                    differencesMap[row1Str].count++;
+                    differencesMap[row1Str].indices.push(idx1);
+                }
+            });
+
+            data2.forEach((row2, idx2) => {
+                const row2Str = row2.join('|');
+                let found = false;
+                data1.forEach((row1) => {
+                    if (row2Str === row1.join('|')) found = true;
+                });
+                if (!found) {
+                    if (!differencesMap[row2Str]) {
+                        differencesMap[row2Str] = { row: row2, source: 'archivo2', count: 0, indices: [] };
+                    }
+                    differencesMap[row2Str].count++;
+                    differencesMap[row2Str].indices.push(idx2);
+                }
+            });
+
+            results.differences = Object.values(differencesMap);
+
+            currentComparison = results;
+            displayResults(results);
+        }
+
+        function displayResults(results) {
+            document.getElementById('totalMatches').textContent = results.matches.length;
+            document.getElementById('totalDifferences').textContent = results.differences.length;
+
+            const comparisonList = document.getElementById('comparisonList');
+            comparisonList.innerHTML = '';
+
+            if (results.matches.length === 0 && results.differences.length === 0) {
+                comparisonList.innerHTML = '<div class="no-results">✅ No hay datos para comparar</div>';
+            } else {
+                results.matches.forEach((item, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'comparison-item match';
+                    div.innerHTML = `
+                        <div class="item-label">✅ Coincidencia ${idx + 1}</div>
+                        <div class="item-content">
+                            <div class="item-column">
+                                <strong>Archivo 1:</strong>
+                                ${item.row1.map((val, i) => `<div>${results.selectedCols1[i].header}: ${val}</div>`).join('')}
+                            </div>
+                            <div class="item-column">
+                                <strong>Archivo 2:</strong>
+                                ${item.row2.map((val, i) => `<div>${results.selectedCols2[i].header}: ${val}</div>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                    comparisonList.appendChild(div);
+                });
+
+                results.differences.forEach((item, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'comparison-item';
+                    const source = item.source === 'archivo1' ? 'Archivo 1' : 'Archivo 2';
+                    const cols = item.source === 'archivo1' ? results.selectedCols1 : results.selectedCols2;
+                    div.innerHTML = `
+                        <div class="item-label">❌ Diferencia (Solo en ${source}) - Se repite ${item.count} veces</div>
+                        <div class="item-column">
+                            <strong>${source}:</strong>
+                            ${item.row.map((val, i) => `<div>${cols[i].header}: ${val}</div>`).join('')}
+                        </div>
+                    `;
+                    comparisonList.appendChild(div);
+                });
+            }
+
+            document.getElementById('results').classList.add('active');
+        }
+
+        function downloadResults() {
+            if (!currentComparison) return;
+
+            const data = [];
+            data.push(['COINCIDENCIAS']);
+            currentComparison.selectedCols1.forEach(col => data[0].push(col.header + ' (Archivo 1)'));
+            currentComparison.selectedCols2.forEach(col => data[0].push(col.header + ' (Archivo 2)'));
+
+            currentComparison.matches.forEach(item => {
+                const row = [];
+                row.push('✅');
+                item.row1.forEach(val => row.push(val));
+                item.row2.forEach(val => row.push(val));
+                data.push(row);
+            });
+
+            data.push([]);
+            data.push(['DIFERENCIAS']);
+            data.push(['Fuente', 'Veces Repetido', ...currentComparison.selectedCols1.map(c => c.header)]);
+
+            currentComparison.differences.forEach(item => {
+                const row = [item.source === 'archivo1' ? 'Archivo 1' : 'Archivo 2', item.count];
+                item.row.forEach(val => row.push(val));
+                data.push(row);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Comparación');
+
+            XLSX.writeFile(wb, 'resultados_comparacion.xlsx');
+            showSuccess('✅ Archivo descargado correctamente');
+        }
+
+        function resetFiles() {
+            file1Data = null;
+            file2Data = null;
+            allData1 = null;
+            allData2 = null;
+            currentComparison = null;
+            document.getElementById('fileInput1').value = '';
+            document.getElementById('fileInput2').value = '';
+            document.getElementById('fileName1').textContent = '';
+            document.getElementById('fileName2').textContent = '';
+            document.getElementById('columnSelector').classList.remove('active');
+            document.getElementById('results').classList.remove('active');
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.querySelector('.container').appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+            document.querySelector('.container').appendChild(successDiv);
+            setTimeout(() => successDiv.remove(), 5000);
+        }
+    </script>
+</body>
+</html>
