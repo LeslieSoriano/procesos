@@ -267,6 +267,13 @@
             border-radius: 6px;
             font-size: 14px;
         }
+
+        .item-column strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
         .btn-secundario {
             background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
             color: white;
@@ -284,7 +291,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .btn-secundario::before {
             content: '';
             position: absolute;
@@ -295,23 +302,18 @@
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
             transition: left 0.5s;
         }
-        
+
         .btn-secundario:hover::before {
             left: 100%;
         }
-        
+
         .btn-secundario:hover {
             transform: translateY(-2px) scale(1.03);
             box-shadow: 0 12px 30px rgba(255, 107, 107, 0.5);
         }
-        
+
         .btn-secundario:active {
             transform: translateY(-1px) scale(1.01);
-        }
-        .item-column strong {
-            color: #667eea;
-            display: block;
-            margin-bottom: 5px;
         }
 
         .no-results {
@@ -346,17 +348,120 @@
             font-size: 20px;
         }
 
+        /* Modal de Contraseña */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .modal-content h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .modal-content p {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            letter-spacing: 2px;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .modal-buttons button:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-confirmar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-cancelar {
+            background: #e5e7eb;
+            color: #333;
+        }
+
+        .error-modal {
+            color: #dc2626;
+            font-size: 13px;
+            margin-top: -15px;
+            margin-bottom: 15px;
+        }
+
+        .botones-control {
+            margin-top: 30px;
+            text-align: center;
+        }
+
         @media (max-width: 768px) {
             .upload-section {
                 grid-template-columns: 1fr;
             }
-            
+
             .column-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .item-content {
                 grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                max-width: 90%;
+                padding: 30px 20px;
             }
         }
     </style>
@@ -428,21 +533,101 @@
                 <button class="btn btn-secondary" onclick="downloadResults()">📥 Descargar Resultados</button>
                 <button class="btn btn-danger" onclick="resetFiles()">Analizar Otros Archivos</button>
             </div>
-            
         </div>
+
         <div class="botones-control">
-                <button class="btn-secundario btn-menu" onclick="irAlMenu()">
-                    <span>🏠</span><span>Menú Principal</span>
-                </button>
+            <button class="btn-secundario btn-menu" onclick="solicitarContraseña()">
+                <span>🏠</span><span>Menú Principal</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de Contraseña -->
+    <div class="modal-overlay" id="modalContraseña">
+        <div class="modal-content">
+            <h2>🔐 Acceso Restringido</h2>
+            <p>Ingresa la contraseña para regresar al menú principal</p>
+            <div class="error-modal" id="errorMsg" style="display: none;"></div>
+            <input type="password" id="inputContraseña" class="password-input" placeholder="Contraseña" onkeypress="if(event.key==='Enter') verificarContraseña()">
+            <div class="modal-buttons">
+                <button class="btn-confirmar" onclick="verificarContraseña()">Confirmar</button>
+                <button class="btn-cancelar" onclick="cancelarAcceso()">Cancelar</button>
+            </div>
         </div>
     </div>
 
     <script>
+        const CONTRASEÑA_CORRECTA = '013201';
         let file1Data = null;
         let file2Data = null;
         let allData1 = null;
         let allData2 = null;
         let currentComparison = null;
+
+        // Bloquear navegación hacia atrás de forma robusta
+        window.history.pushState(null, null, window.location.href);
+        window.addEventListener('popstate', function() {
+            window.history.pushState(null, null, window.location.href);
+        });
+
+        // Ejecutar múltiples veces para mayor seguridad
+        for (let i = 0; i < 50; i++) {
+            window.history.pushState(null, null, window.location.href);
+        }
+
+        // Prevenir cerrar la pestaña sin confirmación
+        window.addEventListener('beforeunload', function(e) {
+            e.preventDefault();
+            e.returnValue = '';
+            return '';
+        });
+
+        // Bloquear inspeccionar elemento
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Bloquear F12 (Herramientas de Desarrollo)
+        document.addEventListener('keydown', function(e) {
+            if (e.keyCode === 123) {
+                e.preventDefault();
+                return false;
+            }
+            // Bloquear Ctrl+Shift+I (Inspeccionar)
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+                e.preventDefault();
+                return false;
+            }
+            // Bloquear Ctrl+Shift+J (Consola)
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+                e.preventDefault();
+                return false;
+            }
+            // Bloquear Ctrl+Shift+C (Inspeccionar elemento)
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
+                e.preventDefault();
+                return false;
+            }
+            // Bloquear Ctrl+I (Cursivas en algunos navegadores)
+            if (e.ctrlKey && e.keyCode === 73) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Bloquear click derecho
+        window.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            showWarning('⚠️ Acceso denegado - No puedes inspeccionar este contenido');
+            return false;
+        });
+
+        // Bloquear acceso a la consola
+        const handler = () => {
+            debugger;
+        };
+        setInterval(handler, 100);
 
         setupFileUpload(1);
         setupFileUpload(2);
@@ -583,7 +768,6 @@
                 });
             });
 
-            // Recolectar diferencias con conteo
             const differencesMap = {};
 
             data1.forEach((row1, idx1) => {
@@ -733,11 +917,41 @@
             document.querySelector('.container').appendChild(successDiv);
             setTimeout(() => successDiv.remove(), 5000);
         }
-        function irAlMenu() {
-            if (confirm('¿Deseas regresar al menú principal?')) {
-                // Aquí puedes redirigir a tu página de menú
+
+        function showWarning(message) {
+            const warningDiv = document.createElement('div');
+            warningDiv.className = 'error';
+            warningDiv.textContent = message;
+            document.querySelector('.container').appendChild(warningDiv);
+            setTimeout(() => warningDiv.remove(), 5000);
+        }
+
+        function solicitarContraseña() {
+            document.getElementById('modalContraseña').classList.add('active');
+            document.getElementById('inputContraseña').value = '';
+            document.getElementById('errorMsg').style.display = 'none';
+            document.getElementById('inputContraseña').focus();
+        }
+
+        function verificarContraseña() {
+            const inputContraseña = document.getElementById('inputContraseña').value;
+            const errorMsg = document.getElementById('errorMsg');
+            
+            if (inputContraseña === CONTRASEÑA_CORRECTA) {
+                document.getElementById('modalContraseña').classList.remove('active');
                 window.location.href = '../indexmenu.html';
+            } else {
+                errorMsg.textContent = '❌ Contraseña incorrecta. Intenta nuevamente.';
+                errorMsg.style.display = 'block';
+                document.getElementById('inputContraseña').value = '';
+                document.getElementById('inputContraseña').focus();
             }
+        }
+
+        function cancelarAcceso() {
+            document.getElementById('modalContraseña').classList.remove('active');
+            document.getElementById('inputContraseña').value = '';
+            document.getElementById('errorMsg').style.display = 'none';
         }
     </script>
 </body>
