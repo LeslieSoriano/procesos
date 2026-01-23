@@ -98,7 +98,47 @@
             opacity: 0.6;
             cursor: not-allowed;
         }
-
+        .btn-secundario {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-secundario::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-secundario:hover::before {
+            left: 100%;
+        }
+        
+        .btn-secundario:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 12px 30px rgba(255, 107, 107, 0.5);
+        }
+        
+        .btn-secundario:active {
+            transform: translateY(-1px) scale(1.01);
+        }
         .btn-secondary {
             background: #10b981;
             margin-left: 10px;
@@ -245,7 +285,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🔍 Detector de Duplicados en Excel</h1>
+        <h1>🔍 Detector de Duplicados en Excel</h1> 
         <p class="subtitle">Sube tu archivo Excel o CSV para detectar valores duplicados en 2 columnas</p>
         
         <div class="upload-area" id="uploadArea">
@@ -302,6 +342,11 @@
                 <button class="btn btn-secondary" onclick="downloadResults()">📥 Descargar Resultados (Excel)</button>
                 <button class="btn" onclick="resetFile()">Analizar Otro Archivo</button>
             </div>
+        </div>
+        <div class="botones-control">
+                <button class="btn-secundario btn-menu" onclick="irAlMenu()">
+                    <span>🏠</span><span>Menú Principal</span>
+                </button>
         </div>
     </div>
 
@@ -531,6 +576,12 @@
             successDiv.textContent = message;
             document.querySelector('.container').appendChild(successDiv);
             setTimeout(() => successDiv.remove(), 5000);
+        }
+        function irAlMenu() {
+            if (confirm('¿Deseas regresar al menú principal?')) {
+                // Aquí puedes redirigir a tu página de menú
+                window.location.href = '../indexmenu.html';
+            }
         }
     </script>
 </body>
