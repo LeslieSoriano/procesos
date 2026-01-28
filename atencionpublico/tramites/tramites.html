@@ -355,7 +355,9 @@
                 </div>
                 <div class="form-group">
                     <label>Presupuesto</label>
-                    <input type="text" id="presupuestoTramite" placeholder="Presupuesto...">
+                    <select id="presupuestoTramite">
+                        <option value="">-- Seleccionar Presupuesto --</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Resultado</label>
@@ -411,7 +413,12 @@
     </div>
 
     <script>
+        // ✅ CORRECCIÓN 1: Declarar las variables globales correctamente
         const CONTRASENA = "admin123";
+        let imgs = [];  // ← AQUÍ ESTABA EL PROBLEMA
+        let accionPendiente = null;
+        let datosAccion = null;
+        
         let datosGlobales = {
             categorias: [
                 { id: 1, nombre: "Control de Obligaciones", tramites: [] },
@@ -426,9 +433,6 @@
                 { id: 10, nombre: "Padrón y Lectura", tramites: [] }
             ]
         };
-        let accionPendiente = null;
-        let datosAccion = null;
-        let imagenesSubidas = [];
 
         function cargarDatos() {
             const datos = localStorage.getItem('tramitesData');
@@ -481,22 +485,56 @@
                 <div class="info-grid">
                     <div class="info-item"><strong>Clave:</strong> <span>${tramite.clave}</span></div>
                     <div class="info-item"><strong>Categoría:</strong> <span>${categoria.nombre}</span></div>
+                    <div class="info-item"><strong>Estado:</strong> <span>${tramite.estado}</span></div>
+                    <div class="info-item"><strong>Filtros:</strong> <span>${tramite.filtros || 'N/A'}</span></div>
                 </div>
+
                 <div class="modal-section">
                     <h3>Descripción</h3>
                     <p>${tramite.descripcion}</p>
                 </div>
+
                 <div class="modal-section">
                     <h3>Requisitos</h3>
                     <p>${tramite.requisitos}</p>
                 </div>`;
             
+            if (tramite.presupuesto) {
+                html += `<div class="modal-section">
+                    <h3>💰 Presupuesto</h3>
+                    <p>${tramite.presupuesto}</p>
+                </div>`;
+            }
+
+            if (tramite.resultado) {
+                html += `<div class="modal-section">
+                    <h3>📊 Resultado</h3>
+                    <p>${tramite.resultado}</p>
+                </div>`;
+            }
+
+            if (tramite.ordenesTrabajo && tramite.ordenesTrabajo.length > 0) {
+                html += '<div class="modal-section"><h3>📋 Órdenes de Trabajo</h3><ul>';
+                tramite.ordenesTrabajo.forEach(ot => {
+                    html += `<li>${ot}</li>`;
+                });
+                html += '</ul></div>';
+            }
+            
             if (tramite.etapas && tramite.etapas.length > 0) {
-                html += '<div class="modal-section"><h3>Etapas</h3>';
+                html += '<div class="modal-section"><h3>📍 Etapas</h3>';
                 tramite.etapas.forEach((e, i) => {
                     html += `<p><strong>Etapa ${i+1}:</strong> ${e.nombre} - ${e.descripcion}</p>`;
                 });
                 html += '</div>';
+            }
+
+            if (tramite.imagenes && tramite.imagenes.length > 0) {
+                html += '<div class="modal-section"><h3>📸 Imágenes</h3><div class="imagenes-detalle">';
+                tramite.imagenes.forEach(img => {
+                    html += `<div class="imagen-detalle"><img src="${img}" alt="Imagen trámite"></div>`;
+                });
+                html += '</div></div>';
             }
 
             document.getElementById('detalleContenido').innerHTML = html;
@@ -511,6 +549,7 @@
             limpiarFormulario();
             document.getElementById('modalEdicion').style.display = 'block';
             renderizarEtapas([{ nombre: '', descripcion: '' }]);
+            actualizarPresupuestos();
         }
 
         function limpiarFormulario() {
@@ -524,7 +563,8 @@
             document.getElementById('requisitosTramite').value = '';
             document.getElementById('ordenesTrabajo').value = '';
             document.getElementById('resultadoTramite').value = '';
-            imagenesSubidas = [];
+            // ✅ CORRECCIÓN 2: Limpiar el array imgs (no imagenesSubidas)
+            imgs = [];
             document.getElementById('imagenesGrid').innerHTML = '';
             document.getElementById('contadorImagenes').textContent = '0/5 imágenes';
         }
@@ -556,13 +596,13 @@
 
         function agregarImagenes(event) {
             const archivos = Array.from(event.target.files);
-            const espacioDisponible = 5 - imagenesSubidas.length;
+            const espacioDisponible = 5 - imgs.length;
             const archivosAñadir = archivos.slice(0, espacioDisponible);
 
             archivosAñadir.forEach(archivo => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    imagenesSubidas.push(e.target.result);
+                    imgs.push(e.target.result);
                     renderizarImagenes();
                 };
                 reader.readAsDataURL(archivo);
@@ -575,18 +615,28 @@
 
         function renderizarImagenes() {
             const grid = document.getElementById('imagenesGrid');
-            grid.innerHTML = imagenesSubidas.map((img, idx) => `
+            grid.innerHTML = imgs.map((img, idx) => `
                 <div class="imagen-item">
                     <img src="${img}" alt="Imagen ${idx + 1}">
                     <button class="btn-eliminar-img" onclick="eliminarImagen(${idx})">✕</button>
                 </div>
             `).join('');
-            document.getElementById('contadorImagenes').textContent = `${imagenesSubidas.length}/5 imágenes`;
+            document.getElementById('contadorImagenes').textContent = `${imgs.length}/5 imágenes`;
         }
 
         function eliminarImagen(idx) {
-            imagenesSubidas.splice(idx, 1);
+            imgs.splice(idx, 1);
             renderizarImagenes();
+        }
+
+        function actualizarPresupuestos() {
+            const select = document.getElementById('presupuestoTramite');
+            const presupuestos = [
+                {id:1,n:'Contratacion nuevos servicios'},{id:2,n:'Venta de agua tratada'},{id:3,n:'Descarga de desechos PTAR'},{id:4,n:'Venta de agua a pipas'},{id:5,n:'Factibilidad'},{id:101,n:'Reconexión con costo'},{id:102,n:'Limpieza fosa séptica en casa habitación'},{id:103,n:'Limpieza fosa séptica en comercio o industria'},{id:106,n:'Reubicación de medidor 1/2"'},{id:109,n:'Caja de banqueta'},{id:128,n:'Reconexión de toma en caja'},{id:130,n:'Tierra Conexión de albañal, toma, cuadro y medidor'},{id:131,n:'Venta de medidor y/o cuadro'},{id:132,n:'Tierra Conexión de albañal'},{id:133,n:'Contratación de descarga sanitaria'},{id:134,n:'Constancia de no adeudo'},{id:135,n:'Tierra Toma de agua, cuadro y/o medidor'},{id:136,n:'Reconexión por cuadro'},{id:137,n:'Reconexión por red'},{id:138,n:'Reconexión de drenaje'},{id:139,n:'Caja de banqueta y medidor'},{id:140,n:'Venta de medidor y/o cuadro nueva contratación'},{id:141,n:'Presupuesto libre'},{id:142,n:'Columpio'},{id:143,n:'Solicitud de contratacion por alcantarillado'},{id:144,n:'Contratación de regularización con medidor'},{id:145,n:'Contrataciones en parcialidades Rodamiento'},{id:146,n:'Devolución de pago de presupuesto'},{id:147,n:'Reconexión de toma de agua'},{id:148,n:'Cancelación de toma por fusión de predios'},{id:149,n:'Suspensión voluntaria temporal'},{id:150,n:'Reconexión de toma de agua de 1-1/2" GU'},{id:151,n:'Reconexión de toma de agua de 2" GU'},{id:152,n:'Reconexión de toma de agua de 3" GU'},{id:153,n:'Reconexión de toma de agua de 4" GU'},{id:154,n:'Copia'},{id:155,n:'Impresión estado de cuenta'},{id:156,n:'Rodamiento Cone albañal, toma, cuadro y/o medidor'},{id:157,n:'Rodamiento Toma de agua, cuadro y/o medidor'},{id:158,n:'Rodamiento Conexion de albañal'},{id:159,n:'Const, y colocación de caja de reg en banqueta'},{id:160,n:'Venta de caja de polietileno registro en banqueta'},{id:161,n:'Contrataciones en parcialidades Tierra'},{id:162,n:'Reubicación de medidor de 1-1/2" GU'},{id:163,n:'Reubicación de medidor 2" GU'},{id:164,n:'Reconexión de toma de agua GU'},{id:165,n:'Venta de medidor de 1-1/2" GU'},{id:166,n:'Venta de medidor de 2" GU'},{id:167,n:'Venta de medidor de 3" GU'},{id:168,n:'Venta de medidor de 4" GU'},{id:169,n:'Reubicación de medidor 3" GU'},{id:170,n:'Reubicación de medidor 4" GU'},{id:171,n:'Reubicación de cuadro 1/2 a 1"'},{id:172,n:'Reubicación de medidor 1" GU'},{id:173,n:'Venta de medidor 1" y/o Cuadro 1/2 a 1"'},{id:174,n:'Reconexión de toma de agua 1" GU'},{id:175,n:'Rodamiento. Albañal, toma, cuadro y medidor G.U.'},{id:176,n:'Venta de bases de licitación'},{id:177,n:'Rodamiento. Toma, cuadro y medidor G.U.'},{id:178,n:'Rodamiento. Albañal G.U.'},{id:179,n:'Tierra. Albañal, toma, cuadro y medidor G.U.'},{id:180,n:'Tierra. Albañal G.U'},{id:181,n:'Tierra. Toma, cuadro y medidor G.U.'},{id:182,n:'Rodamiento albañal, toma, cuadro y medidor G.U.1"'},{id:183,n:'Rodamiento albañal, toma, cuadro y med G.U.1 1y2"'},{id:184,n:'Rodamiento albañal, toma, cuadro y medidor G.U. 2"'},{id:185,n:'Rodamiento albañal, toma, cuadro y medidor G.U. 3"'},{id:186,n:'Rodamiento albañal, toma, cuadro y medidor G.U. 4"'},{id:187,n:'Rodamiento Toma, cuadro y medidor G.U. 1"'},{id:188,n:'Rodamiento Toma, cuadro y medidor G.U. 1-1/2"'},{id:189,n:'Rodamiento Toma, cuadro y medidor G.U. 2"'},{id:190,n:'Rodamiento Toma, cuadro y medidor G.U. 3"'},{id:191,n:'Rodamiento Toma, cuadro y medidor G.U. 4"'},{id:192,n:'Rodamiento conexión albañal G.U.'},{id:193,n:'Tierra. Albañal, toma, cuadro y medidor G.U. 1"'},{id:194,n:'Tierra. Albañal, toma, cuadro y med G.U. 1-1/2"'},{id:195,n:'Tierra. Albañal, toma, cuadro y medidor G.U. 2"'},{id:196,n:'Tierra. Albañal, toma, cuadro y medidor G.U. 3"'},{id:197,n:'Tierra. Albañal, toma, cuadro y medidor G.U. 4"'},{id:198,n:'Tierra. Albañal G.U.'},{id:199,n:'Tierra. Toma, cuadro y medidor G.U. 1"'},{id:200,n:'Tierra. Toma, cuadro y medidor G.U. 1-1/2"'},{id:201,n:'Tierra. Toma, cuadro y medidor G.U. 2"'},{id:202,n:'Tierra. Toma, cuadro y medidor G.U.3"'},{id:203,n:'Tierra. Toma, cuadro y medidor G.U. 4"'},{id:204,n:'Reconexión de toma en cuadro y/o registro'},{id:205,n:'Reconexión voluntaria temporal'},{id:206,n:'Reubicación de medidor a caja de registro'}
+            ];
+            let options = '<option value="">-- Seleccionar Presupuesto --</option>';
+            presupuestos.forEach(p => { options += `<option value="${p.id}">${p.id} - ${p.n}</option>`; });
+            select.innerHTML = options;
         }
 
         function cerrarModalEdicion() {
@@ -608,7 +658,8 @@
             const filtros = document.getElementById('filtrosTramite').value.trim();
             const descripcion = document.getElementById('descripcionTramite').value.trim();
             const requisitos = document.getElementById('requisitosTramite').value.trim();
-            const presupuesto = document.getElementById('presupuestoTramite').value.trim();
+            const presupuestoId = document.getElementById('presupuestoTramite').value;
+            const presupuesto = presupuestoId ? `${presupuestoId}` : 'No seleccionado';
             const resultado = document.getElementById('resultadoTramite').value.trim();
             const ordenesTrabajo = document.getElementById('ordenesTrabajo').value.split(',').map(o => o.trim()).filter(o => o);
 
@@ -632,17 +683,23 @@
             }
 
             accionPendiente = 'guardar';
-            datosAccion = { nombre, clave, estado, categoriaId, filtros, descripcion, requisitos, etapas, presupuesto, resultado, ordenesTrabajo };
+            datosAccion = { 
+                nombre, clave, estado, categoriaId, filtros, descripcion, requisitos, etapas, 
+                presupuesto, resultado, ordenesTrabajo 
+            };
             document.getElementById('passwordInput').value = '';
             document.getElementById('passwordModal').style.display = 'block';
             document.getElementById('passwordInput').focus();
         }
 
         function verificarContrasena() {
-            if (document.getElementById('passwordInput').value === CONTRASENA) {
+            if (document.getElementById('passwordInput').value === "admin123") {
                 const { nombre, clave, estado, categoriaId, filtros, descripcion, requisitos, etapas, presupuesto, resultado, ordenesTrabajo } = datosAccion;
                 const categoria = datosGlobales.categorias.find(c => c.id === categoriaId);
-                categoria.tramites.push({ clave, nombre, estado, filtros, descripcion, requisitos, etapas, presupuesto, resultado, ordenesTrabajo, imagenes: imagenesSubidas });
+                categoria.tramites.push({ 
+                    clave, nombre, estado, filtros, descripcion, requisitos, etapas, 
+                    presupuesto, resultado, ordenesTrabajo, imagenes: imgs 
+                });
                 guardarDatos();
                 cerrarModalEdicion();
                 renderizar();
@@ -672,6 +729,7 @@
             a.click();
         }
 
+        // ✅ CORRECCIÓN 3: Inicializar todo correctamente
         cargarDatos();
         const cats = datosGlobales.categorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
         document.getElementById('filtroCategoria').innerHTML = '<option value="">Todas</option>' + cats;
