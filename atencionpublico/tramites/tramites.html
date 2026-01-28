@@ -229,7 +229,51 @@
         }
         .info-item { background: #f8fafb; padding: 12px; border-radius: 6px; border-left: 4px solid #667eea; }
         .info-item strong { color: #2c3e50; display: block; margin-bottom: 5px; }
-        .info-item span { color: #5a6c7d; font-size: 13px; }
+        .imagenes-section { background: #f8fafb; padding: 20px; border-radius: 8px; margin: 20px 0; border: 2px solid #e8eaff; }
+        .imagenes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .imagen-item {
+            position: relative;
+            border-radius: 6px;
+            overflow: hidden;
+            background: white;
+            border: 2px solid #e8eaff;
+        }
+        .imagen-item img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+        }
+        .imagen-item .btn-eliminar-img {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .contador-imagenes {
+            font-size: 12px;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        .input-archivo {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -272,6 +316,7 @@
                 <button class="tab active" onclick="cambiarTab(this, 'info-tab')">📋 Información</button>
                 <button class="tab" onclick="cambiarTab(this, 'etapas-tab')">📍 Etapas</button>
                 <button class="tab" onclick="cambiarTab(this, 'requisitos-tab')">✅ Requisitos</button>
+                <button class="tab" onclick="cambiarTab(this, 'imagenes-tab')">🖼️ Imágenes</button>
             </div>
 
             <div id="info-tab" class="tab-content active">
@@ -334,6 +379,16 @@
                 </div>
             </div>
 
+            <div id="imagenes-tab" class="tab-content">
+                <div class="imagenes-section">
+                    <label>Subir Imágenes (máximo 5)</label>
+                    <input type="file" id="inputImagenes" multiple accept="image/*" class="input-archivo" onchange="agregarImagenes(event)">
+                    <button class="btn-agregar-etapa" style="background: #667eea;" onclick="document.getElementById('inputImagenes').click()">📸 Seleccionar Imágenes</button>
+                    <div class="contador-imagenes" id="contadorImagenes">0/5 imágenes</div>
+                    <div class="imagenes-grid" id="imagenesGrid"></div>
+                </div>
+            </div>
+
             <div class="modal-buttons">
                 <button class="btn-modal btn-guardar" onclick="guardarTramite()">💾 Guardar</button>
                 <button class="btn-modal btn-cerrar" onclick="cerrarModalEdicion()">❌ Cancelar</button>
@@ -373,6 +428,7 @@
         };
         let accionPendiente = null;
         let datosAccion = null;
+        let imagenesSubidas = [];
 
         function cargarDatos() {
             const datos = localStorage.getItem('tramitesData');
@@ -468,6 +524,9 @@
             document.getElementById('requisitosTramite').value = '';
             document.getElementById('ordenesTrabajo').value = '';
             document.getElementById('resultadoTramite').value = '';
+            imagenesSubidas = [];
+            document.getElementById('imagenesGrid').innerHTML = '';
+            document.getElementById('contadorImagenes').textContent = '0/5 imágenes';
         }
 
         function renderizarEtapas(etapas) {
@@ -494,6 +553,41 @@
         }
 
         function actualizarEtapa(idx, campo, valor) {}
+
+        function agregarImagenes(event) {
+            const archivos = Array.from(event.target.files);
+            const espacioDisponible = 5 - imagenesSubidas.length;
+            const archivosAñadir = archivos.slice(0, espacioDisponible);
+
+            archivosAñadir.forEach(archivo => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagenesSubidas.push(e.target.result);
+                    renderizarImagenes();
+                };
+                reader.readAsDataURL(archivo);
+            });
+
+            if (archivos.length > espacioDisponible) {
+                alert(`⚠️ Solo puedes subir ${espacioDisponible} imagen(es) más (máximo 5)`);
+            }
+        }
+
+        function renderizarImagenes() {
+            const grid = document.getElementById('imagenesGrid');
+            grid.innerHTML = imagenesSubidas.map((img, idx) => `
+                <div class="imagen-item">
+                    <img src="${img}" alt="Imagen ${idx + 1}">
+                    <button class="btn-eliminar-img" onclick="eliminarImagen(${idx})">✕</button>
+                </div>
+            `).join('');
+            document.getElementById('contadorImagenes').textContent = `${imagenesSubidas.length}/5 imágenes`;
+        }
+
+        function eliminarImagen(idx) {
+            imagenesSubidas.splice(idx, 1);
+            renderizarImagenes();
+        }
 
         function cerrarModalEdicion() {
             document.getElementById('modalEdicion').style.display = 'none';
@@ -548,7 +642,7 @@
             if (document.getElementById('passwordInput').value === CONTRASENA) {
                 const { nombre, clave, estado, categoriaId, filtros, descripcion, requisitos, etapas, presupuesto, resultado, ordenesTrabajo } = datosAccion;
                 const categoria = datosGlobales.categorias.find(c => c.id === categoriaId);
-                categoria.tramites.push({ clave, nombre, estado, filtros, descripcion, requisitos, etapas, presupuesto, resultado, ordenesTrabajo });
+                categoria.tramites.push({ clave, nombre, estado, filtros, descripcion, requisitos, etapas, presupuesto, resultado, ordenesTrabajo, imagenes: imagenesSubidas });
                 guardarDatos();
                 cerrarModalEdicion();
                 renderizar();
