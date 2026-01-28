@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagrama Editable - Suministro de Agua Potable</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .diagram-container {
+            overflow-x: auto;
+            padding: 20px;
+            background: #f9fafb;
+        }
+
+        svg {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 4px;
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .controls {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .info-section {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .info-section h3 {
+            color: #2563eb;
+            margin-bottom: 15px;
+        }
+
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-symbol {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .legend-symbol.supervisor {
+            background: #3b82f6;
+        }
+
+        .legend-symbol.auxiliar {
+            background: #a855f7;
+        }
+
+        .legend-symbol.operador {
+            background: #8b5cf6;
+        }
+
+        .legend-symbol.garza {
+            background: #10b981;
+        }
+
+        .legend-symbol.cliente {
+            background: #f59e0b;
+        }
+
+        .legend-text {
+            font-size: 13px;
+            color: #374151;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Procedimiento de Suministro de Agua Potable en Pipas</h1>
+            <p>Diagrama de Flujo Editable - Formato SVG</p>
+        </div>
+
+        <div class="diagram-container">
+            <svg id="diagrama" width="1600" height="1200" viewBox="0 0 1600 1200">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                        <polygon points="0 0, 10 3, 0 6" fill="#1e293b" />
+                    </marker>
+                    <marker id="arrowhead-dashed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                        <polygon points="0 0, 10 3, 0 6" fill="#ef4444" />
+                    </marker>
+                </defs>
+
+                <!-- Líneas de separación de swimlanes -->
+                <line x1="0" y1="80" x2="1600" y2="80" stroke="#d1d5db" stroke-width="2" />
+                <line x1="0" y1="230" x2="1600" y2="230" stroke="#d1d5db" stroke-width="2" />
+                <line x1="0" y1="380" x2="1600" y2="380" stroke="#d1d5db" stroke-width="2" />
+                <line x1="0" y1="530" x2="1600" y2="530" stroke="#d1d5db" stroke-width="2" />
+                <line x1="0" y1="680" x2="1600" y2="680" stroke="#d1d5db" stroke-width="2" />
+                <line x1="0" y1="830" x2="1600" y2="830" stroke="#d1d5db" stroke-width="2" />
+                <line x1="0" y1="980" x2="1600" y2="980" stroke="#d1d5db" stroke-width="2" />
+
+                <!-- Líneas verticales de separación entre carriles -->
+                <line x1="280" y1="0" x2="280" y2="1200" stroke="#d1d5db" stroke-width="1" stroke-dasharray="5,5" />
+                <line x1="560" y1="0" x2="560" y2="1200" stroke="#d1d5db" stroke-width="1" stroke-dasharray="5,5" />
+                <line x1="840" y1="0" x2="840" y2="1200" stroke="#d1d5db" stroke-width="1" stroke-dasharray="5,5" />
+                <line x1="1120" y1="0" x2="1120" y2="1200" stroke="#d1d5db" stroke-width="1" stroke-dasharray="5,5" />
+                <line x1="1400" y1="0" x2="1400" y2="1200" stroke="#d1d5db" stroke-width="1" stroke-dasharray="5,5" />
+
+                <!-- Encabezados de Swimlanes -->
+                <rect x="0" y="0" width="280" height="80" fill="#3b82f6" stroke="none"/>
+                <text x="140" y="45" font-size="16" font-weight="bold" text-anchor="middle" fill="white">SUPERVISOR</text>
+
+                <rect x="280" y="0" width="280" height="80" fill="#a855f7" stroke="none"/>
+                <text x="420" y="45" font-size="16" font-weight="bold" text-anchor="middle" fill="white">AUXILIAR</text>
+
+                <rect x="560" y="0" width="280" height="80" fill="#8b5cf6" stroke="none"/>
+                <text x="700" y="45" font-size="16" font-weight="bold" text-anchor="middle" fill="white">OPERADOR CAMIÓN</text>
+
+                <rect x="840" y="0" width="280" height="80" fill="#10b981" stroke="none"/>
+                <text x="980" y="45" font-size="16" font-weight="bold" text-anchor="middle" fill="white">OPERADOR GARZA</text>
+
+                <rect x="1120" y="0" width="480" height="80" fill="#f59e0b" stroke="none"/>
+                <text x="1360" y="45" font-size="16" font-weight="bold" text-anchor="middle" fill="white">CLIENTE / CIERRE</text>
+
+                <!-- ===== CARRIL 1: SUPERVISOR ===== -->
+                <!-- Paso 1 -->
+                <rect x="40" y="110" width="200" height="100" rx="8" fill="#3b82f6" stroke="#1e40af" stroke-width="2" />
+                <text x="140" y="150" font-size="13" font-weight="bold" text-anchor="middle" fill="white">1. Verificar</text>
+                <text x="140" y="170" font-size="12" text-anchor="middle" fill="white">solicitudes ATL</text>
+
+                <!-- Flecha -->
+                <line x1="140" y1="210" x2="140" y2="250" stroke="#1e293b" stroke-width="2" marker-end="url(#arrowhead)" />
+
+                <!-- Paso 2 -->
+                <rect x="40" y="250" width="200" height="110" rx="8" fill="#3b82f6" stroke="#1e40af" stroke-width="2" />
+                <text x="140" y="295" font-size="13" font-weight="bold" text-anchor="middle" fill="white">2. Pasar info a</text>
+                <text x="140" y="315" font-size="12" text-anchor="middle" fill="white">Drive de ruta</text>
+
+                <!-- Flecha -->
+                <line x1="140" y1="360" x2="140" y2="400" stroke="#1e293b" stroke-width="2" marker-end="url(#arrowhead)" />
+
+                <!-- Paso 3 -->
+                <rect x="40" y="400" width="200" height="110" rx="8" fill="#3b82f6" stroke="#1e40af" stroke-width="2" />
+                <text x="140" y="445" font-size="13" font-weight="bold" text-anchor="middle" fill="white">3. Asignar rutas</text>
+                <text x="140" y="465" font-size="12" text-anchor="middle" fill="white">por zona</text>
+
+                <!-- Flecha a Operador -->
+                <line x1="240" y1="455" x2="560" y2="455" stroke="#1e293b" stroke-width="2" marker-end="url(#arrowhead)" />
+
+                <!-- Paso 10 -->
+                <rect x="40" y="850" width="200" height="110" rx="8" fill="#3b82f6" stroke="#1e40af" stroke-width="2" />
+                <text x="140" y="895" font-size="13" font-weight="bold" text-anchor="middle" fill="white">10. Revisar</text>
+                <text x="140" y="915" font-size="12" text-anchor="middle" fill="white">bitácora y dar</text>
+                <text x="140" y="930" font-size="12" text-anchor="middle" fill="white">de baja órdenes</text>
+
+                <!-- ===== CARRIL 2: AUXILIAR ===== -->
+                <!-- Paso 2b -->
+                <rect x="320" y="250" width="200" height="110" rx="8" fill="#a855f7" stroke="#7c3aed" stroke-width="2" />
+                <text x="420" y="295" font-size="13" font-weight="bold" text-anchor="middle" fill="white">2. Anexar órdenes</text>
+                <text x="420" y="315" font-size="12" text-anchor="middle" fill="white">en Drive</text>
+
+                <!-- Flecha a Operador -->
+                <line x1="520" y1="305" x2="560" y2="305" stroke="#1e293b" stroke-width="2" marker-end="url(#arrowhead)" />
+
+                <!-- Paso 11 -->
+                <rect x="320" y="850" width="200" height="110" rx="8" fill="#a855f7" stroke="#7c3aed" stroke-width="2" />
+                <text x="420" y="895" font-size="13" font-weight="bold" text-anchor="middle" fill="white">11. Revisar y dar</text>
+                <text x="420" y="915" font-size="12" text-anchor="middle" fill="white">de alta órdenes</text>
+                <text x="420" y="930" font-size="12" text-anchor="middle" fill="white">en ATL</text>
+
+                <!-- ===== CARRIL 3: OPERADOR CAMIÓN ===== -->
+                <!-- Paso 4 -->
+                <rect x="600" y="250" width="200" height="100" rx="8" fill="#8b5cf6" stroke="#6d28d9" stroke-width="2" />
+                <text x="700" y="290" font-size="13" font-weight="bold" text-anchor="middle" fill="white">4. Revisar</text>
+                <text x="700" y="310" font-size="12" text-anchor="middle" fill="white">camión cisterna</text>
+
+                <!-- Flecha -->
+                <line x1="700" y1="350" x2="700" y2="390" stroke="#1e293b" stroke-width="2" marker-end="url(#arrowhead)" />
+
+                <!-- Paso 5 -->
+                <rect x="600" y="390" width="200" height="100" rx="8" fill="#8b5cf6" stroke="#6d28d9" stroke-width="2" />
+                <text x="700" y="430" font-size="13" font-weight="bold" text-anchor="middle" fill="white">5. Trasladar a</text>
+                <text x="700" y="450" font-size="12" text-anchor="middle" fill="white">garza de llenado</text>
+
+                <!-- Flecha a Garza -->
+                <line x1="800" y1="440" x2="840" y2="440" stroke="#1e293b" stroke-width="2" marker-end="url(#arrowhead)" />
+
+                <!-- Paso 7 -->
+                <rect x="600" y="650" width="200" height="120" rx="8" fill="#8b5cf6" stroke="#6d28d9" stroke-width="2" />
+                <text x="700" y="705" font-size="13" font-weight="bold" text-anchor="middle" fill="white">7. Entregar</text>
+                <text x="700" y="725" font-size="12" text-anchor="middle" fill="white">en domicilio y</text>
+                <text x="700" y="740" font-size="12" text-anchor="middle" fill="white">anotar bitácora</text>
+
+                <!-- Flecha a Cliente -->
+                <line x1="800" y1="710" x2="1120" y2="710" stroke="#1e293b" stroke-width="2" marker-end="url(#arrowhead)" />
+
+                <!-- Paso 8 -->
+                <rect x="600" y="830" width="200" height="100" rx="8" fill="#8b5cf6" stroke="#6d28d9" stroke-width="2" />
+                <text x="700" y="870" font-size="13" font-weight="bold" text-anchor="middle" fill="white">8. Regresa a</text>
+                <text x="700" y="890" font-size="12" text-anchor="middle" fill="white">garza (CICLO)</text>
+
+                <!-- Flecha de ciclo -->
+                <path d="M 800 880 Q 920 880 920 440 L 840 440" stroke="#ef4444" stroke-width="2" fill="none" marker-end="url(#arrowhead-dashed)" stroke-dasharray="5,5" />
+
+                <!-- Paso 9 -->
+                <rect x="600" y="970" width="200" height="110" rx="8" fill="#8b5cf6" stroke="#6d28d9" stroke-width="2" />
+                <text x="700" y="1015" font-size="13" font-weight="bold" text-anchor="middle" fill="white">9. Regresa a base</text>
+                <text x="700" y="1035" font-size="12" text-anchor="middle" fill="white">y guarda camión</text>
+
+                <!-- Flecha a Supervisor -->
+                <line x1="600" y1="1025" x2="240" y2="1025" stroke="#1e293b" stroke-width="2" marker-end="url(#arrowhead)" />
+                <line x1="140" y1="1025" x2="140" y2="860" stroke="#1e293b" stroke-width="2" marker-end="url(#arrowhead)" />
+
+                <!-- ===== CARRIL 4: OPERADOR GARZA ===== -->
+                <!-- Paso 6 -->
+                <rect x="880" y="390" width="200" height="120" rx="8" fill="#10b981" stroke="#059669" stroke-width="2" />
+                <text x="980" y="435" font-size="13" font-weight="bold" text-anchor="middle" fill="white">6. Llenar cisterna</text>
+                <text x="980" y="455" font-size="12" text-anchor="middle" fill="white">y anotar datos en</text>
+                <text x="980" y="470" font-size="12" text-anchor="middle" fill="white">reporte de pozos</text>
+
+                <!-- Flecha de retorno -->
+                <line x1="880" y1="440" x2="800" y2="440" stroke="#1e293b" stroke-width="2" marker-end="url(#arrowhead)" />
+
+                <!-- ===== CARRIL 5: CLIENTE / CIERRE ===== -->
+                <!-- Cliente recibe -->
+                <rect x="1140" y="650" width="200" height="120" rx="8" fill="#f59e0b" stroke="#d97706" stroke-width="2" />
+                <text x="1240" y="705" font-size="13" font-weight="bold" text-anchor="middle" fill="white">Cliente recibe</text>
+                <text x="1240" y="725" font-size="12" text-anchor="middle" fill="white">agua potable</text>
+                <text x="1240" y="740" font-size="12" text-anchor="middle" fill="white">en domicilio</text>
+
+                <!-- FIN -->
+                <circle cx="1260" cy="1060" r="30" fill="#10b981" stroke="#059669" stroke-width="2" />
+                <text x="1260" y="1070" font-size="24" font-weight="bold" text-anchor="middle" fill="white">✓</text>
+
+                <!-- Flecha al fin -->
+                <line x1="420" y1="960" x2="1260" y2="1030" stroke="#1e293b" stroke-width="2" marker-end="url(#arrowhead)" />
+
+                <!-- Leyenda de ciclo -->
+                <text x="950" y="620" font-size="11" fill="#ef4444" font-weight="bold">Ciclo: Si hay más</text>
+                <text x="950" y="640" font-size="11" fill="#ef4444">entregas, regresa</text>
+                <text x="950" y="655" font-size="11" fill="#ef4444">al paso 6</text>
+
+            </svg>
+        </div>
+
+        <div class="info-section">
+            <h3>📋 Información del Procedimiento</h3>
+            <p><strong>Total de Actividades:</strong> 11 pasos secuenciales</p>
+            <p><strong>Roles Involucrados:</strong> 4 (Supervisor, Auxiliar, Operador Camión, Operador Garza)</p>
+            <p><strong>Documentos Clave:</strong> Sistema ATL, Google Drive (Drive de Ruta), Bitácora de Entrega, Reporte de Pozos</p>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-symbol supervisor">1</div>
+                <div class="legend-text"><strong>Supervisor:</strong> Verificación y asignación</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-symbol auxiliar">2</div>
+                <div class="legend-text"><strong>Auxiliar:</strong> Gestión de documentos</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-symbol operador">3</div>
+                <div class="legend-text"><strong>Operador Camión:</strong> Entregas</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-symbol garza">6</div>
+                <div class="legend-text"><strong>Operador Garza:</strong> Abastecimiento</div>
+            </div>
+            <div class="legend-item">
+                <div class="legend-symbol cliente">7</div>
+                <div class="legend-text"><strong>Cliente/Cierre:</strong> Entrega y conclusión</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="btn-group">
+                <button onclick="descargarSVG()">📥 Descargar Diagrama SVG</button>
+                <button onclick="descargarPNG()">🖼️ Descargar como PNG</button>
+                <button onclick="imprimirDiagrama()">🖨️ Imprimir</button>
+                <button onclick="copiarAlPortapapeles()">📋 Copiar enlace</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function descargarSVG() {
+            const svg = document.getElementById('diagrama');
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const blob = new Blob([svgData], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'Diagrama_Procedimiento_Agua.svg';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function descargarPNG() {
+            const svg = document.getElementById('diagrama');
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = 'Diagrama_Procedimiento_Agua.png';
+                link.click();
+            };
+            
+            img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+        }
+
+        function imprimirDiagrama() {
+            window.print();
+        }
+
+        function copiarAlPortapapeles() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('✓ Enlace copiado al portapapeles');
+            });
+        }
+    </script>
+</body>
+</html>
