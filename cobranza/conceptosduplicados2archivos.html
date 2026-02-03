@@ -3,1335 +3,956 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestión de Trámites</title>
+    <title>Comparador de Archivos Excel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
-        header {
+
+        .container {
             background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .upload-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover:not(.disabled) {
+            background: #eef1ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #e0e7ff;
+            border-color: #4c51bf;
+        }
+
+        .upload-area.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 16px;
+        }
+
+        .upload-area h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-top: 10px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #10b981;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+        }
+
+        .file-name {
+            color: #10b981;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .column-selector-section {
+            background: #f8f9ff;
             padding: 30px;
             border-radius: 12px;
             margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
+            display: none;
         }
-        header h1 { color: #2c3e50; font-size: 28px; }
-        .header-buttons { display: flex; gap: 10px; }
-        .btn-primary {
-            padding: 12px 24px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
+
+        .column-selector-section.active {
+            display: block;
+        }
+
+        .selector-title {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 18px;
             font-weight: 600;
-            font-size: 14px;
         }
-        .btn-primary:hover { background: #5568d3; }
-        .filtros {
+
+        .column-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .file-columns {
             background: white;
             padding: 20px;
             border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 2px solid #e5e7eb;
+        }
+
+        .file-columns h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .checkbox-group {
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
             align-items: center;
+            gap: 10px;
         }
-        .filtros label { font-weight: 600; color: #2c3e50; }
-        .filtros input, .filtros select {
-            padding: 10px 15px;
-            border: 2px solid #e8eaff;
-            border-radius: 6px;
+
+        .checkbox-item input[type="checkbox"] {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            color: #333;
             font-size: 14px;
+            flex: 1;
         }
-        .categorias { display: grid; gap: 25px; }
-        .categoria { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .categoria-header {
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 20px;
-            cursor: pointer;
+            border-radius: 12px;
+            text-align: center;
         }
-        .categoria-header h2 { font-size: 20px; font-weight: 600; }
-        .categoria-content { padding: 20px; }
-        .tramites-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
         }
-        .tramite-card {
-            background: #f8fafb;
-            border: 2px solid #e8eaff;
-            border-radius: 8px;
-            padding: 15px;
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
         }
-        .tramite-card h3 { color: #2c3e50; margin-bottom: 8px; }
-        .tramite-card p { color: #5a6c7d; font-size: 14px; margin-bottom: 10px; }
-        .tramite-buttons {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-        }
-        .btn-ver, .btn-editar, .btn-eliminar {
-            flex: 1;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .btn-ver { background: #667eea; color: white; }
-        .btn-editar { background: #4CAF50; color: white; }
-        .btn-eliminar { background: #f44336; color: white; }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.4);
+
+        .comparison-list {
+            background: #f8f9ff;
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 600px;
             overflow-y: auto;
         }
-        .modal-content {
-            background-color: white;
-            margin: 5% auto;
-            padding: 30px;
-            border-radius: 12px;
-            width: 95%;
-            max-width: 900px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+
+        .comparison-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #ef4444;
         }
-        .close {
-            color: #a0aec0;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
+
+        .comparison-item.match {
+            border-left-color: #10b981;
         }
-        .close:hover { color: #2c3e50; }
-        .modal h2 { color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e8eaff;
-            flex-wrap: wrap;
-        }
-        .tab {
-            padding: 10px 20px;
-            background: none;
-            border: none;
-            cursor: pointer;
+
+        .item-label {
             font-weight: 600;
-            color: #5a6c7d;
-        }
-        .tab.active { color: #667eea; border-bottom: 3px solid #667eea; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px; }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e8eaff;
-            border-radius: 6px;
+            color: #667eea;
+            margin-bottom: 8px;
             font-size: 14px;
         }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .form-group textarea { resize: vertical; min-height: 80px; }
-        .button-group { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
-        .btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        .btn-save { background: #7fb069; color: white; }
-        .btn-cancel { background: #e8eef5; color: #2c3e50; }
-        .password-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.4);
-        }
-        .password-content {
-            background-color: white;
-            margin: 20% auto;
-            padding: 40px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-        }
-        .password-content h3 { color: #2c3e50; margin-bottom: 20px; }
-        .password-group { margin-bottom: 20px; }
-        .password-group label { display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px; }
-        .password-group input { width: 100%; padding: 12px; border: 2px solid #e8eaff; border-radius: 6px; }
-        .password-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
-        .btn-ok { background: #7fb069; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; }
-        .btn-cancel-pwd { background: #e8eef5; color: #2c3e50; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; }
-        
-        /* ZOOM STYLES */
-        .modal-zoom {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.95);
-            overflow: auto;
-        }
-        .zoom-image {
-            margin: auto;
-            display: block;
-            max-width: 90%;
-            max-height: 90vh;
-            margin-top: 5vh;
-            cursor: zoom-out;
-        }
-        .close-zoom {
-            position: fixed;
-            top: 20px;
-            right: 30px;
-            color: white;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 2001;
-        }
-        .close-zoom:hover { color: #ccc; }
-        
-        /* PRESUPUESTO STYLES */
-        .presupuesto-header {
+
+        .item-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 20px;
         }
-        .conceptos-container {
-            background: #f8fafb;
-            border: 2px solid #e8eaff;
+
+        .item-column {
+            padding: 10px;
+            background: #f0f0f0;
             border-radius: 6px;
-            padding: 15px;
-            margin-bottom: 15px;
+            font-size: 14px;
         }
-        .concepto-item {
-            background: white;
-            padding: 12px;
-            margin-bottom: 10px;
-            border: 2px solid #e8eaff;
-            border-radius: 6px;
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 100px;
-            gap: 10px;
-            align-items: center;
+
+        .item-column strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
         }
-        .concepto-item input {
-            padding: 8px;
-            border: 2px solid #e8eaff;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-        .concepto-item input:focus { outline: none; border-color: #667eea; }
-        .btn-eliminar-concepto {
-            background: #f44336;
+
+        .btn-secundario {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
             color: white;
+            padding: 12px 25px;
             border: none;
-            border-radius: 4px;
-            padding: 6px 8px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .btn-agregar-concepto {
-            background: #667eea;
-            color: white;
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-        .resumen-presupuesto {
-            background: white;
-            border: 2px solid #e8eaff;
-            border-radius: 6px;
-            padding: 15px;
-        }
-        .resumen-fila {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            padding: 8px 0;
-            border-bottom: 1px solid #e8eaff;
-        }
-        .resumen-fila:last-child { border-bottom: none; }
-        .resumen-label { font-weight: 600; color: #2c3e50; }
-        .resumen-valor { color: #667eea; font-weight: 600; }
-        .resumen-total {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            padding: 12px 0;
-            border-top: 2px solid #667eea;
-            margin-top: 10px;
-            font-size: 16px;
-        }
-        
-        /* IMAGENES */
-        .imagenes-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .imagen-item {
-            position: relative;
-            border-radius: 6px;
-            overflow: hidden;
-            background: white;
-            border: 2px solid #e8eaff;
-        }
-        .imagen-item img {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-            cursor: zoom-in;
-        }
-        .btn-eliminar-img {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: #f44336;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
+            border-radius: 50px;
             cursor: pointer;
             font-size: 14px;
-            padding: 0;
+            font-weight: 600;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+            position: relative;
+            overflow: hidden;
         }
-        
-        /* TABLA PRESUPUESTO */
-        .tabla-presupuesto {
+
+        .btn-secundario::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
         }
-        .tabla-presupuesto th {
-            background: #667eea;
+
+        .btn-secundario:hover::before {
+            left: 100%;
+        }
+
+        .btn-secundario:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 12px 30px rgba(255, 107, 107, 0.5);
+        }
+
+        .btn-secundario:active {
+            transform: translateY(-1px) scale(1.01);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #10b981;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #dc2626;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #15803d;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #15803d;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        /* Modal de Contraseña */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .modal-content h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .modal-content p {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            letter-spacing: 2px;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .modal-buttons button:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-confirmar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 10px;
-            text-align: left;
-            border: 1px solid #ddd;
         }
-        .tabla-presupuesto td {
-            padding: 10px;
-            border: 1px solid #ddd;
+
+        .btn-cancelar {
+            background: #e5e7eb;
+            color: #333;
         }
-        .tabla-presupuesto tr:hover { background: #f8fafb; }
-        .total-row { background: #667eea; color: white; font-weight: bold; }
+
+        .error-modal {
+            color: #dc2626;
+            font-size: 13px;
+            margin-top: -15px;
+            margin-bottom: 15px;
+        }
+
+        .botones-control {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .upload-section {
+                grid-template-columns: 1fr;
+            }
+
+            .column-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .item-content {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                max-width: 90%;
+                padding: 30px 20px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>📋 Sistema de Gestión de Trámites</h1>
-            <div class="header-buttons">
-                <button class="btn-primary" onclick="abrirAgregar()">➕ Agregar Trámite</button>
-                <button class="btn-primary" onclick="volverAlMenu()" style="background:#ff9800;">🏠 Menú</button>
-                <button class="btn-primary" onclick="solicitarSalir()" style="background:#e74c3c;">🚪 Salir</button>
+        <h1>📊 Comparador de Archivos Excel</h1>
+        <p class="subtitle">Sube dos archivos y compara columnas de ambos</p>
+        
+        <div class="upload-section">
+            <div>
+                <div class="upload-area" id="uploadArea1">
+                    <div class="upload-icon">📁</div>
+                    <h3>Archivo 1</h3>
+                    <p style="margin-bottom: 10px; color: #333; font-weight: 600;">Arrastra aquí o haz clic</p>
+                    <p style="color: #666; font-size: 14px;">Formatos: .xlsx, .xls, .csv</p>
+                    <input type="file" id="fileInput1" accept=".xlsx,.xls,.csv">
+                    <button class="btn" onclick="document.getElementById('fileInput1').click()">Seleccionar</button>
+                    <div class="file-name" id="fileName1"></div>
+                </div>
             </div>
-        </header>
-
-        <div class="filtros">
-            <label>🔍 Buscar:</label>
-            <input type="text" id="filtroNombre" placeholder="Nombre o Clave..." onkeyup="filtrar()">
-            <label>📂 Categoría:</label>
-            <select id="filtroCategoria" onchange="filtrar()">
-                <option value="">Todas</option>
-            </select>
-            <button class="btn-primary" onclick="limpiarFiltros()">🔄 Limpiar</button>
-            <button class="btn-primary" onclick="descargarExcel()" style="background:#27ae60;">📥 Descargar Excel</button>
-        </div>
-
-        <div class="categorias" id="categoriasContainer"></div>
-    </div>
-
-    <!-- MODAL ZOOM -->
-    <div id="zoomModal" class="modal-zoom">
-        <span class="close-zoom" onclick="cerrarZoom()">&times;</span>
-        <img id="zoomImg" class="zoom-image">
-    </div>
-
-    <!-- MODAL CONTRASEÑA PARA MENÚ -->
-    <div id="modalMenuPrincipal" class="modal">
-        <div class="modal-content" style="max-width: 400px;">
-            <h2 style="color: #2c3e50; margin-bottom: 20px; text-align: center;">🔐 Contraseña Requerida</h2>
-            <p style="color: #5a6c7d; text-align: center; margin-bottom: 20px;">Ingresa la contraseña para volver al menú principal</p>
-            
-            <div class="form-group">
-                <label style="color: #2c3e50; font-weight: 600;">Contraseña:</label>
-                <input type="password" id="inputPasswordMenu" placeholder="Ingresa contraseña..." style="width: 100%; padding: 12px; border: 2px solid #e8eaff; border-radius: 6px; font-size: 14px;">
-            </div>
-            
-            <div id="errorMsgMenu" style="color: #e74c3c; text-align: center; margin: 15px 0; display: none; font-weight: 600;"></div>
-            
-            <div class="button-group">
-                <button class="btn btn-save" onclick="verificarPasswordMenu()">✅ Aceptar</button>
-                <button class="btn btn-cancel" onclick="cerrarModalMenu()">❌ Cancelar</button>
+            <div>
+                <div class="upload-area" id="uploadArea2">
+                    <div class="upload-icon">📁</div>
+                    <h3>Archivo 2</h3>
+                    <p style="margin-bottom: 10px; color: #333; font-weight: 600;">Arrastra aquí o haz clic</p>
+                    <p style="color: #666; font-size: 14px;">Formatos: .xlsx, .xls, .csv</p>
+                    <input type="file" id="fileInput2" accept=".xlsx,.xls,.csv">
+                    <button class="btn" onclick="document.getElementById('fileInput2').click()">Seleccionar</button>
+                    <div class="file-name" id="fileName2"></div>
+                </div>
             </div>
         </div>
+
+        <div id="columnSelector" class="column-selector-section">
+            <div class="selector-title">Selecciona las columnas a comparar</div>
+            <div class="column-grid">
+                <div class="file-columns">
+                    <h4>Columnas del Archivo 1</h4>
+                    <div class="checkbox-group" id="columns1"></div>
+                </div>
+                <div class="file-columns">
+                    <h4>Columnas del Archivo 2</h4>
+                    <div class="checkbox-group" id="columns2"></div>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="btn" onclick="compareFiles()">Comparar Archivos</button>
+                <button class="btn btn-danger" onclick="resetFiles()">Cambiar Archivos</button>
+            </div>
+        </div>
+
+        <div id="results" class="results">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalMatches">0</div>
+                    <div class="stat-label">Coincidencias</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalDifferences">0</div>
+                    <div class="stat-label">Diferencias</div>
+                </div>
+            </div>
+
+            <h2>📋 Resultados de Comparación</h2>
+            <div class="comparison-list" id="comparisonList"></div>
+            
+            <div class="action-buttons" style="margin-top: 30px;">
+                <button class="btn btn-secondary" onclick="downloadResults()">📥 Descargar Resultados</button>
+                <button class="btn btn-danger" onclick="resetFiles()">Analizar Otros Archivos</button>
+            </div>
+        </div>
+
+        <div class="botones-control">
+            <button class="btn-secundario btn-menu" onclick="solicitarContraseña()">
+                <span>🏠</span><span>Menú Principal</span>
+            </button>
+        </div>
     </div>
 
-    <!-- MODAL ZOOM -->
-
-    <!-- MODAL VER -->
-    <div id="modalVer" class="modal">
+    <!-- Modal de Contraseña -->
+    <div class="modal-overlay" id="modalContraseña">
         <div class="modal-content">
-            <span class="close" onclick="cerrarModalVer()">&times;</span>
-            <div id="detalleContenido"></div>
-            <div class="button-group">
-                <button class="btn btn-cancel" onclick="cerrarModalVer()">Cerrar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL AGREGAR/EDITAR -->
-    <div id="modalEditar" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModalEditar()">&times;</span>
-            <h2 id="tituloModal">Agregar Nuevo Trámite</h2>
-            
-            <div class="tabs">
-                <button class="tab active" onclick="cambiarTab('info')">📋 Información</button>
-                <button class="tab" onclick="cambiarTab('etapas')">📍 Etapas</button>
-                <button class="tab" onclick="cambiarTab('requisitos')">✅ Requisitos</button>
-                <button class="tab" onclick="cambiarTab('presupuesto')">💰 Presupuesto</button>
-                <button class="tab" onclick="cambiarTab('imagenes')">🖼️ Imágenes</button>
-            </div>
-
-            <div id="info" class="tab-content active">
-                <div class="form-group">
-                    <label>Nombre del Trámite *</label>
-                    <input type="text" id="nombreTramite" placeholder="Nombre...">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Clave *</label>
-                        <input type="number" id="claveTramite">
-                    </div>
-                    <div class="form-group">
-                        <label>Estado *</label>
-                        <select id="estadoTramite">
-                            <option>Agregar</option>
-                            <option>Se modificó</option>
-                            <option>Se queda igual</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Categoría *</label>
-                        <select id="categoriaTramite"></select>
-                    </div>
-                    <div class="form-group">
-                        <label>Filtros</label>
-                        <input type="text" id="filtrosTramite">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Descripción *</label>
-                    <textarea id="descripcionTramite" placeholder="Descripción..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Resultado</label>
-                    <textarea id="resultadoTramite" placeholder="Resultado..."></textarea>
-                </div>
-            </div>
-
-            <div id="etapas" class="tab-content">
-                <div id="etapasContainer"></div>
-                <button class="btn-primary" onclick="agregarEtapa()" style="width:100%; margin-top:10px;">➕ Agregar Etapa</button>
-            </div>
-
-            <div id="requisitos" class="tab-content">
-                <div class="form-group">
-                    <label>Requisitos *</label>
-                    <textarea id="requisitosTramite" placeholder="Requisitos..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Órdenes de Trabajo</label>
-                    <input type="text" id="ordenesTrabajo" placeholder="OT-001, OT-002...">
-                </div>
-            </div>
-
-            <div id="presupuesto" class="tab-content">
-                <div class="presupuesto-header">
-                    <div class="form-group">
-                        <label>Nombre del Presupuesto</label>
-                        <input type="text" id="nombrePresupuesto" placeholder="Ej: Presupuesto 2026">
-                    </div>
-                    <div class="form-group">
-                        <label>Cantidad de m³</label>
-                        <input type="number" id="cantidadM3" placeholder="0" step="0.01" min="0" onchange="actualizarResumen()">
-                    </div>
-                </div>
-                <h3>Conceptos</h3>
-                <div class="conceptos-container" id="conceptosContainer"></div>
-                <button class="btn-agregar-concepto" onclick="agregarConcepto()">➕ Agregar Concepto</button>
-                <h3>Resumen</h3>
-                <div class="resumen-presupuesto" id="resumenPresupuesto"></div>
-            </div>
-
-            <div id="imagenes" class="tab-content">
-                <div class="form-group">
-                    <label>Subir Imágenes (máximo 5)</label>
-                    <input type="file" id="inputImagenes" multiple accept="image/*" onchange="agregarImagenes(event)">
-                    <div id="imagenesContainer" class="imagenes-container" style="margin-top:15px;"></div>
-                    <div id="contadorImagenes" style="margin-top:10px; color:#667eea; font-weight:600;">0/5 imágenes</div>
-                </div>
-            </div>
-
-            <div class="button-group">
-                <button class="btn btn-save" onclick="guardarTramite()">💾 Guardar</button>
-                <button class="btn btn-cancel" onclick="cerrarModalEditar()">❌ Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL CONTRASEÑA -->
-    <div id="passwordModal" class="password-modal">
-        <div class="password-content">
-            <h3>🔐 Contraseña requerida</h3>
-            <div class="password-group">
-                <label>Contraseña:</label>
-                <input type="password" id="passwordInput" placeholder="Ingresa contraseña..." onkeypress="if(event.key==='Enter') verificarPassword()">
-            </div>
-            <div class="password-buttons">
-                <button class="btn-ok" onclick="verificarPassword()">✅ Aceptar</button>
-                <button class="btn-cancel-pwd" onclick="cerrarPassword()">❌ Cancelar</button>
+            <h2>🔐 Acceso Restringido</h2>
+            <p>Ingresa la contraseña para regresar al menú principal</p>
+            <div class="error-modal" id="errorMsg" style="display: none;"></div>
+            <input type="password" id="inputContraseña" class="password-input" placeholder="Contraseña" onkeypress="if(event.key==='Enter') verificarContraseña()">
+            <div class="modal-buttons">
+                <button class="btn-confirmar" onclick="verificarContraseña()">Confirmar</button>
+                <button class="btn-cancelar" onclick="cancelarAcceso()">Cancelar</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ✅ PROTECCIONES DE SEGURIDAD
-        
-        // 1. Deshabilitar click derecho (inspeccionar)
+        const CONTRASEÑA_CORRECTA = '013201';
+        let file1Data = null;
+        let file2Data = null;
+        let allData1 = null;
+        let allData2 = null;
+        let currentComparison = null;
+
+        // Bloquear navegación hacia atrás de forma robusta
+        window.history.pushState(null, null, window.location.href);
+        window.addEventListener('popstate', function() {
+            window.history.pushState(null, null, window.location.href);
+        });
+
+        // Ejecutar múltiples veces para mayor seguridad
+        for (let i = 0; i < 50; i++) {
+            window.history.pushState(null, null, window.location.href);
+        }
+
+        // Prevenir cerrar la pestaña sin confirmación
+        window.addEventListener('beforeunload', function(e) {
+            e.preventDefault();
+            e.returnValue = '';
+            return '';
+        });
+
+        // Bloquear inspeccionar elemento
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
-            alert('Inspección no permitida');
             return false;
         });
-        
-        // 2. Deshabilitar teclas de desarrollo
+
+        // Bloquear F12 (Herramientas de Desarrollo)
         document.addEventListener('keydown', function(e) {
-            // F12, Ctrl+Shift+I, Ctrl+Shift+C, Ctrl+Shift+J, Ctrl+Shift+K
-            if (
-                e.key === 'F12' ||
-                (e.ctrlKey && e.shiftKey && e.key === 'I') ||
-                (e.ctrlKey && e.shiftKey && e.key === 'C') ||
-                (e.ctrlKey && e.shiftKey && e.key === 'J') ||
-                (e.ctrlKey && e.shiftKey && e.key === 'K')
-            ) {
+            if (e.keyCode === 123) {
                 e.preventDefault();
-                alert('Acceso denegado');
+                return false;
+            }
+            // Bloquear Ctrl+Shift+I (Inspeccionar)
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+                e.preventDefault();
+                return false;
+            }
+            // Bloquear Ctrl+Shift+J (Consola)
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+                e.preventDefault();
+                return false;
+            }
+            // Bloquear Ctrl+Shift+C (Inspeccionar elemento)
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
+                e.preventDefault();
+                return false;
+            }
+            // Bloquear Ctrl+I (Cursivas en algunos navegadores)
+            if (e.ctrlKey && e.keyCode === 73) {
+                e.preventDefault();
                 return false;
             }
         });
-        
-        // 3. Deshabilitar Ctrl+C (copiar)
-        document.addEventListener('copy', function(e) {
-            e.preventDefault();
-            alert('Copia no permitida');
-            return false;
-        });
-        
-        // 4. Deshabilitar seleccionar texto
-        document.addEventListener('selectstart', function(e) {
-            e.preventDefault();
-            return false;
-        });
-        
-        // 5. Deshabilitar arrastrar
-        document.addEventListener('dragstart', function(e) {
-            e.preventDefault();
-            return false;
-        });
-        
-        // 6. Controlar navegación atrás
-        history.pushState(null, null, window.location.href);
-        window.addEventListener('popstate', function() {
-            alert('No puedes regresar. Ingresa contraseña para salir.');
-            history.pushState(null, null, window.location.href);
-        });
-    </script>
 
-    <script>
-        // ✅ PROTECCIONES DE SEGURIDAD - VERSIÓN 4.1
+        // Bloquear click derecho
+        window.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            showWarning('⚠️ Acceso denegado - No puedes inspeccionar este contenido');
+            return false;
+        });
 
-        // 1. Bloquear F12, Ctrl+Shift+I, etc.
-        document.onkeydown = function(e) {
-            if (e.key === 'F12' || 
-                (e.ctrlKey && e.shiftKey && e.key === 'I') ||
-                (e.ctrlKey && e.shiftKey && e.key === 'J') ||
-                (e.ctrlKey && e.shiftKey && e.key === 'C') ||
-                (e.ctrlKey && e.key === 'u') ||
-                (e.ctrlKey && e.shiftKey && e.key === 'K')) {
-                return false;
-            }
+        // Bloquear acceso a la consola
+        const handler = () => {
+            debugger;
         };
+        setInterval(handler, 100);
 
-        // 2. Bloquear click derecho
-        document.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            alert('⛔ Inspector y opciones no permitidas');
-            return false;
-        });
+        setupFileUpload(1);
+        setupFileUpload(2);
 
-        // 3. Bloquear selección de texto
-        document.addEventListener('selectstart', (e) => {
-            e.preventDefault();
-            return false;
-        });
+        function setupFileUpload(fileNumber) {
+            const uploadArea = document.getElementById(`uploadArea${fileNumber}`);
+            const fileInput = document.getElementById(`fileInput${fileNumber}`);
 
-        // 4. Bloquear copiar
-        document.addEventListener('copy', (e) => {
-            e.preventDefault();
-            alert('⛔ Copiar está deshabilitado');
-            return false;
-        });
-
-        // 5. Bloquear cortar
-        document.addEventListener('cut', (e) => {
-            e.preventDefault();
-            return false;
-        });
-
-        // 6. Bloquear arrastrar
-        document.addEventListener('dragstart', (e) => {
-            e.preventDefault();
-            return false;
-        });
-
-        // 7. CSS para no seleccionar
-        document.body.style.userSelect = 'none';
-        document.body.style.webkitUserSelect = 'none';
-
-        // 8. Bloquear DevTools
-        setInterval(() => {
-            if (window.outerHeight - window.innerHeight > 160) {
-                document.body.innerHTML = '';
-                alert('⛔ DevTools detectadas - Acceso denegado');
-            }
-        }, 500);
-
-        // 9. Bloquear navegación atrás
-        history.pushState(null, null, window.location.href);
-        window.addEventListener('popstate', function() {
-            alert('🔐 Debes usar el botón SALIR para cerrar sesión');
-            history.pushState(null, null, window.location.href);
-        });
-
-        // Variables globales
-        const PASSWORD = "admin123";
-        const URL_MENU_PRINCIPAL = ""; // ← DOS CARPETAS ARRIBA
-        let modoEdicion = false;
-        let tramiteEnEdicion = null;
-        let accionPendiente = null;
-        let imagenes = [];
-        let etapas = [];
-        let conceptos = [];
-        
-        let datos = {
-            categorias: [
-                { id: 1, nombre: "Control de Obligaciones", tramites: [] },
-                { id: 2, nombre: "Notificaciones y Cobranza", tramites: [] },
-                { id: 3, nombre: "Contratación", tramites: [] },
-                { id: 4, nombre: "Contratación en Parcialidades", tramites: [] },
-                { id: 5, nombre: "Especial", tramites: [] },
-                { id: 6, nombre: "General", tramites: [] },
-                { id: 7, nombre: "Medidores", tramites: [] },
-                { id: 8, nombre: "Grandes Usuarios", tramites: [] },
-                { id: 9, nombre: "Mantenimiento", tramites: [] },
-                { id: 10, nombre: "Padrón y Lectura", tramites: [] }
-            ]
-        };
-
-        // Cargar datos
-        function cargarDatos() {
-            const stored = localStorage.getItem('tramitesData');
-            if (stored) datos = JSON.parse(stored);
-        }
-
-        // Guardar datos
-        function guardarDatos() {
-            localStorage.setItem('tramitesData', JSON.stringify(datos));
-        }
-
-        // Renderizar página
-        function renderizar() {
-            const container = document.getElementById('categoriasContainer');
-            const filtroNombre = document.getElementById('filtroNombre').value.toLowerCase();
-            const filtroCategoria = document.getElementById('filtroCategoria').value;
-            
-            container.innerHTML = '';
-            
-            datos.categorias.forEach(cat => {
-                if (filtroCategoria && cat.id != filtroCategoria) return;
-                
-                const tramitesFiltrados = cat.tramites.filter(t =>
-                    t.nombre.toLowerCase().includes(filtroNombre) ||
-                    t.descripcion.toLowerCase().includes(filtroNombre)
-                );
-                
-                const catDiv = document.createElement('div');
-                catDiv.className = 'categoria';
-                catDiv.innerHTML = `<div class="categoria-header"><h2>${cat.nombre}</h2></div><div class="categoria-content"><div class="tramites-grid" id="cat${cat.id}"></div></div>`;
-                
-                const grid = catDiv.querySelector('.tramites-grid');
-                tramitesFiltrados.forEach(t => {
-                    const card = document.createElement('div');
-                    card.className = 'tramite-card';
-                    card.innerHTML = `
-                        <h3>${t.nombre}</h3>
-                        <p>${t.descripcion}</p>
-                        <div style="font-size:12px; color:#667eea; margin:10px 0;">📋 ${t.etapas.length} etapas</div>
-                        <div class="tramite-buttons">
-                            <button class="btn-ver" onclick="verTramite(${t.clave}, ${cat.id})">👁️ Ver</button>
-                            <button class="btn-editar" onclick="editarTramite(${t.clave}, ${cat.id})">✏️ Editar</button>
-                            <button class="btn-eliminar" onclick="eliminarTramite(${t.clave}, ${cat.id})">🗑️ Eliminar</button>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-                
-                container.appendChild(catDiv);
+            uploadArea.addEventListener('click', () => {
+                if (fileNumber === 1 && !file1Data) fileInput.click();
+                if (fileNumber === 2 && !file2Data) fileInput.click();
             });
-        }
 
-        // Ver trámite
-        function verTramite(clave, catId) {
-            const cat = datos.categorias.find(c => c.id == catId);
-            const t = cat.tramites.find(x => x.clave == clave);
-            
-            let html = `<h2>${t.nombre}</h2>
-                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:15px; margin:20px 0;">
-                    <div style="padding:10px; background:#f8fafb; border-radius:6px;"><strong>Clave:</strong> ${t.clave}</div>
-                    <div style="padding:10px; background:#f8fafb; border-radius:6px;"><strong>Estado:</strong> ${t.estado}</div>
-                    <div style="padding:10px; background:#f8fafb; border-radius:6px;"><strong>Categoría:</strong> ${cat.nombre}</div>
-                    <div style="padding:10px; background:#f8fafb; border-radius:6px;"><strong>Filtros:</strong> ${t.filtros || 'N/A'}</div>
-                </div>
-                <h3 style="margin-top:20px; color:#2c3e50; border-bottom:2px solid #667eea; padding-bottom:10px;">Descripción</h3>
-                <p>${t.descripcion}</p>
-                <h3 style="margin-top:20px; color:#2c3e50; border-bottom:2px solid #667eea; padding-bottom:10px;">Requisitos</h3>
-                <p>${t.requisitos}</p>`;
-            
-            if (t.resultado) {
-                html += `<h3 style="margin-top:20px; color:#2c3e50; border-bottom:2px solid #667eea; padding-bottom:10px;">Resultado</h3><p>${t.resultado}</p>`;
-            }
-            
-            if (t.etapas && t.etapas.length > 0) {
-                html += '<h3 style="margin-top:20px; color:#2c3e50; border-bottom:2px solid #667eea; padding-bottom:10px;">📍 Etapas</h3>';
-                t.etapas.forEach((e, i) => {
-                    html += `<p><strong>Etapa ${i+1}:</strong> ${e.nombre} - ${e.descripcion}</p>`;
-                });
-            }
-            
-            // PRESUPUESTO
-            if (t.presupuesto && t.presupuesto.conceptos && t.presupuesto.conceptos.length > 0) {
-                html += '<h3 style="margin-top:20px; color:#2c3e50; border-bottom:2px solid #667eea; padding-bottom:10px;">💰 Presupuesto</h3>';
-                if (t.presupuesto.nombre) html += `<p><strong>Nombre:</strong> ${t.presupuesto.nombre}</p>`;
-                if (t.presupuesto.cantidadM3) html += `<p><strong>m³:</strong> ${t.presupuesto.cantidadM3}</p>`;
-                html += '<table class="tabla-presupuesto"><thead><tr><th>Concepto</th><th>Importe</th><th>Cantidad</th><th>Total</th></tr></thead><tbody>';
-                let total = 0;
-                t.presupuesto.conceptos.forEach(c => {
-                    let subTotal = c.importe * c.cantidad;
-                    if (c.multiplicar && t.presupuesto.cantidadM3) subTotal *= t.presupuesto.cantidadM3;
-                    total += subTotal;
-                    html += `<tr><td>${c.nombre}</td><td>$${c.importe.toFixed(2)}</td><td>${c.cantidad}${c.multiplicar && t.presupuesto.cantidadM3 ? ' (×m³)' : ''}</td><td>$${subTotal.toFixed(2)}</td></tr>`;
-                });
-                html += `<tr class="total-row"><td colspan="3">TOTAL</td><td>$${total.toFixed(2)}</td></tr></tbody></table>`;
-            }
-            
-            // IMÁGENES
-            if (t.imagenes && t.imagenes.length > 0) {
-                html += '<h3 style="margin-top:20px; color:#2c3e50; border-bottom:2px solid #667eea; padding-bottom:10px;">📸 Imágenes</h3><div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:10px;">';
-                t.imagenes.forEach(img => {
-                    html += `<img src="${img}" style="cursor:zoom-in; border-radius:6px; border:2px solid #e8eaff; max-width:100%; height:120px; object-fit:cover;" onclick="abrirZoom('${img}')">`;
-                });
-                html += '</div>';
-            }
-            
-            document.getElementById('detalleContenido').innerHTML = html;
-            document.getElementById('modalVer').style.display = 'block';
-        }
-
-        function cerrarModalVer() {
-            document.getElementById('modalVer').style.display = 'none';
-        }
-
-        // Abrir agregar
-        function abrirAgregar() {
-            modoEdicion = false;
-            limpiarFormulario();
-            document.getElementById('tituloModal').textContent = '➕ Agregar Nuevo Trámite';
-            document.getElementById('modalEditar').style.display = 'block';
-            actualizarSelects();
-        }
-
-        // Actualizar selects de categoría
-        function actualizarSelects() {
-            const sel = document.getElementById('categoriaTramite');
-            const filtroSel = document.getElementById('filtroCategoria');
-            sel.innerHTML = '';
-            filtroSel.innerHTML = '<option value="">Todas</option>';
-            
-            datos.categorias.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.id;
-                opt.text = c.nombre;
-                sel.appendChild(opt);
-                const opt2 = opt.cloneNode(true);
-                filtroSel.appendChild(opt2);
-            });
-        }
-
-        // Limpiar formulario
-        function limpiarFormulario() {
-            document.getElementById('nombreTramite').value = '';
-            document.getElementById('claveTramite').value = '';
-            document.getElementById('estadoTramite').value = 'Agregar';
-            document.getElementById('categoriaTramite').value = '1';
-            document.getElementById('filtrosTramite').value = '';
-            document.getElementById('descripcionTramite').value = '';
-            document.getElementById('resultadoTramite').value = '';
-            document.getElementById('requisitosTramite').value = '';
-            document.getElementById('ordenesTrabajo').value = '';
-            document.getElementById('nombrePresupuesto').value = '';
-            document.getElementById('cantidadM3').value = '';
-            
-            imagenes = [];
-            etapas = [{ nombre: '', descripcion: '' }];
-            conceptos = [];
-            
-            renderizarEtapas();
-            renderizarConceptos();
-            renderizarImagenes();
-            actualizarResumen();
-            
-            document.getElementById('claveTramite').disabled = false;
-            document.getElementById('categoriaTramite').disabled = false;
-        }
-
-        // Cambiar tab
-        function cambiarTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(tab).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        // Etapas
-        function renderizarEtapas() {
-            const container = document.getElementById('etapasContainer');
-            container.innerHTML = '';
-            
-            etapas.forEach((e, i) => {
-                const div = document.createElement('div');
-                div.style.marginBottom = '10px';
-                div.innerHTML = `
-                    <div style="padding:10px; background:#f8fafb; border-radius:6px; border:2px solid #e8eaff;">
-                        <label style="display:block; font-weight:600; margin-bottom:5px;">Etapa ${i+1}</label>
-                        <input type="text" placeholder="Nombre" value="${e.nombre || ''}" onchange="etapas[${i}].nombre=this.value;" style="width:100%; padding:8px; margin-bottom:5px; border:2px solid #e8eaff; border-radius:4px;">
-                        <input type="text" placeholder="Descripción" value="${e.descripcion || ''}" onchange="etapas[${i}].descripcion=this.value;" style="width:100%; padding:8px; border:2px solid #e8eaff; border-radius:4px;">
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function agregarEtapa() {
-            etapas.push({ nombre: '', descripcion: '' });
-            renderizarEtapas();
-        }
-
-        // Conceptos presupuesto
-        function renderizarConceptos() {
-            const container = document.getElementById('conceptosContainer');
-            container.innerHTML = '';
-            
-            conceptos.forEach((c, i) => {
-                const div = document.createElement('div');
-                div.className = 'concepto-item';
-                div.innerHTML = `
-                    <input type="text" placeholder="Concepto" value="${c.nombre || ''}" onchange="conceptos[${i}].nombre=this.value; actualizarResumen();">
-                    <input type="number" placeholder="Importe" value="${c.importe || 0}" step="0.01" min="0" onchange="conceptos[${i}].importe=parseFloat(this.value)||0; actualizarResumen();">
-                    <input type="number" placeholder="Cantidad" value="${c.cantidad || 1}" step="0.01" min="0" onchange="conceptos[${i}].cantidad=parseFloat(this.value)||1; actualizarResumen();">
-                    <label style="display:flex; align-items:center; gap:5px; cursor:pointer; font-size:12px;">
-                        <input type="checkbox" ${c.multiplicar ? 'checked' : ''} onchange="conceptos[${i}].multiplicar=this.checked; actualizarResumen();">
-                        × m³
-                    </label>
-                    <button class="btn-eliminar-concepto" onclick="conceptos.splice(${i},1); renderizarConceptos(); actualizarResumen();">✕</button>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function agregarConcepto() {
-            conceptos.push({ nombre: '', importe: 0, cantidad: 1, multiplicar: false });
-            renderizarConceptos();
-        }
-
-        function actualizarResumen() {
-            const container = document.getElementById('resumenPresupuesto');
-            const m3 = parseFloat(document.getElementById('cantidadM3').value) || 0;
-            
-            let totalBase = 0;
-            let totalFinal = 0;
-            
-            conceptos.forEach(c => {
-                const importe = c.importe || 0;
-                totalBase += importe;
-                
-                let subtotal = importe * (c.cantidad || 1);
-                if (c.multiplicar && m3 > 0) {
-                    subtotal *= m3;
-                }
-                totalFinal += subtotal;
-            });
-            
-            container.innerHTML = `
-                <div class="resumen-fila">
-                    <span class="resumen-label">Subtotal:</span>
-                    <span class="resumen-valor">$${totalBase.toFixed(2)}</span>
-                </div>
-                ${m3 > 0 ? `<div class="resumen-fila"><span class="resumen-label">m³:</span><span class="resumen-valor">${m3.toFixed(2)}</span></div>` : ''}
-                <div class="resumen-total">
-                    <span class="resumen-label">TOTAL:</span>
-                    <span class="resumen-valor">$${totalFinal.toFixed(2)}</span>
-                </div>
-            `;
-        }
-
-        // Imágenes
-        function agregarImagenes(e) {
-            const files = Array.from(e.target.files);
-            const espacio = 5 - imagenes.length;
-            
-            files.slice(0, espacio).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    imagenes.push(event.target.result);
-                    renderizarImagenes();
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-
-        function renderizarImagenes() {
-            const container = document.getElementById('imagenesContainer');
-            container.innerHTML = '';
-            
-            imagenes.forEach((img, i) => {
-                const div = document.createElement('div');
-                div.className = 'imagen-item';
-                div.innerHTML = `
-                    <img src="${img}" onclick="abrirZoom('${img}')">
-                    <button class="btn-eliminar-img" onclick="imagenes.splice(${i},1); renderizarImagenes();">✕</button>
-                `;
-                container.appendChild(div);
-            });
-            
-            document.getElementById('contadorImagenes').textContent = `${imagenes.length}/5 imágenes`;
-        }
-
-        // Zoom
-        function abrirZoom(src) {
-            document.getElementById('zoomImg').src = src;
-            document.getElementById('zoomModal').style.display = 'block';
-        }
-
-        function cerrarZoom() {
-            document.getElementById('zoomModal').style.display = 'none';
-        }
-
-        // Guardar
-        function guardarTramite() {
-            const nombre = document.getElementById('nombreTramite').value.trim();
-            const clave = parseInt(document.getElementById('claveTramite').value);
-            const catId = parseInt(document.getElementById('categoriaTramite').value);
-            const descripcion = document.getElementById('descripcionTramite').value.trim();
-            const requisitos = document.getElementById('requisitosTramite').value.trim();
-            
-            if (!nombre || !clave || !catId || !descripcion || !requisitos) {
-                alert('Completa campos obligatorios');
-                return;
-            }
-            
-            const cat = datos.categorias.find(c => c.id == catId);
-            if (!modoEdicion && cat.tramites.find(t => t.clave == clave)) {
-                alert('Clave duplicada');
-                return;
-            }
-            
-            accionPendiente = 'guardar';
-            document.getElementById('passwordInput').value = '';
-            document.getElementById('passwordModal').style.display = 'block';
-            document.getElementById('passwordInput').focus();
-        }
-
-        function verificarPassword() {
-            const pwd = document.getElementById('passwordInput').value;
-            if (pwd !== PASSWORD) {
-                alert('Contraseña incorrecta');
-                return;
-            }
-            
-            // ✅ SI ES ELIMINAR
-            if (accionPendiente === 'eliminar') {
-                const cat = datos.categorias.find(c => c.id == tramiteEnEdicion.catId);
-                const indice = cat.tramites.findIndex(t => t.clave == tramiteEnEdicion.clave);
-                
-                if (indice !== -1) {
-                    const nombreTramite = cat.tramites[indice].nombre;
-                    cat.tramites.splice(indice, 1);
-                    alert(`✅ Trámite "${nombreTramite}" eliminado`);
-                }
-                
-                guardarDatos();
-                cerrarPassword();
-                renderizar();
-                return;
-            }
-            
-            // ✅ SI ES GUARDAR/EDITAR
-            const nombre = document.getElementById('nombreTramite').value.trim();
-            const clave = parseInt(document.getElementById('claveTramite').value);
-            const catId = parseInt(document.getElementById('categoriaTramite').value);
-            const estado = document.getElementById('estadoTramite').value;
-            const filtros = document.getElementById('filtrosTramite').value.trim();
-            const descripcion = document.getElementById('descripcionTramite').value.trim();
-            const resultado = document.getElementById('resultadoTramite').value.trim();
-            const requisitos = document.getElementById('requisitosTramite').value.trim();
-            const ordenesTrabajo = document.getElementById('ordenesTrabajo').value.split(',').map(o => o.trim()).filter(o => o);
-            
-            const etapasLimpias = etapas.filter(e => e.nombre.trim());
-            const presupuesto = {
-                nombre: document.getElementById('nombrePresupuesto').value.trim(),
-                cantidadM3: parseFloat(document.getElementById('cantidadM3').value) || 0,
-                conceptos: conceptos
-            };
-            
-            const tramite = {
-                clave, nombre, estado, filtros, descripcion, resultado, requisitos, ordenesTrabajo,
-                etapas: etapasLimpias,
-                presupuesto: presupuesto,
-                imagenes: imagenes
-            };
-            
-            const cat = datos.categorias.find(c => c.id == catId);
-            
-            if (modoEdicion) {
-                const idx = cat.tramites.findIndex(t => t.clave == tramiteEnEdicion.clave);
-                cat.tramites[idx] = tramite;
-                alert('✅ Trámite actualizado');
-            } else {
-                cat.tramites.push(tramite);
-                alert('✅ Trámite agregado');
-            }
-            
-            guardarDatos();
-            cerrarModalEditar();
-            cerrarPassword();
-            renderizar();
-        }
-
-        function cerrarPassword() {
-            document.getElementById('passwordModal').style.display = 'none';
-        }
-
-        // Editar
-        function editarTramite(clave, catId) {
-            const cat = datos.categorias.find(c => c.id == catId);
-            const t = cat.tramites.find(x => x.clave == clave);
-            
-            modoEdicion = true;
-            tramiteEnEdicion = { clave, catId };
-            
-            document.getElementById('nombreTramite').value = t.nombre;
-            document.getElementById('claveTramite').value = t.clave;
-            document.getElementById('claveTramite').disabled = true;
-            document.getElementById('estadoTramite').value = t.estado;
-            document.getElementById('categoriaTramite').value = catId;
-            document.getElementById('categoriaTramite').disabled = true;
-            document.getElementById('filtrosTramite').value = t.filtros || '';
-            document.getElementById('descripcionTramite').value = t.descripcion;
-            document.getElementById('resultadoTramite').value = t.resultado || '';
-            document.getElementById('requisitosTramite').value = t.requisitos;
-            document.getElementById('ordenesTrabajo').value = (t.ordenesTrabajo || []).join(', ');
-            
-            etapas = t.etapas ? t.etapas.map(e => ({...e})) : [{ nombre: '', descripcion: '' }];
-            imagenes = t.imagenes ? [...t.imagenes] : [];
-            
-            if (t.presupuesto) {
-                document.getElementById('nombrePresupuesto').value = t.presupuesto.nombre || '';
-                document.getElementById('cantidadM3').value = t.presupuesto.cantidadM3 || '';
-                conceptos = t.presupuesto.conceptos ? t.presupuesto.conceptos.map(c => ({...c})) : [];
-            } else {
-                conceptos = [];
-            }
-            
-            renderizarEtapas();
-            renderizarConceptos();
-            renderizarImagenes();
-            actualizarResumen();
-            
-            document.getElementById('tituloModal').textContent = '✏️ Editar Trámite';
-            document.getElementById('modalEditar').style.display = 'block';
-        }
-
-        // Eliminar
-        function eliminarTramite(clave, catId) {
-            accionPendiente = 'eliminar';
-            tramiteEnEdicion = { clave, catId };
-            
-            document.getElementById('passwordInput').value = '';
-            document.getElementById('passwordModal').style.display = 'block';
-            document.getElementById('passwordInput').focus();
-        }
-
-        // Cerrar modal editar
-        function cerrarModalEditar() {
-            document.getElementById('modalEditar').style.display = 'none';
-            modoEdicion = false;
-        }
-
-        // Filtrar
-        function filtrar() {
-            const container = document.getElementById('categoriasContainer');
-            const filtroNombre = document.getElementById('filtroNombre').value.toLowerCase();
-            const filtroCategoria = document.getElementById('filtroCategoria').value;
-            
-            container.innerHTML = '';
-            
-            datos.categorias.forEach(cat => {
-                if (filtroCategoria && cat.id != filtroCategoria) return;
-                
-                const tramitesFiltrados = cat.tramites.filter(t =>
-                    t.nombre.toLowerCase().includes(filtroNombre) ||
-                    t.descripcion.toLowerCase().includes(filtroNombre) ||
-                    t.clave.toString().includes(filtroNombre)
-                );
-                
-                const catDiv = document.createElement('div');
-                catDiv.className = 'categoria';
-                catDiv.innerHTML = `<div class="categoria-header"><h2>${cat.nombre}</h2></div><div class="categoria-content"><div class="tramites-grid" id="cat${cat.id}"></div></div>`;
-                
-                const grid = catDiv.querySelector('.tramites-grid');
-                tramitesFiltrados.forEach(t => {
-                    const card = document.createElement('div');
-                    card.className = 'tramite-card';
-                    card.innerHTML = `
-                        <h3>${t.nombre}</h3>
-                        <p>${t.descripcion}</p>
-                        <div style="font-size:12px; color:#667eea; margin:10px 0;">📋 ${t.etapas.length} etapas | 🔑 Clave: ${t.clave}</div>
-                        <div class="tramite-buttons">
-                            <button class="btn-ver" onclick="verTramite(${t.clave}, ${cat.id})">👁️ Ver</button>
-                            <button class="btn-editar" onclick="editarTramite(${t.clave}, ${cat.id})">✏️ Editar</button>
-                            <button class="btn-eliminar" onclick="eliminarTramite(${t.clave}, ${cat.id})">🗑️ Eliminar</button>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-                
-                if (tramitesFiltrados.length > 0) {
-                    container.appendChild(catDiv);
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                if ((fileNumber === 1 && !file1Data) || (fileNumber === 2 && !file2Data)) {
+                    uploadArea.classList.add('dragover');
                 }
             });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file) handleFile(file, fileNumber);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) handleFile(file, fileNumber);
+            });
         }
 
-        function limpiarFiltros() {
-            document.getElementById('filtroNombre').value = '';
-            document.getElementById('filtroCategoria').value = '';
-            renderizar();
-        }
-
-        // ✅ DESCARGAR EXCEL
-        function descargarExcel() {
-            if (datos.categorias.every(c => c.tramites.length === 0)) {
-                alert('No hay trámites para descargar');
-                return;
-            }
-
-            // Crear CSV (Excel lo abre perfectamente)
-            let csv = 'Clave,Nombre,Categoría,Estado,Descripción,Requisitos,Etapas,Conceptos Presupuesto,Total Presupuesto,Órdenes de Trabajo,Imágenes\n';
+        function handleFile(file, fileNumber) {
+            const reader = new FileReader();
             
-            datos.categorias.forEach(cat => {
-                cat.tramites.forEach(t => {
-                    // Etapas
-                    const etapasTexto = t.etapas && t.etapas.length > 0 
-                        ? t.etapas.map((e, i) => `Etapa ${i+1}: ${e.nombre} (${e.descripcion})`).join(' | ')
-                        : 'Sin etapas';
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
                     
-                    // Presupuesto
-                    let presupuestoTexto = 'Sin presupuesto';
-                    let totalPresupuesto = 0;
-                    
-                    if (t.presupuesto && t.presupuesto.conceptos && t.presupuesto.conceptos.length > 0) {
-                        const conceptosTexto = t.presupuesto.conceptos.map(c => {
-                            let subtotal = c.importe * c.cantidad;
-                            if (c.multiplicar && t.presupuesto.cantidadM3) {
-                                subtotal *= t.presupuesto.cantidadM3;
-                            }
-                            totalPresupuesto += subtotal;
-                            return `${c.nombre}: $${c.importe} x ${c.cantidad}${c.multiplicar && t.presupuesto.cantidadM3 ? ` x ${t.presupuesto.cantidadM3}m³` : ''} = $${subtotal.toFixed(2)}`;
-                        }).join(' | ');
-                        presupuestoTexto = t.presupuesto.nombre ? `${t.presupuesto.nombre}: ${conceptosTexto}` : conceptosTexto;
+                    if (fileNumber === 1) {
+                        allData1 = jsonData;
+                        file1Data = file;
+                        document.getElementById('fileName1').textContent = `📄 ${file.name}`;
+                    } else {
+                        allData2 = jsonData;
+                        file2Data = file;
+                        document.getElementById('fileName2').textContent = `📄 ${file.name}`;
                     }
-                    
-                    // Órdenes
-                    const ordenesTexto = t.ordenesTrabajo && t.ordenesTrabajo.length > 0 
-                        ? t.ordenesTrabajo.join(', ')
-                        : 'Sin órdenes';
-                    
-                    // Imágenes
-                    const imagenesTexto = t.imagenes && t.imagenes.length > 0 
-                        ? `${t.imagenes.length} imagen(es)`
-                        : 'Sin imágenes';
-                    
-                    // Crear fila CSV (escapar comillas)
-                    const row = [
-                        t.clave,
-                        `"${t.nombre}"`,
-                        `"${cat.nombre}"`,
-                        t.estado,
-                        `"${t.descripcion.replace(/"/g, '""')}"`,
-                        `"${t.requisitos.replace(/"/g, '""')}"`,
-                        `"${etapasTexto.replace(/"/g, '""')}"`,
-                        `"${presupuestoTexto.replace(/"/g, '""')}"`,
-                        totalPresupuesto.toFixed(2),
-                        `"${ordenesTexto}"`,
-                        imagenesTexto
-                    ].join(',');
-                    
-                    csv += row + '\n';
-                });
-            });
-            
-            // Descargar
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            
-            link.setAttribute('href', url);
-            link.setAttribute('download', `tramites_${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.visibility = 'hidden';
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            alert('✅ Excel descargado correctamente');
+
+                    if (file1Data && file2Data) {
+                        populateColumnSelectors();
+                    }
+                } catch (error) {
+                    showError(`Error al leer archivo ${fileNumber}. Asegúrate de que sea un archivo Excel válido.`);
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
         }
 
-        // ✅ SALIR DEL SISTEMA CON CONTRASEÑA
-        function solicitarSalir() {
-            const pwd = prompt('🔐 Ingresa contraseña para salir:\n\nEscribe: admin123');
-            if (pwd === null) return;  // Si cancela
+        function populateColumnSelectors() {
+            const columns1Container = document.getElementById('columns1');
+            const columns2Container = document.getElementById('columns2');
+            const headers1 = allData1[0];
+            const headers2 = allData2[0];
             
-            if (pwd !== PASSWORD) {
-                alert('❌ Contraseña incorrecta\n\nNo se puede salir');
+            columns1Container.innerHTML = '';
+            columns2Container.innerHTML = '';
+            
+            headers1.forEach((header, index) => {
+                const div = document.createElement('div');
+                div.className = 'checkbox-item';
+                const id = `col1_${index}`;
+                div.innerHTML = `
+                    <input type="checkbox" id="${id}" value="${index}">
+                    <label for="${id}">${header || `Columna ${index + 1}`}</label>
+                `;
+                columns1Container.appendChild(div);
+            });
+
+            headers2.forEach((header, index) => {
+                const div = document.createElement('div');
+                div.className = 'checkbox-item';
+                const id = `col2_${index}`;
+                div.innerHTML = `
+                    <input type="checkbox" id="${id}" value="${index}">
+                    <label for="${id}">${header || `Columna ${index + 1}`}</label>
+                `;
+                columns2Container.appendChild(div);
+            });
+
+            document.getElementById('columnSelector').classList.add('active');
+        }
+
+        function compareFiles() {
+            const selectedCols1 = Array.from(document.querySelectorAll('#columns1 input[type="checkbox"]:checked')).map(cb => ({
+                index: parseInt(cb.value),
+                header: allData1[0][parseInt(cb.value)]
+            }));
+            
+            const selectedCols2 = Array.from(document.querySelectorAll('#columns2 input[type="checkbox"]:checked')).map(cb => ({
+                index: parseInt(cb.value),
+                header: allData2[0][parseInt(cb.value)]
+            }));
+
+            if (selectedCols1.length === 0 || selectedCols2.length === 0) {
+                showError('Debes seleccionar al menos una columna de cada archivo.');
                 return;
             }
+
+            const data1 = allData1.slice(1).map(row => selectedCols1.map(col => row[col.index]));
+            const data2 = allData2.slice(1).map(row => selectedCols2.map(col => row[col.index]));
+
+            const results = {
+                selectedCols1,
+                selectedCols2,
+                data1,
+                data2,
+                matches: [],
+                differences: []
+            };
+
+            data1.forEach((row1, idx1) => {
+                const row1Str = row1.join('|');
+                data2.forEach((row2, idx2) => {
+                    const row2Str = row2.join('|');
+                    if (row1Str === row2Str) {
+                        results.matches.push({ row1: row1, row2: row2, rowIdx1: idx1, rowIdx2: idx2 });
+                    }
+                });
+            });
+
+            const differencesMap = {};
+
+            data1.forEach((row1, idx1) => {
+                const row1Str = row1.join('|');
+                let found = false;
+                data2.forEach((row2) => {
+                    if (row1Str === row2.join('|')) found = true;
+                });
+                if (!found) {
+                    if (!differencesMap[row1Str]) {
+                        differencesMap[row1Str] = { row: row1, source: 'archivo1', count: 0, indices: [] };
+                    }
+                    differencesMap[row1Str].count++;
+                    differencesMap[row1Str].indices.push(idx1);
+                }
+            });
+
+            data2.forEach((row2, idx2) => {
+                const row2Str = row2.join('|');
+                let found = false;
+                data1.forEach((row1) => {
+                    if (row2Str === row1.join('|')) found = true;
+                });
+                if (!found) {
+                    if (!differencesMap[row2Str]) {
+                        differencesMap[row2Str] = { row: row2, source: 'archivo2', count: 0, indices: [] };
+                    }
+                    differencesMap[row2Str].count++;
+                    differencesMap[row2Str].indices.push(idx2);
+                }
+            });
+
+            results.differences = Object.values(differencesMap);
+
+            currentComparison = results;
+            displayResults(results);
+        }
+
+        function displayResults(results) {
+            document.getElementById('totalMatches').textContent = results.matches.length;
+            document.getElementById('totalDifferences').textContent = results.differences.length;
+
+            const comparisonList = document.getElementById('comparisonList');
+            comparisonList.innerHTML = '';
+
+            if (results.matches.length === 0 && results.differences.length === 0) {
+                comparisonList.innerHTML = '<div class="no-results">✅ No hay datos para comparar</div>';
+            } else {
+                results.matches.forEach((item, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'comparison-item match';
+                    div.innerHTML = `
+                        <div class="item-label">✅ Coincidencia ${idx + 1}</div>
+                        <div class="item-content">
+                            <div class="item-column">
+                                <strong>Archivo 1:</strong>
+                                ${item.row1.map((val, i) => `<div>${results.selectedCols1[i].header}: ${val}</div>`).join('')}
+                            </div>
+                            <div class="item-column">
+                                <strong>Archivo 2:</strong>
+                                ${item.row2.map((val, i) => `<div>${results.selectedCols2[i].header}: ${val}</div>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                    comparisonList.appendChild(div);
+                });
+
+                results.differences.forEach((item, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'comparison-item';
+                    const source = item.source === 'archivo1' ? 'Archivo 1' : 'Archivo 2';
+                    const cols = item.source === 'archivo1' ? results.selectedCols1 : results.selectedCols2;
+                    div.innerHTML = `
+                        <div class="item-label">❌ Diferencia (Solo en ${source}) - Se repite ${item.count} veces</div>
+                        <div class="item-column">
+                            <strong>${source}:</strong>
+                            ${item.row.map((val, i) => `<div>${cols[i].header}: ${val}</div>`).join('')}
+                        </div>
+                    `;
+                    comparisonList.appendChild(div);
+                });
+            }
+
+            document.getElementById('results').classList.add('active');
+        }
+
+        function downloadResults() {
+            if (!currentComparison) return;
+
+            const data = [];
+            data.push(['COINCIDENCIAS']);
+            currentComparison.selectedCols1.forEach(col => data[0].push(col.header + ' (Archivo 1)'));
+            currentComparison.selectedCols2.forEach(col => data[0].push(col.header + ' (Archivo 2)'));
+
+            currentComparison.matches.forEach(item => {
+                const row = [];
+                row.push('✅');
+                item.row1.forEach(val => row.push(val));
+                item.row2.forEach(val => row.push(val));
+                data.push(row);
+            });
+
+            data.push([]);
+            data.push(['DIFERENCIAS']);
+            data.push(['Fuente', 'Veces Repetido', ...currentComparison.selectedCols1.map(c => c.header)]);
+
+            currentComparison.differences.forEach(item => {
+                const row = [item.source === 'archivo1' ? 'Archivo 1' : 'Archivo 2', item.count];
+                item.row.forEach(val => row.push(val));
+                data.push(row);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Comparación');
+
+            XLSX.writeFile(wb, 'resultados_comparacion.xlsx');
+            showSuccess('✅ Archivo descargado correctamente');
+        }
+
+        function resetFiles() {
+            file1Data = null;
+            file2Data = null;
+            allData1 = null;
+            allData2 = null;
+            currentComparison = null;
+            document.getElementById('fileInput1').value = '';
+            document.getElementById('fileInput2').value = '';
+            document.getElementById('fileName1').textContent = '';
+            document.getElementById('fileName2').textContent = '';
+            document.getElementById('columnSelector').classList.remove('active');
+            document.getElementById('results').classList.remove('active');
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.querySelector('.container').appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+            document.querySelector('.container').appendChild(successDiv);
+            setTimeout(() => successDiv.remove(), 5000);
+        }
+
+        function showWarning(message) {
+            const warningDiv = document.createElement('div');
+            warningDiv.className = 'error';
+            warningDiv.textContent = message;
+            document.querySelector('.container').appendChild(warningDiv);
+            setTimeout(() => warningDiv.remove(), 5000);
+        }
+
+        function solicitarContraseña() {
+            document.getElementById('modalContraseña').classList.add('active');
+            document.getElementById('inputContraseña').value = '';
+            document.getElementById('errorMsg').style.display = 'none';
+            document.getElementById('inputContraseña').focus();
+        }
+
+        function verificarContraseña() {
+            const inputContraseña = document.getElementById('inputContraseña').value;
+            const errorMsg = document.getElementById('errorMsg');
             
-            // Contraseña correcta
-            alert('👋 Sesión cerrada\n\nHasta luego');
-            document.body.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100vh; background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-size:24px; font-weight:bold;"><p>Sesión finalizada. Puedes cerrar esta pestaña.</p></div>';
-        }
-
-        // ✅ MENÚ PRINCIPAL
-        function volverAlMenu() {
-            document.getElementById('modalMenuPrincipal').style.display = 'block';
-            document.getElementById('inputPasswordMenu').value = '';
-            document.getElementById('errorMsgMenu').style.display = 'none';
-            document.getElementById('inputPasswordMenu').focus();
-        }
-
-        function cerrarModalMenu() {
-            document.getElementById('modalMenuPrincipal').style.display = 'none';
-        }
-
-        function verificarPasswordMenu() {
-            const pwd = document.getElementById('inputPasswordMenu').value;
-            const errorMsg = document.getElementById('errorMsgMenu');
-            
-            if (pwd === PASSWORD) {
-                document.getElementById('modalMenuPrincipal').style.display = 'none';
-                
-                // Redirigir usando la variable configurada
-                alert('✅ Redirigiendo a menú principal...');
-                
-                setTimeout(function() {
-                    window.location.href = URL_MENU_PRINCIPAL;
-                }, 500);
-                
+            if (inputContraseña === CONTRASEÑA_CORRECTA) {
+                document.getElementById('modalContraseña').classList.remove('active');
+                window.location.href = '../indexmenu.html';
             } else {
                 errorMsg.textContent = '❌ Contraseña incorrecta. Intenta nuevamente.';
                 errorMsg.style.display = 'block';
-                document.getElementById('inputPasswordMenu').value = '';
-                document.getElementById('inputPasswordMenu').focus();
+                document.getElementById('inputContraseña').value = '';
+                document.getElementById('inputContraseña').focus();
             }
         }
 
-        // Permitir Enter en el input
-        document.addEventListener('DOMContentLoaded', function() {
-            const inputPassword = document.getElementById('inputPasswordMenu');
-            if (inputPassword) {
-                inputPassword.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        verificarPasswordMenu();
-                    }
-                });
-            }
-        });
-
-        // Init
-        window.onload = function() {
-            cargarDatos();
-            actualizarSelects();
-            renderizar();
-        };
-        
-        // Actualizar resumen cuando abre presupuesto
-        document.addEventListener('DOMContentLoaded', function() {
-            const tabPresupuesto = document.querySelector('[onclick*="presupuesto"]');
-            if (tabPresupuesto) {
-                tabPresupuesto.addEventListener('click', actualizarResumen);
-            }
-        });
+        function cancelarAcceso() {
+            document.getElementById('modalContraseña').classList.remove('active');
+            document.getElementById('inputContraseña').value = '';
+            document.getElementById('errorMsg').style.display = 'none';
+        }
     </script>
 </body>
 </html>
