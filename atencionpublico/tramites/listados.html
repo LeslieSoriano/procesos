@@ -1,0 +1,2867 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Consulta - Conceptos, Presupuestos y Trámites</title>
+    <style>
+        /* ========================================
+           ESTILOS GLOBALES
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        /* ========================================
+           CONTENEDOR PRINCIPAL
+           ======================================== */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        /* ========================================
+           ENCABEZADO
+           ======================================== */
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        /* ========================================
+           PESTAÑAS (TABS)
+           ======================================== */
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 3px solid #e0e0e0;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 20px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -3px;
+        }
+        
+        .tab-button:hover {
+            background: #e9ecef;
+            color: #333;
+        }
+        
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        /* ========================================
+           CONTENIDO
+           ======================================== */
+        .content {
+            padding: 30px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* ========================================
+           CAJA DE BÚSQUEDA
+           ======================================== */
+        .search-box {
+            margin-bottom: 25px;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            font-size: 1em;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 1.2em;
+        }
+        
+        /* ========================================
+           TARJETAS DE ESTADÍSTICAS
+           ======================================== */
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            flex: 1;
+            min-width: 200px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card p {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+        
+        /* ========================================
+           TABLAS
+           ======================================== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        tbody tr {
+            transition: background 0.2s ease;
+        }
+        
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 1.1em;
+        }
+        
+        /* ========================================
+           RESPONSIVE DESIGN
+           ======================================== */
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            table {
+                font-size: 0.9em;
+            }
+            
+            th, td {
+                padding: 10px;
+            }
+            
+            header h1 {
+                font-size: 1.8em;
+            }
+            
+            .stat-card {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ========================================
+             ENCABEZADO
+             ======================================== -->
+        <header>
+            <h1>📊 Sistema de Consulta</h1>
+            <p>Conceptos, Presupuestos y Trámites</p>
+        </header>
+        
+        <!-- ========================================
+             PESTAÑAS DE NAVEGACIÓN
+             ======================================== -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('conceptos', event)">
+                💡 Conceptos
+            </button>
+            <button class="tab-button" onclick="showTab('presupuestos', event)">
+                💰 Presupuestos
+            </button>
+            <button class="tab-button" onclick="showTab('tramites', event)">
+                📋 Trámites
+            </button>
+        </div>
+        
+        <!-- ========================================
+             CONTENIDO DE LAS PESTAÑAS
+             ======================================== -->
+        <div class="content">
+            <!-- TAB CONCEPTOS -->
+            <div id="conceptos" class="tab-content active">
+                <div class="search-box">
+                    <input type="text" id="searchConceptos" placeholder="Buscar en conceptos..." onkeyup="filterTable('conceptos')">
+                    <span class="search-icon">🔍</span>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-card">
+                        <h3 id="totalConceptos">0</h3>
+                        <p>Total Conceptos</p>
+                    </div>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table id="tableConceptos">
+                        <thead>
+                            <tr id="headConceptos"></tr>
+                        </thead>
+                        <tbody id="bodyConceptos"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- TAB PRESUPUESTOS -->
+            <div id="presupuestos" class="tab-content">
+                <div class="search-box">
+                    <input type="text" id="searchPresupuestos" placeholder="Buscar en presupuestos..." onkeyup="filterTable('presupuestos')">
+                    <span class="search-icon">🔍</span>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-card">
+                        <h3 id="totalPresupuestos">0</h3>
+                        <p>Total Presupuestos</p>
+                    </div>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table id="tablePresupuestos">
+                        <thead>
+                            <tr id="headPresupuestos"></tr>
+                        </thead>
+                        <tbody id="bodyPresupuestos"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- TAB TRÁMITES -->
+            <div id="tramites" class="tab-content">
+                <div class="search-box">
+                    <input type="text" id="searchTramites" placeholder="Buscar en trámites..." onkeyup="filterTable('tramites')">
+                    <span class="search-icon">🔍</span>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-card">
+                        <h3 id="totalTramites">0</h3>
+                        <p>Total Trámites</p>
+                    </div>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table id="tableTramites">
+                        <thead>
+                            <tr id="headTramites"></tr>
+                        </thead>
+                        <tbody id="bodyTramites"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // DATOS EMBEBIDOS DESDE ARCHIVOS EXCEL
+        // ========================================
+        
+        // CONCEPTOS DATA - 149 registros
+        const conceptosData = [
+  {
+    "Clave": 198,
+    "Nombre": "Cuadro medidor de 1/2\" a 1\"",
+    "Descripción": "Por suministro y colocación de cuadro de medidor (de 1/2\" a 1\" galvanizado)",
+    "Identificador": "CM1/2",
+    "Importe": 1590.0
+  },
+  {
+    "Clave": 199,
+    "Nombre": "Cuadro medidor 1-1/2\"",
+    "Descripción": "Por el servicio de suministro y colocación de cuadro de medidor ( de 1-1/2\" galvanizado).",
+    "Identificador": "CM1",
+    "Importe": 3240.0
+  },
+  {
+    "Clave": 200,
+    "Nombre": "Cuadro medidor 2\"",
+    "Descripción": "Por el servicio de suministro y colocación de cuadro de medidor ( de 2\" FoFo ).",
+    "Identificador": "CM2",
+    "Importe": 13320.0
+  },
+  {
+    "Clave": 177,
+    "Nombre": "Por cancelación y reconexión de toma en caja de registro con taquete de madera",
+    "Descripción": "Cancelacion y reconexion de toma en caja de registro con taquete de madera",
+    "Identificador": "CRCR",
+    "Importe": 514.0
+  },
+  {
+    "Clave": 7,
+    "Nombre": "Suministro y colocación de caja de registro",
+    "Descripción": "Por el servicio de suministro y colocación de caja de registro para alojo de medidor en banqueta (incluye obra civil) (incluye caja)",
+    "Identificador": "SCB",
+    "Importe": 3620.0
+  },
+  {
+    "Clave": 203,
+    "Nombre": "Medidor de lectura remota (1/2\")",
+    "Descripción": "Por el servicio de suministro e instalación de medidor de lectura remota (1/2\")",
+    "Identificador": "MLR1/2",
+    "Importe": 2200.0
+  },
+  {
+    "Clave": 204,
+    "Nombre": "Medidor de lectura remota (1\")",
+    "Descripción": "Por el servicio de suministro e instalación de medidor de lectura remota (1\")",
+    "Identificador": "MLR1",
+    "Importe": 3100.0
+  },
+  {
+    "Clave": 205,
+    "Nombre": "Medidor de lectura remota (1 1/2\")",
+    "Descripción": "Por el servicio de suministro e instalación de medidor de lectura remota (1-1/2\")",
+    "Identificador": "MLR11/",
+    "Importe": 6600.0
+  },
+  {
+    "Clave": 206,
+    "Nombre": "Medidor de lectura remota (2\")",
+    "Descripción": "Por suministro e instalación de medidor de lectura remota (2\")",
+    "Identificador": "MLR2",
+    "Importe": 26400.0
+  },
+  {
+    "Clave": 207,
+    "Nombre": "Medidor de lectura remota (3\")",
+    "Descripción": "Por el servicio de suministro e instalación de medidor de lectura remota (3\")",
+    "Identificador": "MLR3",
+    "Importe": 32500.0
+  },
+  {
+    "Clave": 208,
+    "Nombre": "Medidor de lectura remota (4\")",
+    "Descripción": "Por el servicio de suministro e instalación de medidor de lectura remota (4\")",
+    "Identificador": "MLR4",
+    "Importe": 53000.0
+  },
+  {
+    "Clave": 163,
+    "Nombre": "Venta de Caja de polietileno de registro en banqueta",
+    "Descripción": "Suministro e instalación de caja de polietileno para alojo de medidor (de 1/2\") en banqueta",
+    "Identificador": "CPM",
+    "Importe": 835.0
+  },
+  {
+    "Clave": 209,
+    "Nombre": "Suspensión voluntaria temporal",
+    "Descripción": "Por suspensión voluntaria temporal de inmueble deshabitado y reconexión de toma de agua",
+    "Identificador": "SVT",
+    "Importe": 865.0
+  },
+  {
+    "Clave": 210,
+    "Nombre": "Cancelación definitiva de toma",
+    "Descripción": "Por el servicio de cancelación definitiva de toma desde la red central",
+    "Identificador": "CDAT",
+    "Importe": 3460.0
+  },
+  {
+    "Clave": 66,
+    "Nombre": "Venta agua tratada en garza",
+    "Descripción": "Por venta de agua tratada en sitio de planta con pipa del cliente (sistema garza) en planta autorizada, importe por metro cúbico",
+    "Identificador": "SAT",
+    "Importe": 8.0
+  },
+  {
+    "Clave": 212,
+    "Nombre": "Reconexión de agua en cuadro y/o registro",
+    "Descripción": "Por el servicio de reconexión de toma de agua en cuadro de medidor y/o registro por morosidad",
+    "Identificador": "RAC/R",
+    "Importe": 560.0
+  },
+  {
+    "Clave": 67,
+    "Nombre": "Descarga desechos domesticos",
+    "Descripción": "Por descarga móvil de agua residual de desechos domésticos en planta de tratamiento autorizada por metro cúbico",
+    "Identificador": "DDM",
+    "Importe": 35.0
+  },
+  {
+    "Clave": 230,
+    "Nombre": "Reubicación de cuadro y/o medidor",
+    "Descripción": "Por el servicio de reubicación de cuadro de medidor y/o medidor",
+    "Identificador": "RDC/M",
+    "Importe": 840.0
+  },
+  {
+    "Clave": 215,
+    "Nombre": "Tierra nuevo servicio de agua 1/2\" a 1\" (no incluye medidor)",
+    "Descripción": "Por el servicio de instalación de nuevo servicio de agua potable de (1/2\" a 1\") de 0.0 a 5.0 metros del punto de conexión (incluye obra civil en carpeta de rodamiento) (No incluye medidor)",
+    "Identificador": "NSAT",
+    "Importe": 7150.0
+  },
+  {
+    "Clave": 106,
+    "Nombre": "Metro adicional agua potable",
+    "Descripción": "Metro adicional en nuevos servicios agua potable (1/2\") (incluye obra civil)",
+    "Identificador": "MANSAP",
+    "Importe": 1438.0
+  },
+  {
+    "Clave": 216,
+    "Nombre": "Rodamiento nuevo servicio de agua 1/2\" a 1\" (no incluye medidor)",
+    "Descripción": "Por el servicio de instalación de nuevo servicio de agua potable de (1/2\" a 1\") de 0.0 a 5.0 metros del punto de conexión (incluye obra civil en carpeta de rodamiento) (No incluye medidor)",
+    "Identificador": "NSACR",
+    "Importe": 10180.0
+  },
+  {
+    "Clave": 217,
+    "Nombre": "Rodamiento Conexion de albañal",
+    "Descripción": "Por el servicio de instalación de nuevo servicio de alcantarillado (tubería de 6\" de pvc) de 0.0 a 5.0 metros del punto de conexión costo de descarga (incluye obra civil en carpeta de rodamiento)",
+    "Identificador": "CAR",
+    "Importe": 12620.0
+  },
+  {
+    "Clave": 218,
+    "Nombre": "Tierra Conexion de albañal",
+    "Descripción": "Por el servicio de instalación de nuevo servicio de alcantarillado (tubería de 6\" de pvc) de 0.0 a 5.0 metros del punto de conexión costo de descarga (incluye obra civil en tierra)",
+    "Identificador": "CAT",
+    "Importe": 9550.0
+  },
+  {
+    "Clave": 219,
+    "Nombre": "Carpeta de rodamiento conexión de albañal y nuevo servicio de agua (No inlcuye medidor)",
+    "Descripción": "Instalación de nuevo servicio de agua potable (toma de 1/2\" a 1\" y alcantarillado (tubería de 6\" de pvc) de 1 a 10 metros del punto de conexión costo de toma y descarga (incluye obra civil en carpeta de rodamiento) (No inlcuye medidor)",
+    "Identificador": "ITCAR",
+    "Importe": 12970.0
+  },
+  {
+    "Clave": 220,
+    "Nombre": "Tierra conexion de albañal y nuevo servicio de agua (No incluye medidor)",
+    "Descripción": "Por el servicio de instalación de nuevo servicio de agua potable (toma de 1/2\" a 1\") y alcantarillado (tubería de 6\" pvc) de 0.0 a 5.0 metros del punto de conexión costo de toma y descarga (incluye obra civil en tierra) (No incluye medidor)",
+    "Identificador": "ITCAT",
+    "Importe": 9770.0
+  },
+  {
+    "Clave": 12,
+    "Nombre": "Construcción registro sanitario",
+    "Descripción": "Por construcción de registro sanitario de 40 cm x 60 cm",
+    "Identificador": "CDRS",
+    "Importe": 6340.0
+  },
+  {
+    "Clave": 180,
+    "Nombre": "Limpieza de fosa septica comercio y/o industria",
+    "Descripción": "Costo horario por servicio de limpieza de fosa séptica previo dictamen del supervisor en comercio o industria (cuando el equipo de desazolve tenga acceso a la fosa y se tenga disponibilidad del equipo. Hasta 4 m3",
+    "Identificador": "DFSCI",
+    "Importe": 1980.0
+  },
+  {
+    "Clave": 189,
+    "Nombre": "Tramite inicial de factibilidad",
+    "Descripción": "Por el servicio de trámite inicial de factibilidad a desarrolladores",
+    "Identificador": "TIF",
+    "Importe": 2850.0
+  },
+  {
+    "Clave": 190,
+    "Nombre": "Tramite inicial por subdivisión",
+    "Descripción": "Por el servico de trámite inicial de factibilidad por subdivisión",
+    "Identificador": "TIS",
+    "Importe": 170.0
+  },
+  {
+    "Clave": 221,
+    "Nombre": "Venta agua tratada con macromedidor",
+    "Descripción": "Por venta de agua tratada vía red con macromedidor, importe por metro cúbico",
+    "Identificador": "SATM",
+    "Importe": 6.8
+  },
+  {
+    "Clave": 222,
+    "Nombre": "Trámite inicial de prefactibilidad",
+    "Descripción": "Por el servicio de trámite inicial de prefactibilidad a desarrolladores",
+    "Identificador": "TIPF",
+    "Importe": 2850.0
+  },
+  {
+    "Clave": 69,
+    "Nombre": "Suministro de agua a pipas",
+    "Descripción": "Por el servicio de suministro de agua potable a pipas particulares por m3",
+    "Identificador": "SAPP",
+    "Importe": 77.0
+  },
+  {
+    "Clave": 232,
+    "Nombre": "Suspensión de agua en registro",
+    "Descripción": "Por suspensión de toma de agua en registro por morosidad",
+    "Identificador": "SAR",
+    "Importe": 330.0
+  },
+  {
+    "Clave": 211,
+    "Nombre": "Suspensión de agua en cuadro y/o registro",
+    "Descripción": "Por el servicio de suspensión de toma de agua en cuadro de medidor y/o registro por morosidad",
+    "Identificador": "SAC/R",
+    "Importe": 340.0
+  },
+  {
+    "Clave": 213,
+    "Nombre": "Suspensión de agua en banqueta",
+    "Descripción": "Por el servicio de suspensión de toma de agua en banqueta por morosidad",
+    "Identificador": "SAB",
+    "Importe": 1200.0
+  },
+  {
+    "Clave": 181,
+    "Nombre": "Pensionado",
+    "Descripción": "Por los servicios de agua potable, alcantarillado sanitario, drenaje y saneamiento en todas sus modalidades",
+    "Identificador": "PEN",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 182,
+    "Nombre": "Jubilado",
+    "Descripción": "Por los servicios de agua potable, alcantarillado sanitario, drenaje y saneamiento en todas sus modalidades",
+    "Identificador": "JUB",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 183,
+    "Nombre": "Escasos Recursos",
+    "Descripción": "Por los servicios de agua potable, alcantarillado sanitario, drenaje y saneamiento en todas sus modalidades",
+    "Identificador": "SOC",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 185,
+    "Nombre": "Tercera edad",
+    "Descripción": "Por los servicios de agua potable, alcantarillado sanitario, drenaje y saneamiento en todas sus modalidades",
+    "Identificador": "TER",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 188,
+    "Nombre": "Discapacidad",
+    "Descripción": "Por los servicios de agua potable, alcantarillado sanitario, drenaje y saneamiento en todas sus modalidades",
+    "Identificador": "DIS",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 184,
+    "Nombre": "Rural",
+    "Descripción": "Por los servicios de agua potable, alcantarillado sanitario, drenaje y saneamiento en todas sus modalidades",
+    "Identificador": "RUR",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 197,
+    "Nombre": "Reconexión de toma de agua",
+    "Descripción": "Por el servicio de reconexión de toma en red central",
+    "Identificador": "RTA",
+    "Importe": 2440.0
+  },
+  {
+    "Clave": 195,
+    "Nombre": "Venta de bases de licitación",
+    "Descripción": "Por la venta de bases de licitación pública por paquete.",
+    "Identificador": "BLP",
+    "Importe": 1090.0
+  },
+  {
+    "Clave": 172,
+    "Nombre": "Renta de espacios",
+    "Descripción": "Por arrendamiento de espacios públicos",
+    "Identificador": "AET",
+    "Importe": 31410.0
+  },
+  {
+    "Clave": 68,
+    "Nombre": "Tierra metro adicional albañal",
+    "Descripción": "Por el servicio de metro adicional de descarga en tierra",
+    "Identificador": "TMAD",
+    "Importe": 1340.0
+  },
+  {
+    "Clave": 70,
+    "Nombre": "Rodamiento metro adicional albañal",
+    "Descripción": "Por el servicio de metro adicional de descarga en carpeta de rodamiento",
+    "Identificador": "RMAD",
+    "Importe": 1840.0
+  },
+  {
+    "Clave": 108,
+    "Nombre": "Tierra metro adicional agua potable",
+    "Descripción": "Por el servicio de metro adicional de toma de agua potable en tierra",
+    "Identificador": "TMAAP",
+    "Importe": 980.0
+  },
+  {
+    "Clave": 110,
+    "Nombre": "Rodamiento metro adicional agua potable",
+    "Descripción": "Por el servicio de metro adicional de toma de agua potable en carpeta de rodamiento",
+    "Identificador": "RMAAP",
+    "Importe": 1510.0
+  },
+  {
+    "Clave": 112,
+    "Nombre": "Reconexión de toma en cuadro y/o registro",
+    "Descripción": "Por el servicio de reconexión de toma de agua en cuadro y/o registro",
+    "Identificador": "RCR",
+    "Importe": 560.0
+  },
+  {
+    "Clave": 113,
+    "Nombre": "Suspensión voluntaria temporal 2026",
+    "Descripción": "Por el servicio de suspensión voluntaria temporal de toma de agua en cuadro de medidor (vigencia de 1 año)",
+    "Identificador": "SVTT",
+    "Importe": 340.0
+  },
+  {
+    "Clave": 114,
+    "Nombre": "Reconexión voluntaria temporal",
+    "Descripción": "Por el servicio de reconexión voluntaria temporal de toma de agua de inmueble deshabitado.",
+    "Identificador": "RVT",
+    "Importe": 560.0
+  },
+  {
+    "Clave": 115,
+    "Nombre": "Construcción de caja de valvula",
+    "Descripción": "Por el servicio de construcción de caja de operación de válvula y medidor (incluye obra civil) (no incluye medidor)",
+    "Identificador": "CCV",
+    "Importe": 34450.0
+  },
+  {
+    "Clave": 107,
+    "Nombre": "Cheque Devuelto",
+    "Descripción": "Indemización 20 % por cheque devuelto",
+    "Identificador": "CHQ_RE",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 134,
+    "Nombre": "Redondeo",
+    "Descripción": "Redondeo  Parcialidad",
+    "Identificador": "REDC",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 72,
+    "Nombre": "Anticipo sobre presupuesto negociado",
+    "Descripción": "Anticipo sobre presupuesto negociado",
+    "Identificador": "ANTP",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 226,
+    "Nombre": "Hoja adicional a certificación o constancia sobre documentos",
+    "Descripción": "Hoja adicional a las certificaciones o constancias sobre documentos, actas, datos y anotaciones por legajo",
+    "Identificador": "HACSD",
+    "Importe": 1.0
+  },
+  {
+    "Clave": 228,
+    "Nombre": "Multas descargas por limites excedentes",
+    "Descripción": "Derechos por excedentes de Limites Permisibles en las descargas de aguas residuales no domésticas vertidas a la red de alcantarillado sanitario",
+    "Identificador": "MUNOM",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 121,
+    "Nombre": "Multas otros",
+    "Descripción": "Cargo por multas otros conceptos",
+    "Identificador": "MUOTR",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 229,
+    "Nombre": "Otros ingresos",
+    "Descripción": "Otros Ingresos",
+    "Identificador": "OI",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 11,
+    "Nombre": "Conexión red agua",
+    "Descripción": "Conexión a la red municipal de agua potable",
+    "Identificador": "CRA",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 171,
+    "Nombre": "Derechos de conexión a red de agua",
+    "Descripción": "Derechos de Conexión a la Red Municipal de Agua Potable",
+    "Identificador": "DCA",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 178,
+    "Nombre": "Actualizacion Parcialidades",
+    "Descripción": "Actualizacion Parcialidades",
+    "Identificador": "CF",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 234,
+    "Nombre": "Parcialidad",
+    "Descripción": "Parcialidad",
+    "Identificador": "RCC",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 186,
+    "Nombre": "Derechos de conexión a red sanitaria",
+    "Descripción": "Derechos de Conexión a la Red Municipal de Alcantarillado Sanitario y Saneamiento",
+    "Identificador": "DCS",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 187,
+    "Nombre": "Contribución por dotación de agua",
+    "Descripción": "Contribución por dotación de los servicios publicos del agua",
+    "Identificador": "CDOT",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 191,
+    "Nombre": "Gastos de ejecución",
+    "Descripción": "Gastos de ejecución",
+    "Identificador": "GDE",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 135,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 137,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 138,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 140,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 141,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 142,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": "IH",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 143,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 8.4
+  },
+  {
+    "Clave": 144,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 5.0
+  },
+  {
+    "Clave": 145,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 241.0
+  },
+  {
+    "Clave": 146,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 1310.0
+  },
+  {
+    "Clave": 147,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 15.66
+  },
+  {
+    "Clave": 148,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 4.81
+  },
+  {
+    "Clave": 150,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 143.3
+  },
+  {
+    "Clave": 151,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 343.11
+  },
+  {
+    "Clave": 152,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 153,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 154,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 155,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 156,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 157,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 518.1
+  },
+  {
+    "Clave": 158,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 159,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 161,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 1206.9
+  },
+  {
+    "Clave": 162,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": "BPC",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 167,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 168,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 8620.69
+  },
+  {
+    "Clave": 169,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 170,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 164,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 165,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 173,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 28900.0
+  },
+  {
+    "Clave": 174,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 175,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 176,
+    "Nombre": "DEVOLUCIÓN",
+    "Descripción": "DEVOLUCIÓN",
+    "Identificador": "DEV",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 179,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 997.42
+  },
+  {
+    "Clave": 193,
+    "Nombre": "Recargo por pago en parcialidades",
+    "Descripción": "Recargo por pago en parcialidades",
+    "Identificador": "RPP",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 194,
+    "Nombre": "Actualización",
+    "Descripción": "Actualización",
+    "Identificador": "ACT",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 201,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 15350.0
+  },
+  {
+    "Clave": 202,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 17640.0
+  },
+  {
+    "Clave": 224,
+    "Nombre": "Impresion estado de cuenta",
+    "Descripción": "Copia de impresión de estados de cuenta",
+    "Identificador": "CEC",
+    "Importe": 4.0
+  },
+  {
+    "Clave": 231,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 535.0
+  },
+  {
+    "Clave": 233,
+    "Nombre": "Recargos",
+    "Descripción": "Recargos",
+    "Identificador": "REC",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 235,
+    "Nombre": "PRESUPUESTO DIRECCIÓN COMERCIAL",
+    "Descripción": "PRESUPUESTO DIRECCIÓN COMERCIAL",
+    "Identificador": "PDC",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 71,
+    "Nombre": "Anticipo pago en parcialidades",
+    "Descripción": "Anticipo pago en parcialidades",
+    "Identificador": "ANTPEP",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 2,
+    "Nombre": "Servicio del periodo (DESCARGA)",
+    "Descripción": "Por los servicios de agua potable, alcantarillado sanitario, drenaje y saneamiento en todas sus modalidades",
+    "Identificador": "DPP",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 15,
+    "Nombre": "Suministro de medidor",
+    "Descripción": "Suministro e instalación de medidor (1/2\")",
+    "Identificador": "SM",
+    "Importe": 803.0
+  },
+  {
+    "Clave": 65,
+    "Nombre": "Metro adicional descarga",
+    "Descripción": "Metro adicional de descarga (6\") (incluye obra civil)",
+    "Identificador": "MAD",
+    "Importe": 2662.0
+  },
+  {
+    "Clave": 123,
+    "Nombre": "Por cancelación y reconexión de toma de agua con taquete de madera",
+    "Descripción": "Cancelación y reconexión de toma de agua con taquete de madera",
+    "Identificador": "CRC",
+    "Importe": 302.0
+  },
+  {
+    "Clave": 9,
+    "Nombre": "Suministro e instalación de medidor",
+    "Descripción": "Suministro e instalación de medidor",
+    "Identificador": "SIM",
+    "Importe": 803.0
+  },
+  {
+    "Clave": 10,
+    "Nombre": "Cuadro de medidor",
+    "Descripción": "Suministro cuadro de medidor (columpio)",
+    "Identificador": "SCM",
+    "Importe": 1396.0
+  },
+  {
+    "Clave": 13,
+    "Nombre": "Nuevo servicio agua",
+    "Descripción": "Nuevo servicio agua potable (1/2\") costo de toma (incluye obra civil)",
+    "Identificador": "NSAP",
+    "Importe": 997.0
+  },
+  {
+    "Clave": 16,
+    "Nombre": "Nuevo servicio descarga",
+    "Descripción": "Nuevo servicio de descarga (6\", incluye obra civil)",
+    "Identificador": "NSD",
+    "Importe": 3221.0
+  },
+  {
+    "Clave": 126,
+    "Nombre": "Por cancelación y reconexión de toma en banqueta con taquete de madera (incluye obra civil)",
+    "Descripción": "Cancelación y reconexión de toma en banqueta con taquete de madera (incluye obra civil)",
+    "Identificador": "CRR",
+    "Importe": 2816.0
+  },
+  {
+    "Clave": 214,
+    "Nombre": "Reconexión de agua en banqueta",
+    "Descripción": "Por el servicio de reconexión de toma de agua en banqueta por morosidad",
+    "Identificador": "RAB",
+    "Importe": 1200.0
+  },
+  {
+    "Clave": 223,
+    "Nombre": "Copia fotostatica simple B/N",
+    "Descripción": "El costo por hoja de copia fotostática simple o impresión, en blanco y negro, en papel bond",
+    "Identificador": "CFBN",
+    "Importe": 1.0
+  },
+  {
+    "Clave": 225,
+    "Nombre": "Certificación o constancia sobre documentos",
+    "Descripción": "La expedición de certificaciones o constancias sobre documentos actas, datos y anotaciones por legajo",
+    "Identificador": "CSD",
+    "Importe": 32.0
+  },
+  {
+    "Clave": 227,
+    "Nombre": "Copia simple planos",
+    "Descripción": "El costo por expedición de hojas simples de planos",
+    "Identificador": "CSP",
+    "Importe": 225.0
+  },
+  {
+    "Clave": 149,
+    "Nombre": "Reubicación de medidor a caja de registro",
+    "Descripción": "Por el servicio de reubicación de medidor del interior de predio o casa a banqueta en caja de registro (teniendo la caja de registro)",
+    "Identificador": "RDM",
+    "Importe": 440.0
+  },
+  {
+    "Clave": 111,
+    "Nombre": "Carta de no adeudo simple B/N",
+    "Descripción": "Copia de hoja fotostática simple o impresión, en blanco y negro, en papel bond",
+    "Identificador": "CNA",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 117,
+    "Nombre": "Obligacion Pendiente",
+    "Descripción": "Obligacion Pendiente",
+    "Identificador": "TPE",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 118,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 119,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 122,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": "CHQ_PG",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 125,
+    "Nombre": "Válvula",
+    "Descripción": "Válvula expulsora de aire",
+    "Identificador": "VALV_E",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 127,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 3000.0
+  },
+  {
+    "Clave": 129,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 1287.06
+  },
+  {
+    "Clave": 130,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 1,
+    "Nombre": "Servicio del periodo",
+    "Descripción": "Por los servicios de agua potable, alcantarillado sanitario, drenaje y saneamiento en todas sus modalidades",
+    "Identificador": "SDM",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 196,
+    "Nombre": "Dotación sin costo",
+    "Descripción": "Por los servicios de agua potable, alcantarillado sanitario, drenaje y saneamiento en todas sus modalidades",
+    "Identificador": "DOT",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 128,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 131,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 160,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 1163.8
+  },
+  {
+    "Clave": 3,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 4,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 315.52
+  },
+  {
+    "Clave": 5,
+    "Nombre": "Medidor",
+    "Descripción": "Medidor",
+    "Identificador": "MiM",
+    "Importe": 710.35
+  },
+  {
+    "Clave": 6,
+    "Nombre": ".",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 2988.79
+  },
+  {
+    "Clave": 192,
+    "Nombre": "Recargo por Morosidad",
+    "Descripción": "Recargo por Morosidad de Parcialidades",
+    "Identificador": "Rec",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 14,
+    "Nombre": "Saldo a favor",
+    "Descripción": "Saldo a favor",
+    "Identificador": "SF",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 132,
+    "Nombre": "Anticipo",
+    "Descripción": "Por los servicios de agua potable, alcantarillado sanitario, drenaje y saneamiento en todas sus modalidades",
+    "Identificador": "ANT",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 133,
+    "Nombre": "Amortización de anticipo",
+    "Descripción": "Por los servicios de agua potable, alcantarillado sanitario, drenaje y saneamiento en todas sus modalidades",
+    "Identificador": "AMO",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 8,
+    "Nombre": "IVA",
+    "Descripción": "IVA",
+    "Identificador": "IVA",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 136,
+    "Nombre": "-",
+    "Descripción": "SIN USO",
+    "Identificador": ".",
+    "Importe": 0.0
+  },
+  {
+    "Clave": 166,
+    "Nombre": "Abono",
+    "Descripción": "Por los servicios de agua potable, alcantarillado sanitario, drenaje y saneamiento en todas sus modalidades",
+    "Identificador": "ABO",
+    "Importe": 0.0
+  }
+];
+        
+        // PRESUPUESTOS DATA - 88 registros
+        const presupuestosData = [
+  {
+    "Clave": 1,
+    "Nombre": "Contratacion nuevos servicios",
+    "Descripción": "Contratacion nuevos servicios",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 2,
+    "Nombre": "Venta de agua tratada",
+    "Descripción": "Venta de agua tratada",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 3,
+    "Nombre": "Descarga de desechos PTAR",
+    "Descripción": "Descraga de desechos PTAR",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 4,
+    "Nombre": "Venta de agua a pipas",
+    "Descripción": "Venta de agua a pipas",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 5,
+    "Nombre": "Factibilidad",
+    "Descripción": "Factibilidad",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 101,
+    "Nombre": "Reconexión con costo",
+    "Descripción": "Reconexión con costo",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 102,
+    "Nombre": "Limpieza fosa séptica en casa habitación",
+    "Descripción": "Limpieza fosa séptica",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 103,
+    "Nombre": "Limpieza fosa séptica en comercio o industria",
+    "Descripción": "Limpieza fosa séptica en comercio o industria",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 106,
+    "Nombre": "Reubicación de medidor 1/2\"",
+    "Descripción": "Reubicación de medidor 1/2\"",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 109,
+    "Nombre": "Caja de banqueta",
+    "Descripción": "Caja de banqueta",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 128,
+    "Nombre": "Reconexión de toma en caja",
+    "Descripción": "Reconexion de toma en cajaReconexion de toma en cajaReconexión de toma en caja",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 130,
+    "Nombre": "Tierra Conexión de albañal, toma, cuadro y medidor",
+    "Descripción": "Tierra Conexión de albañal, toma, cuadro y medidor Conexión de albañal, toma, columpio y medidor ",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 131,
+    "Nombre": "Venta de medidor y/o cuadro",
+    "Descripción": "Venta de medidor y/o cuadro",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 132,
+    "Nombre": "Tierra Conexión de albañal",
+    "Descripción": "Tierra Conexión de albañal",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 133,
+    "Nombre": "Contratación de descarga sanitaria",
+    "Descripción": "Contratación de descarga sanitaria",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 134,
+    "Nombre": "Constancia de no adeudo",
+    "Descripción": "Constancia de no adeudo",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 135,
+    "Nombre": "Tierra Toma de agua, cuadro y/o medidor",
+    "Descripción": "Tierra Toma de agua, cuadro y/o medidor",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 136,
+    "Nombre": "Reconexión por cuadro",
+    "Descripción": "Reconexión por cuadro",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 137,
+    "Nombre": "Reconexión por red",
+    "Descripción": "Reconexión por red",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 138,
+    "Nombre": "Reconexión de drenaje",
+    "Descripción": "Reconexión de drenaje",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 139,
+    "Nombre": "Caja de banqueta y medidor",
+    "Descripción": "Caja de banqueta y medidor",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 140,
+    "Nombre": "Venta de medidor y/o cuadro nueva contratación",
+    "Descripción": "Venta de medidor y/o cuadro nueva contratación",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 141,
+    "Nombre": "Presupuesto libre",
+    "Descripción": "Presupuesto libre",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 142,
+    "Nombre": "Columpio",
+    "Descripción": "Columpio",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 143,
+    "Nombre": "Solicitud de contratacion por alcantarillado",
+    "Descripción": "Solicitud de contratacion por alcantarillado",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 144,
+    "Nombre": "Contratación de regularización con medidor",
+    "Descripción": "Contratación de regularización con medidor",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 145,
+    "Nombre": "Contrataciones en parcialidades Rodamiento",
+    "Descripción": "Contrataciones en parcialidades Rodamiento",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 146,
+    "Nombre": "Devolución ",
+    "Descripción": "Devolución de pago de presupuesto",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 147,
+    "Nombre": "Reconexión de toma de agua",
+    "Descripción": "Reconexión de toma de agua",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 148,
+    "Nombre": "Cancelación de toma por fusión de predios",
+    "Descripción": "Cancelación de toma por fusión de predios",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 149,
+    "Nombre": "Suspensión voluntaria temporal",
+    "Descripción": "Suspensión voluntaria temporal",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 150,
+    "Nombre": "Reconexión de toma de agua de 1-1/2\" GU",
+    "Descripción": "Reconexión de toma de agua de 1-1/2\" GU",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 151,
+    "Nombre": "Reconexión de toma de agua de 2\" GU",
+    "Descripción": "Reconexión de toma de agua de 2\" GU",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 152,
+    "Nombre": "Reconexión de toma de agua de 3\" GU",
+    "Descripción": "Reconexión de toma de agua de 3\" GU",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 153,
+    "Nombre": "Reconexión de toma de agua de 4\" GU",
+    "Descripción": "Reconexión de toma de agua de 4\" GU",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 154,
+    "Nombre": "Copia",
+    "Descripción": "Copia",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 155,
+    "Nombre": "Impresión estado de cuenta",
+    "Descripción": "Impresión estado de cuenta",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 156,
+    "Nombre": "Rodamiento Cone albañal, toma, cuadro y/o medidor",
+    "Descripción": "Rodamiento Cone albañal, toma, cuadro y/o medidor",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 157,
+    "Nombre": "Rodamiento Toma de agua, cuadro y/o medidor",
+    "Descripción": "Rodamiento Toma de agua, cuadro y/o medidor",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 158,
+    "Nombre": "Rodamiento Conexion de albañal",
+    "Descripción": "Rodamiento Conexion de albañal",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 159,
+    "Nombre": "Const, y colocación de caja de reg en banqueta",
+    "Descripción": "Const, y colocación de caja de registro en banqueta",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 160,
+    "Nombre": "Venta de caja de polietileno registro en banqueta",
+    "Descripción": "Venta de caja de polietileno registro en banqueta",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 161,
+    "Nombre": "Contrataciones en parcialidades Tierra",
+    "Descripción": "Contrataciones en parcialidades Tierra",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 162,
+    "Nombre": "Reubicación de medidor de 1-1/2\" GU",
+    "Descripción": "Reubicación de medidor de 1-1/2\" GU",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 163,
+    "Nombre": "Reubicación de medidor 2\" GU",
+    "Descripción": "Reubicación de medidor 2\" GU",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 164,
+    "Nombre": "Reconexión de toma de agua GU",
+    "Descripción": "Reconexión de toma de agua GU",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 165,
+    "Nombre": "Venta de medidor de 1-1/2\" GU",
+    "Descripción": "Venta de medidor de 1-1/2\" GU",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 166,
+    "Nombre": "Venta de medidor de 2\" GU",
+    "Descripción": "Venta de medidor de 2\" GU",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 167,
+    "Nombre": "Venta de medidor de 3\" GU",
+    "Descripción": "Venta de medidor de 3\" GU",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 168,
+    "Nombre": "Venta de medidor de 4\" GU",
+    "Descripción": "Venta de medidor de 4\" GU",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 169,
+    "Nombre": "Reubicación de medidor 3\" GU",
+    "Descripción": "Reubicación de medidor 3\" GU",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 170,
+    "Nombre": "Reubicación de medidor 4\" GU",
+    "Descripción": "Reubicación de medidor 4\" GU",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 171,
+    "Nombre": "Reubicación de cuadro 1/2 a 1\"",
+    "Descripción": "Reubicación de cuadro 1/2 a 1\"",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 172,
+    "Nombre": "Reubicación de medidor 1\" GU",
+    "Descripción": "Reubicación de medidor 1\" GU",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 173,
+    "Nombre": "Venta de medidor 1\" y/o Cuadro 1/2 a 1\"",
+    "Descripción": "Venta de medidor 1\" y/o Cuadro 1/2 a 1\"",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 174,
+    "Nombre": "Reconexión de toma de agua 1\" GU",
+    "Descripción": "Reconexión de toma de agua 1\" GU",
+    "Negociable": "Si"
+  },
+  {
+    "Clave": 175,
+    "Nombre": "Rodamiento. Albañal, toma, cuadro y medidor G.U.",
+    "Descripción": "Rodamiento. Albañal, toma, cuadro y medidor G.U.",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 176,
+    "Nombre": "Venta de bases de licitación",
+    "Descripción": "Venta de bases de licitación",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 177,
+    "Nombre": "Rodamiento. Toma, cuadro y medidor G.U.",
+    "Descripción": "Rodamiento. Toma, cuadro y medidor G.U.",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 178,
+    "Nombre": "Rodamiento. Albañal G.U.",
+    "Descripción": "Rodamiento. Albañal G.U.",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 179,
+    "Nombre": "Tierra. Albañal, toma, cuadro y medidor G.U.",
+    "Descripción": "Tierra. Albañal, toma, cuadro y medidor G.U.",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 180,
+    "Nombre": "Tierra. Albañal G.U",
+    "Descripción": "Tierra. Albañal G.U",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 181,
+    "Nombre": "Tierra. Toma, cuadro y medidor G.U.",
+    "Descripción": "Tierra. Toma, cuadro y medidor G.U.",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 182,
+    "Nombre": "Rodamiento albañal, toma, cuadro y medidor G.U.1\"",
+    "Descripción": "Rodamiento albañal, toma, cuadro y medidor G.U.1\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 183,
+    "Nombre": "Rodamiento albañal, toma, cuadro y med G.U.1 1y2\"",
+    "Descripción": "Rodamiento albañal, toma, cuadro y med G.U.1 1y2\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 184,
+    "Nombre": "Rodamiento albañal, toma, cuadro y medidor G.U. 2\"",
+    "Descripción": "Rodamiento albañal, toma, cuadro y medidor G.U. 2\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 185,
+    "Nombre": "Rodamiento albañal, toma, cuadro y medidor G.U. 3\"",
+    "Descripción": "Rodamiento albañal, toma, cuadro y medidor G.U. 3\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 186,
+    "Nombre": "Rodamiento albañal, toma, cuadro y medidor G.U. 4\"",
+    "Descripción": "Rodamiento albañal, toma, cuadro y medidor G.U. 4\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 187,
+    "Nombre": "Rodamiento Toma, cuadro y medidor G.U. 1\"",
+    "Descripción": "Rodamiento Toma, cuadro y medidor G.U. 1\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 188,
+    "Nombre": "Rodamiento Toma, cuadro y medidor G.U. 1-1/2\"",
+    "Descripción": "Rodamiento Toma, cuadro y medidor G.U. 1-1/2\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 189,
+    "Nombre": "Rodamiento Toma, cuadro y medidor G.U. 2\"",
+    "Descripción": "Rodamiento Toma, cuadro y medidor G.U. 2\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 190,
+    "Nombre": "Rodamiento Toma, cuadro y medidor G.U. 3\"",
+    "Descripción": "Rodamiento Toma, cuadro y medidor G.U. 3\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 191,
+    "Nombre": "Rodamiento Toma, cuadro y medidor G.U. 4\"",
+    "Descripción": "Rodamiento Toma, cuadro y medidor G.U. 4\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 192,
+    "Nombre": "Rodamiento conexión albañal G.U.",
+    "Descripción": "Rodamiento conexión albañal G.U.",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 193,
+    "Nombre": "Tierra. Albañal, toma, cuadro y medidor G.U. 1\"",
+    "Descripción": "Tierra. Albañal, toma, cuadro y medidor G.U. 1\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 194,
+    "Nombre": "Tierra. Albañal, toma, cuadro y med G.U. 1-1/2\"",
+    "Descripción": "Tierra. Albañal, toma, cuadro y med G.U. 1-1/2\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 195,
+    "Nombre": "Tierra. Albañal, toma, cuadro y medidor G.U. 2\"",
+    "Descripción": "Tierra. Albañal, toma, cuadro y medidor G.U. 2\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 196,
+    "Nombre": "Tierra. Albañal, toma, cuadro y medidor G.U. 3\"",
+    "Descripción": "Tierra. Albañal, toma, cuadro y medidor G.U. 3\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 197,
+    "Nombre": "Tierra. Albañal, toma, cuadro y medidor G.U. 4\"",
+    "Descripción": "Tierra. Albañal, toma, cuadro y medidor G.U. 4\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 198,
+    "Nombre": "Tierra. Albañal G.U.",
+    "Descripción": "Tierra. Albañal G.U.",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 199,
+    "Nombre": "Tierra. Toma, cuadro y medidor G.U. 1\"",
+    "Descripción": "Tierra. Toma, cuadro y medidor G.U. 1\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 200,
+    "Nombre": "Tierra. Toma, cuadro y medidor G.U. 1-1/2\"",
+    "Descripción": "Tierra. Toma, cuadro y medidor G.U. 1-1/2\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 201,
+    "Nombre": "Tierra. Toma, cuadro y medidor G.U. 2\"",
+    "Descripción": "Tierra. Toma, cuadro y medidor G.U. 2\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 202,
+    "Nombre": "Tierra. Toma, cuadro y medidor G.U.3\"",
+    "Descripción": "Tierra. Toma, cuadro y medidor G.U.3\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 203,
+    "Nombre": "Tierra. Toma, cuadro y medidor G.U. 4\"",
+    "Descripción": "Tierra. Toma, cuadro y medidor G.U. 4\"",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 204,
+    "Nombre": "Reconexión de toma en cuadro y/o registro",
+    "Descripción": "Reconexión de toma en cuadro y/o registro",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 205,
+    "Nombre": "Reconexión voluntaria temporal",
+    "Descripción": "Reconexión voluntaria temporal",
+    "Negociable": "No"
+  },
+  {
+    "Clave": 206,
+    "Nombre": "Reubicación de medidor a caja de registro",
+    "Descripción": "Reubicación de medidor a caja de registro",
+    "Negociable": "No"
+  }
+];
+        
+        // TRÁMITES DATA - 124 registros
+        const tramitesData = [
+  {
+    "Clave": 1,
+    "Nombre": "Alta de predio",
+    "Descripción": "Trámite para alta de nuevos predios",
+    "Clase se trámite": "Alta"
+  },
+  {
+    "Clave": 2,
+    "Nombre": "Alta de derivación",
+    "Descripción": "Trámite para alta de derivación en macrolotes",
+    "Clase se trámite": "Alta"
+  },
+  {
+    "Clave": 12,
+    "Nombre": "Carta Solicitud Cancelación Definitiva de Toma",
+    "Descripción": "Trámite para solicitar la cancelación definitiva de toma por fusión, abandono o demolición de predio. ",
+    "Clase se trámite": "Contratación"
+  },
+  {
+    "Clave": 26,
+    "Nombre": "Tierra conexion de albañal y nuevo servicio de agua (No incluye medidor)",
+    "Descripción": "Trámite para contratación de servicio de albañal(descarga), toma de agua, cuadro y medidor.",
+    "Clase se trámite": "Contratación"
+  },
+  {
+    "Clave": 28,
+    "Nombre": "Tierra conexion de albañal",
+    "Descripción": "Trámite para contratación, solo de albañal en Tierra.",
+    "Clase se trámite": "Contratación"
+  },
+  {
+    "Clave": 29,
+    "Nombre": "Tierra nuevo servicio de agua 1/2\" a 1\" (no incluye medidor)",
+    "Descripción": "Trámite para contratación de servicio de toma de agua, cuadro y/o medidor",
+    "Clase se trámite": "Contratación"
+  },
+  {
+    "Clave": 31,
+    "Nombre": "Columpio y medidor ",
+    "Descripción": "Trámite para clientes que ya cuentan con el servicio de agua y drenaje y solo requieren de columpio y medidor ",
+    "Clase se trámite": "Contratación"
+  },
+  {
+    "Clave": 45,
+    "Nombre": "Venta de medidor y/o cuadro nueva contratación",
+    "Descripción": "Trámite para instalacion de medidor a usuarios que ya cuentan con los servicios de agua y alcantarillado y solo requieren el cuadro y/o instalacion del medidor",
+    "Clase se trámite": "Contratación"
+  },
+  {
+    "Clave": 70,
+    "Nombre": "Carpeta de rodamiento conexión de albañal y nuevo servicio de agua",
+    "Descripción": "Trámite para contratacion de servicio de albañal(descarga), toma de agua, cuadro y/o medidor.",
+    "Clase se trámite": "Contratación"
+  },
+  {
+    "Clave": 71,
+    "Nombre": "Rodamiento nuevo servicio de agua 1/2\" a 1\" ",
+    "Descripción": "Trámite para contratación de servicio de toma de agua, cuadro y/o medidor",
+    "Clase se trámite": "Contratación"
+  },
+  {
+    "Clave": 74,
+    "Nombre": "Rodamiento Conexión de albañal",
+    "Descripción": "Trámite para contratación, solo de albañal en Rodamiento.",
+    "Clase se trámite": "Contratación"
+  },
+  {
+    "Clave": 37,
+    "Nombre": "Contrataciones en parcialidades Rodamiento",
+    "Descripción": "Contratacion en parcialidades para usuarios que autorice la Direccion Comercial",
+    "Clase se trámite": "Contratación en Parcialidades"
+  },
+  {
+    "Clave": 77,
+    "Nombre": "Contrataciones en parcialidades Tierra",
+    "Descripción": "Contratación en parcialidades para usuarios que autorice la Direccion Comercial",
+    "Clase se trámite": "Contratación en Parcialidades"
+  },
+  {
+    "Clave": 14,
+    "Nombre": "Invitación al pago",
+    "Descripción": "Tramite para generación de carta invitación a usarios doméstico, no genera seguimiento",
+    "Clase se trámite": "CONTROL DE OBLIGACIONES"
+  },
+  {
+    "Clave": 15,
+    "Nombre": "Suspensión del servicio",
+    "Descripción": "Trámite para predios morosos que se requieren suspender inmediatamente",
+    "Clase se trámite": "CONTROL DE OBLIGACIONES"
+  },
+  {
+    "Clave": 17,
+    "Nombre": "Invitación al pago NO domesticos",
+    "Descripción": "Tramite para generación de carta invitación a usarios NO doméstico, no genera seguimiento. ",
+    "Clase se trámite": "CONTROL DE OBLIGACIONES"
+  },
+  {
+    "Clave": 22,
+    "Nombre": "Suspensión del servicio NO domestico",
+    "Descripción": "Tramite de suspensión del servicio inmediata para usuarios NO domesticos",
+    "Clase se trámite": "CONTROL DE OBLIGACIONES"
+  },
+  {
+    "Clave": 23,
+    "Nombre": "Suspensión de drenaje ",
+    "Descripción": "Suspensión de drenaje para usuarios que ya estan suspendidor por red",
+    "Clase se trámite": "CONTROL DE OBLIGACIONES"
+  },
+  {
+    "Clave": 39,
+    "Nombre": "Aviso suspensión a morosos doméstico",
+    "Descripción": "Tramite para aviso de suspension del servicio a usuarios domésticos",
+    "Clase se trámite": "CONTROL DE OBLIGACIONES"
+  },
+  {
+    "Clave": 40,
+    "Nombre": "Verificación de Suspendido Moroso",
+    "Descripción": "Trámite para dar seguimiento a que los predios que se les realizo corte de servicio y no han pagado continuen cerrados",
+    "Clase se trámite": "CONTROL DE OBLIGACIONES"
+  },
+  {
+    "Clave": 54,
+    "Nombre": "Reconexión de toma en cuadro y/o registro",
+    "Descripción": "Reconexión de toma en cuadro y/o registro para cualquier situación comercial que se encuentre suspendido",
+    "Clase se trámite": "CONTROL DE OBLIGACIONES"
+  },
+  {
+    "Clave": 57,
+    "Nombre": "Aviso suspensión a morosos no doméstico",
+    "Descripción": "Tramite para aviso de suspension del servicio a usuarios domésticos",
+    "Clase se trámite": "CONTROL DE OBLIGACIONES"
+  },
+  {
+    "Clave": 58,
+    "Nombre": "Orden de suspensión del servicio",
+    "Descripción": "Trámite para usuarios con morosidad para generar la orden de suspensión del servicio.",
+    "Clase se trámite": "CONTROL DE OBLIGACIONES"
+  },
+  {
+    "Clave": 9,
+    "Nombre": "Descarga de desechos en planta de tratamiento",
+    "Descripción": "Por descarga móvil de agua residual de desechos domésticos en planta de tratamiento autorizada por metro cúbico",
+    "Clase se trámite": "Especial"
+  },
+  {
+    "Clave": 18,
+    "Nombre": "Reconexión en toma de agua",
+    "Descripción": "Reconexión de toma para cualquier situación comercial de suspension por morosidad proveniente de migración y que desea formalizar su contrato.",
+    "Clase se trámite": "Especial"
+  },
+  {
+    "Clave": 19,
+    "Nombre": "Reconexión de servicio sin costo",
+    "Descripción": "Reconexión por columpio para usuarios provenientes de migración.",
+    "Clase se trámite": "Especial"
+  },
+  {
+    "Clave": 21,
+    "Nombre": "Predio en Juicio",
+    "Descripción": "Tramite para predios con demanda o juicio en profeco",
+    "Clase se trámite": "Especial"
+  },
+  {
+    "Clave": 24,
+    "Nombre": "Reconexión de alcantarillado",
+    "Descripción": "Reconexión de alcantarillado para usuarios provenientes de migración.",
+    "Clase se trámite": "Especial"
+  },
+  {
+    "Clave": 35,
+    "Nombre": "Reconexión por caja de banqueta",
+    "Descripción": "Reconexión por caja de banqueta para usuarios provenientes de migración.",
+    "Clase se trámite": "Especial"
+  },
+  {
+    "Clave": 36,
+    "Nombre": "Reconexión a casa deshabitada",
+    "Descripción": "Reconexión a casa deshabitada para predios de migración",
+    "Clase se trámite": "Especial"
+  },
+  {
+    "Clave": 38,
+    "Nombre": "Contratación regularización con medidor",
+    "Descripción": "Contratacion para usuarios proveniente de migración y que desea formalizar su contratoy que no tienen medidor",
+    "Clase se trámite": "Especial"
+  },
+  {
+    "Clave": 43,
+    "Nombre": "Notificación a usuario factible",
+    "Descripción": "Aviso a nuevos desarrollos (padron de usuarios)",
+    "Clase se trámite": "Especial"
+  },
+  {
+    "Clave": 44,
+    "Nombre": "Renovación de susp. temporal casa deshabitada",
+    "Descripción": "Trámite para usuarios que estan suspendidos y requieren renovar por otro año.",
+    "Clase se trámite": "Especial"
+  },
+  {
+    "Clave": 59,
+    "Nombre": "Reconexión de toma de agua 2026",
+    "Descripción": "Reconexión de toma desde red central para cualquier situación comercial de suspension proveniente de migración y que desea formalizar su contrato.",
+    "Clase se trámite": "Especial"
+  },
+  {
+    "Clave": 60,
+    "Nombre": "Cancelación definitiva toma.",
+    "Descripción": "Trámite por cancelación definitiva de toma.",
+    "Clase se trámite": "Especial"
+  },
+  {
+    "Clave": 61,
+    "Nombre": "Suspensión voluntaria 2026",
+    "Descripción": "Trámite para suspensión voluntaria temporal por cuadro o registro en caja de banqueta",
+    "Clase se trámite": "Especial"
+  },
+  {
+    "Clave": 95,
+    "Nombre": "Solicitud suspensión voluntaria temporal",
+    "Descripción": "Trámite para suspensión voluntaria temporal por cuadro o registro en caja de banqueta",
+    "Clase se trámite": "Especial"
+  },
+  {
+    "Clave": 124,
+    "Nombre": "Reconexión voluntaria temporal",
+    "Descripción": "Trámite para reconexión voluntaria temporal por cuadro y/o registro en caja de banqueta.",
+    "Clase se trámite": "Especial"
+  },
+  {
+    "Clave": 3,
+    "Nombre": "Inspección general del predio ",
+    "Descripción": "Inspección general del predio para validar que se le puede otorgar el servicio, esta conectado sin contrato y ",
+    "Clase se trámite": "General"
+  },
+  {
+    "Clave": 5,
+    "Nombre": "Contratacion nuevos servicios",
+    "Descripción": "Contratación para predios que no cuentan con toma de agua y/o drenaje",
+    "Clase se trámite": "General"
+  },
+  {
+    "Clave": 6,
+    "Nombre": "Venta de agua tratada en pipa",
+    "Descripción": "Tramite para venta de agua tratada libre (sistema garza) a bordo, en planta autorizada, por metro cubico.",
+    "Clase se trámite": "General"
+  },
+  {
+    "Clave": 7,
+    "Nombre": "Factibilidad",
+    "Descripción": "Tramite para generacion de factibilidad y presupuesto",
+    "Clase se trámite": "General"
+  },
+  {
+    "Clave": 11,
+    "Nombre": "Venta de agua potable a pipa particulares",
+    "Descripción": "Suministro de agua a pipas particulares por m³ (donde no se cuenta con infraestructura y no sea zona vulnerable)",
+    "Clase se trámite": "General"
+  },
+  {
+    "Clave": 27,
+    "Nombre": "Presupuesto Libre",
+    "Descripción": "Presupuesto Libre para utilizar cualquier concepto",
+    "Clase se trámite": "General"
+  },
+  {
+    "Clave": 34,
+    "Nombre": "Suspensión casa deshabitada",
+    "Descripción": "Trámite para suspensión a casa deshabitada",
+    "Clase se trámite": "General"
+  },
+  {
+    "Clave": 47,
+    "Nombre": "Constancia de Control de Obligaciones",
+    "Descripción": "Trámite para usuarios que solicitan carta de no adeudo",
+    "Clase se trámite": "General"
+  },
+  {
+    "Clave": 68,
+    "Nombre": "Copia",
+    "Descripción": "Trámite para usuarios que solicitan una copia",
+    "Clase se trámite": "General"
+  },
+  {
+    "Clave": 69,
+    "Nombre": "Impresión estado de cuenta",
+    "Descripción": "Trámite para usuarios que solicitan la impresión del estado de cuenta",
+    "Clase se trámite": "General"
+  },
+  {
+    "Clave": 98,
+    "Nombre": "Venta de bases de licitación",
+    "Descripción": "Trámite para Venta de bases de licitación",
+    "Clase se trámite": "General"
+  },
+  {
+    "Clave": 62,
+    "Nombre": "Reconexión de toma de agua de 1-1/2\" GU",
+    "Descripción": "Reconexión de toma para cualquier situación comercial de suspension por morosidad proveniente de migración y que desea formalizar su contrato.",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 63,
+    "Nombre": "Reconexión de toma de agua de 2\" GU",
+    "Descripción": "Reconexión de toma para cualquier situación comercial de suspension por morosidad proveniente de migración y que desea formalizar su contrato.",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 64,
+    "Nombre": "Reconexión de toma de agua de 3\" GU",
+    "Descripción": "Reconexión de toma para cualquier situación comercial de suspension por morosidad proveniente de migración y que desea formalizar su contrato.",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 65,
+    "Nombre": "Reconexión de toma de agua de 4\" GU",
+    "Descripción": "Reconexión de toma para cualquier situación comercial de suspension por morosidad proveniente de migración y que desea formalizar su contrato.",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 79,
+    "Nombre": "Reubicación de medidor de 1-1/2\"",
+    "Descripción": "Trámite para reubicación del medidor para hacerlo más visble por alguna obstrucción al lecturista",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 80,
+    "Nombre": "Instalación de Medidor de 1-1/2\" GU",
+    "Descripción": "Trámite para intalación de medidor a usuarios que ya cuenten con el servicio de agua potable y alcantarillado pero que requieran la instalación del medidor y/o cuadro.",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 81,
+    "Nombre": "Instalación de Medidor de 2\" GU",
+    "Descripción": "Trámite para intalación de medidor a usuarios que ya cuenten con el servicio de agua potable y alcantarillado pero que requieran la instalación del medidor y/o cuadro.",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 82,
+    "Nombre": "Instalación de Medidor de 3\" GU",
+    "Descripción": "Trámite para intalación de medidor a usuarios que ya cuenten con el servicio de agua potable y alcantarillado pero que requieran la instalación del medidor y/o cuadro.",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 83,
+    "Nombre": "Instalación de Medidor de 4\" GU",
+    "Descripción": "Trámite para intalación de medidor a usuarios que ya cuenten con el servicio de agua potable y alcantarillado pero que requieran la instalación del medidor y/o cuadro.",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 84,
+    "Nombre": "Reubicación de medidor de 2\" GU",
+    "Descripción": "Trámite para reubicación del medidor para hacerlo más visble por alguna obstrucción al lecturista",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 85,
+    "Nombre": "Reubicación de medidor de 3\" GU",
+    "Descripción": "Trámite para reubicación del medidor para hacerlo más visble por alguna obstrucción al lecturista",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 86,
+    "Nombre": "Reubicación de medidor de 4\" GU",
+    "Descripción": "Trámite para reubicación del medidor para hacerlo más visble por alguna obstrucción al lecturista",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 87,
+    "Nombre": "Reconexión de toma de agua 2025 FNSM",
+    "Descripción": "Reconexión de toma SIN COSTO para cuentas dentro del perimetro ferial y que se encuentren en  Situación Comercial: Susp. FNSM.",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 88,
+    "Nombre": "Suspensión voluntaria temporal FNSM",
+    "Descripción": "Trámite para suspensión voluntaria temporal SIN COSTO para cuentas dentro del perimetro ferial y que unicamente se activan en tiempo de feria",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 89,
+    "Nombre": "A Real-Susp. FNSM",
+    "Descripción": "Trámite para cambiar usuarios ubicados dentro del perimetro ferial a Real -Susp. FNSM",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 90,
+    "Nombre": "A Real Activo FNSM",
+    "Descripción": "Para cambiar la situación comercial de Real Activo a Real  ActivoFNSM en predios del perimetro ferial",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 92,
+    "Nombre": "Reubicación de medidor de 1\"",
+    "Descripción": "Trámite para reubicación del medidor para hacerlo más visible por alguna obstrucción al lecturista",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 93,
+    "Nombre": "Instalación de Medidor y/o cuadro de 1\" GU",
+    "Descripción": "Trámite para instalación de medidor a usuarios que ya cuenten con el servicio de agua potable y alcantarillado pero que requieran la instalación del medidor 1\" y/o cuadro de 1/2 a 1\".",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 94,
+    "Nombre": "Reconexión de toma de agua de 1\" GU",
+    "Descripción": "Reconexión de toma para cualquier situación comercial de suspension por morosidad proveniente de migración y que desea formalizar su contrato.",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 100,
+    "Nombre": "Carpeta de rodamiento conexión de albañal y nuevo servicio de agua 1\" G.U.",
+    "Descripción": "Trámite para contratacion de servicio de albañal(descarga), toma de agua, cuadro y medidor ",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 101,
+    "Nombre": "Carpeta de rodamiento conexión de albañal y nuevo servicio de agua 1-1/2\" G.U.",
+    "Descripción": "Trámite para contratacion de servicio de albañal(descarga), toma de agua, cuadro y medidor ",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 102,
+    "Nombre": "Carpeta de rodamiento conexión de albañal y nuevo servicio de agua 2\" G.U.",
+    "Descripción": "Trámite para contratacion de servicio de albañal(descarga), toma de agua, cuadro y medidor ",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 103,
+    "Nombre": "Carpeta de rodamiento conexión de albañal y nuevo servicio de agua 3\" G.U.",
+    "Descripción": "Trámite para contratacion de servicio de albañal(descarga), toma de agua, cuadro y medidor ",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 104,
+    "Nombre": "Carpeta de rodamiento conexión de albañal y nuevo servicio de agua 4\" G.U.",
+    "Descripción": "Trámite para contratacion de servicio de albañal(descarga), toma de agua, cuadro y medidor ",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 105,
+    "Nombre": "Rodamiento nuevo servicio de agua 1\" G.U.",
+    "Descripción": "Trámite para contratación de servicio de toma de agua, cuadro y medidor",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 106,
+    "Nombre": "Rodamiento nuevo servicio de agua 1-1/2\" G.U.",
+    "Descripción": "Trámite para contratación de servicio de toma de agua, cuadro y medidor",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 107,
+    "Nombre": "Rodamiento nuevo servicio de agua 2\" G.U.",
+    "Descripción": "Trámite para contratación de servicio de toma de agua, cuadro y medidor",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 108,
+    "Nombre": "Rodamiento nuevo servicio de agua 3\" G.U.",
+    "Descripción": "Trámite para contratación de servicio de toma de agua, cuadro y medidor",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 109,
+    "Nombre": "Rodamiento nuevo servicio de agua 4\" G.U.",
+    "Descripción": "Trámite para contratación de servicio de toma de agua, cuadro y medidor",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 110,
+    "Nombre": "Rodamiento albañal G.U.",
+    "Descripción": "Trámite para contratación, solo de albañal en Rodamiento.",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 111,
+    "Nombre": "Tierra conexion de albañal y nuevo servicio de agua 1\" G.U.",
+    "Descripción": "Trámite para contratación de servicio de albañal(descarga), toma de agua, cuadro y medidor ",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 112,
+    "Nombre": "Tierra conexion de albañal y nuevo servicio de agua 1-1/2\" G.U.",
+    "Descripción": "Trámite para contratación de servicio de albañal(descarga), toma de agua, cuadro y medidor ",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 113,
+    "Nombre": "Tierra conexion de albañal y nuevo servicio de agua 2\" G.U.",
+    "Descripción": "Trámite para contratación de servicio de albañal(descarga), toma de agua, cuadro y medidor ",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 114,
+    "Nombre": "Tierra conexion de albañal y nuevo servicio de agua 3\" G.U.",
+    "Descripción": "Trámite para contratación de servicio de albañal(descarga), toma de agua, cuadro y medidor ",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 115,
+    "Nombre": "Tierra conexion de albañal y nuevo servicio de agua 4\" G.U.",
+    "Descripción": "Trámite para contratación de servicio de albañal(descarga), toma de agua, cuadro y medidor ",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 116,
+    "Nombre": "Tierra Conexión de albañal G.U.",
+    "Descripción": "Trámite para contratación, solo de albañal en Tierra.",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 117,
+    "Nombre": "Tierra nuevo servicio de agua 1\" G.U.",
+    "Descripción": "Trámite para contratación de servicio de toma de agua, cuadro y medidor",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 118,
+    "Nombre": "Tierra nuevo servicio de agua 1-1/2\" G.U.",
+    "Descripción": "Trámite para contratación de servicio de toma de agua, cuadro y medidor",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 119,
+    "Nombre": "Tierra nuevo servicio de agua 2\" G.U.",
+    "Descripción": "Trámite para contratación de servicio de toma de agua, cuadro y medidor",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 120,
+    "Nombre": "Tierra nuevo servicio de agua 3\" G.U.",
+    "Descripción": "Trámite para contratación de servicio de toma de agua, cuadro y medidor",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 121,
+    "Nombre": "Tierra nuevo servicio de agua 4\" G.U.",
+    "Descripción": "Trámite para contratación de servicio de toma de agua, cuadro y medidor",
+    "Clase se trámite": "Grandes Usuarios"
+  },
+  {
+    "Clave": 8,
+    "Nombre": "Limpieza de fosa séptica en casa habitación",
+    "Descripción": "Costo horario por servicio de limpieza de fosa séptica, previo dictamen del supervisor, en casa habitación.",
+    "Clase se trámite": "Mantenimiento"
+  },
+  {
+    "Clave": 10,
+    "Nombre": "Limpieza de fosa séptica comercio y/o industria",
+    "Descripción": "Costo horario por servicio de limpieza de fosa séptica, previo dictamen del supervisor, en comercio o industria",
+    "Clase se trámite": "Mantenimiento"
+  },
+  {
+    "Clave": 56,
+    "Nombre": "Mantenimiento de caja de banqueta",
+    "Descripción": "Trámite para solicitar el cambio de caja de banqueta por mantenimiento",
+    "Clase se trámite": "Mantenimiento"
+  },
+  {
+    "Clave": 76,
+    "Nombre": "Venta de caja de polietileno registro en banqueta",
+    "Descripción": "Trámite por cambio de caja de banqueta por mantenimiento",
+    "Clase se trámite": "Mantenimiento"
+  },
+  {
+    "Clave": 4,
+    "Nombre": "Venta de medidor y/o cuadro",
+    "Descripción": "Venta de medidor e instalación para predios que ya cuentan con los servicios instalados.",
+    "Clase se trámite": "Medidores"
+  },
+  {
+    "Clave": 16,
+    "Nombre": "Reubicación de medidor en cuadro",
+    "Descripción": "Trámite para reubicación del medidor en cuadro para hacerlo más visble por alguna obstrucción al lecturista",
+    "Clase se trámite": "Medidores"
+  },
+  {
+    "Clave": 25,
+    "Nombre": "Instalación de medidor sin costo",
+    "Descripción": "Trámite para usuarios que no es les cobra medidor por robo.",
+    "Clase se trámite": "Medidores"
+  },
+  {
+    "Clave": 30,
+    "Nombre": "Cambio de medidor",
+    "Descripción": "Trámite para venta de un medidor nuevo por cambio de vida útil, desperfecto o solicitud del usuario.",
+    "Clase se trámite": "Medidores"
+  },
+  {
+    "Clave": 32,
+    "Nombre": "Cambio de medidor sin costo por robo",
+    "Descripción": "Trámite para cambio de medidor sin costo por robo con denuncia en MP max 15 días y no se les cobra.",
+    "Clase se trámite": "Medidores"
+  },
+  {
+    "Clave": 46,
+    "Nombre": "Instalación de columpio",
+    "Descripción": "Trámite instalación solamente de columpio",
+    "Clase se trámite": "Medidores"
+  },
+  {
+    "Clave": 55,
+    "Nombre": "Reubicación de medidor a caja de registro",
+    "Descripción": "Trámite para reubicación del medidor a caja de registro para hacerlo más visible.",
+    "Clase se trámite": "Medidores"
+  },
+  {
+    "Clave": 75,
+    "Nombre": "Sumistro y colocación de caja de registro en banqueta",
+    "Descripción": "Trámite para construcción, suministro y colocación de caja de registro en banqueta nuevo, por solicitud del usuario.",
+    "Clase se trámite": "Medidores"
+  },
+  {
+    "Clave": 91,
+    "Nombre": "Reubicación de cuadro",
+    "Descripción": "Trámite para reubicación del cuadro para hacerlo más visible, por obstrucción de toma de lectura o modificación al inmueble.",
+    "Clase se trámite": "Medidores"
+  },
+  {
+    "Clave": 72,
+    "Nombre": "Aviso suspensión a morosos no doméstico 2025",
+    "Descripción": "Trámite para aviso de suspensión del servicio a usuarios no domésticos Hospitales privados, Comerciales, Industriales",
+    "Clase se trámite": "NOTIFICACIONES Y COBRANZA"
+  },
+  {
+    "Clave": 73,
+    "Nombre": "Aviso suspensión a morosos doméstico 2025",
+    "Descripción": "Trámite para aviso de suspensión del servicio a usuarios domésticos A AA B C, Rural",
+    "Clase se trámite": "NOTIFICACIONES Y COBRANZA"
+  },
+  {
+    "Clave": 78,
+    "Nombre": "Carta Notificación Domésticos",
+    "Descripción": "Trámite para envio de notificaicón de suspensión a usuarios domesticos",
+    "Clase se trámite": "NOTIFICACIONES Y COBRANZA"
+  },
+  {
+    "Clave": 96,
+    "Nombre": "Carta Notificación No Domésticos",
+    "Descripción": "Trámite para envio de notificaciones a usuarios no doméscticos",
+    "Clase se trámite": "NOTIFICACIONES Y COBRANZA"
+  },
+  {
+    "Clave": 99,
+    "Nombre": "A En Juicio",
+    "Descripción": "Para cambiar la situacion comercial de Real Activo a En Juicio",
+    "Clase se trámite": "NOTIFICACIONES Y COBRANZA"
+  },
+  {
+    "Clave": 123,
+    "Nombre": "Verificación de datos",
+    "Descripción": "Trámite pata verificación de datos de usuario",
+    "Clase se trámite": "NOTIFICACIONES Y COBRANZA"
+  },
+  {
+    "Clave": 13,
+    "Nombre": "Baja por cuenta duplicada ",
+    "Descripción": "Tramite para baja por cuenta duplicada, se inactiva para que solo quede el tramite de inexistente duplicado tramite 41",
+    "Clase se trámite": "Padrón y Lectura"
+  },
+  {
+    "Clave": 20,
+    "Nombre": "A Real Activo",
+    "Descripción": "Para activar un predio",
+    "Clase se trámite": "Padrón y Lectura"
+  },
+  {
+    "Clave": 33,
+    "Nombre": "A No Facturable",
+    "Descripción": "Trámite para cambio de situación comercial de Activo a No Facturable",
+    "Clase se trámite": "Padrón y Lectura"
+  },
+  {
+    "Clave": 41,
+    "Nombre": "Inexistente Duplicado",
+    "Descripción": "Trámite para dar de baja predios por inexistencia o duplicidad",
+    "Clase se trámite": "Padrón y Lectura"
+  },
+  {
+    "Clave": 42,
+    "Nombre": "Columpio y medidor predios activos",
+    "Descripción": "Trámite para clientes que ya cuentan con el servicio de agua y drenaje y solo requieren de columpio y medidor y que y este activo el predio",
+    "Clase se trámite": "Padrón y Lectura"
+  },
+  {
+    "Clave": 48,
+    "Nombre": "Baja definitiva",
+    "Descripción": "Trámite para cambio de situación comercial Baja Definitiva",
+    "Clase se trámite": "Padrón y Lectura"
+  },
+  {
+    "Clave": 49,
+    "Nombre": "Real - activo",
+    "Descripción": "Trámite para cambiar a real a activo a usuarios que se cambiaroron a baja para no facturarles",
+    "Clase se trámite": "Padrón y Lectura"
+  },
+  {
+    "Clave": 50,
+    "Nombre": "Factible - Potencial",
+    "Descripción": "Trámite para cambiar a factible potencial usuarios del padrón",
+    "Clase se trámite": "Padrón y Lectura"
+  },
+  {
+    "Clave": 51,
+    "Nombre": "Real - Susp. Columpio",
+    "Descripción": "Trámite para cambiar usuarios del padrón a Real - Susp. Columpio",
+    "Clase se trámite": "Padrón y Lectura"
+  },
+  {
+    "Clave": 52,
+    "Nombre": "Real - Susp. Deshabitado",
+    "Descripción": "Trámite para cambiar usuarios del padrón a Real - Susp. Deshabitado",
+    "Clase se trámite": "Padrón y Lectura"
+  },
+  {
+    "Clave": 53,
+    "Nombre": "Reubicación de medidor sin costo",
+    "Descripción": "Trámite para reubicación del medidor para hacerlo más visble por alguna obstrucción al lecturista",
+    "Clase se trámite": "Padrón y Lectura"
+  },
+  {
+    "Clave": 66,
+    "Nombre": "Real - Susp, Banqueta",
+    "Descripción": "Trámite para cambiar usuarios de real a suspendio banqueta por tarmite de suspensión ",
+    "Clase se trámite": "Padrón y Lectura"
+  },
+  {
+    "Clave": 67,
+    "Nombre": "Real - Susp. Cuadro",
+    "Descripción": "Trámite para cambiar usuarios de real a suspendido cuadro para usuarios que se les suspendio el servicio",
+    "Clase se trámite": "Padrón y Lectura"
+  },
+  {
+    "Clave": 97,
+    "Nombre": "Real - Susp. Registro",
+    "Descripción": "Trámite para cambiar usuarios de real a suspendido registro para usuarios que se les suspendio el servicio",
+    "Clase se trámite": "Padrón y Lectura"
+  },
+  {
+    "Clave": 122,
+    "Nombre": "A Cancelación definitiva",
+    "Descripción": "Tramite para cambio de situación comercial Cancelación definitiva de toma",
+    "Clase se trámite": "Padrón y Lectura"
+  }
+];
+        
+        // ========================================
+        // FUNCIONES DEL SISTEMA
+        // ========================================
+        
+        /**
+         * Función para cambiar entre pestañas (tabs)
+         * @param {string} tabName - Nombre de la pestaña a mostrar ('conceptos', 'presupuestos', 'tramites')
+         * @param {Event} event - Evento del click en el botón
+         */
+        function showTab(tabName, event) {
+            // Paso 1: Ocultar todos los contenidos de las pestañas
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Paso 2: Desactivar todos los botones de pestañas
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Paso 3: Activar la pestaña seleccionada
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        /**
+         * Función para renderizar una tabla con datos
+         * Esta función toma un array de objetos y lo convierte en una tabla HTML
+         * @param {Array} dataArray - Array de objetos con los datos a mostrar
+         * @param {string} tableId - ID del elemento table
+         * @param {string} headId - ID del elemento thead tr
+         * @param {string} bodyId - ID del elemento tbody
+         * @param {string} countId - ID del elemento que muestra el contador
+         */
+        function renderTable(dataArray, tableId, headId, bodyId, countId) {
+            // Paso 1: Validar si hay datos disponibles
+            if (!dataArray || dataArray.length === 0) {
+                document.getElementById(bodyId).innerHTML = 
+                    '<tr><td colspan="100" class="no-results">No hay datos disponibles</td></tr>';
+                document.getElementById(countId).textContent = '0';
+                return;
+            }
+            
+            // Paso 2: Obtener las columnas del primer registro
+            // Ejemplo: Si el primer objeto es {ID: 1, Nombre: "Juan", Edad: 25}
+            // entonces columns será ["ID", "Nombre", "Edad"]
+            const columns = Object.keys(dataArray[0]);
+            
+            // Paso 3: Generar encabezados de la tabla (thead)
+            let headHTML = '';
+            columns.forEach(col => {
+                headHTML += '<th>' + col + '</th>';
+            });
+            document.getElementById(headId).innerHTML = headHTML;
+            
+            // Paso 4: Generar filas de la tabla (tbody)
+            let bodyHTML = '';
+            dataArray.forEach(row => {
+                bodyHTML += '<tr>';
+                
+                // Para cada columna, obtener el valor correspondiente
+                columns.forEach(col => {
+                    let value = row[col];
+                    
+                    // Manejar valores nulos, indefinidos o vacíos
+                    if (value === null || value === undefined || value === '') {
+                        value = '-';
+                    }
+                    
+                    // Formatear números con separador de miles (formato mexicano)
+                    // Ejemplo: 1234567.89 se convierte en "1,234,567.89"
+                    if (typeof value === 'number') {
+                        value = value.toLocaleString('es-MX');
+                    }
+                    
+                    bodyHTML += '<td>' + value + '</td>';
+                });
+                
+                bodyHTML += '</tr>';
+            });
+            
+            // Paso 5: Insertar el HTML generado en el DOM
+            document.getElementById(bodyId).innerHTML = bodyHTML;
+            
+            // Paso 6: Actualizar el contador de registros
+            document.getElementById(countId).textContent = dataArray.length;
+        }
+        
+        /**
+         * Función para filtrar tabla por texto de búsqueda
+         * Busca en todas las columnas de todas las filas de forma case-insensitive
+         * @param {string} tableName - Nombre de la tabla ('conceptos', 'presupuestos', 'tramites')
+         */
+        function filterTable(tableName) {
+            // Paso 1: Construir IDs dinámicamente basados en el nombre de la tabla
+            // Capitaliza la primera letra del nombre
+            // Ejemplo: "conceptos" -> "Conceptos"
+            const searchId = 'search' + tableName.charAt(0).toUpperCase() + tableName.slice(1);
+            const tableId = 'table' + tableName.charAt(0).toUpperCase() + tableName.slice(1);
+            
+            // Paso 2: Obtener elementos del DOM
+            const input = document.getElementById(searchId);
+            const filter = input.value.toUpperCase(); // Convertir a mayúsculas para búsqueda case-insensitive
+            const table = document.getElementById(tableId);
+            const tr = table.getElementsByTagName('tr');
+            
+            let visibleCount = 0; // Contador de filas visibles después del filtrado
+            
+            // Paso 3: Iterar sobre las filas (empezar desde índice 1 para saltar el header)
+            for (let i = 1; i < tr.length; i++) {
+                const tds = tr[i].getElementsByTagName('td'); // Obtener todas las celdas de la fila
+                let found = false; // Flag para indicar si se encontró coincidencia en esta fila
+                
+                // Paso 4: Buscar en todas las columnas de la fila actual
+                for (let j = 0; j < tds.length; j++) {
+                    const td = tds[j];
+                    if (td) {
+                        const txtValue = td.textContent || td.innerText;
+                        
+                        // Verificar si el texto de la celda contiene el texto buscado
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            found = true;
+                            break; // Salir del loop de columnas si ya encontramos coincidencia
+                        }
+                    }
+                }
+                
+                // Paso 5: Mostrar u ocultar fila según resultado de búsqueda
+                if (found) {
+                    tr[i].style.display = ''; // Mostrar fila
+                    visibleCount++;
+                } else {
+                    tr[i].style.display = 'none'; // Ocultar fila
+                }
+            }
+            
+            // Paso 6: Actualizar contador con número de resultados visibles
+            const countId = 'total' + tableName.charAt(0).toUpperCase() + tableName.slice(1);
+            document.getElementById(countId).textContent = visibleCount;
+        }
+        
+        // ========================================
+        // INICIALIZACIÓN AL CARGAR LA PÁGINA
+        // ========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Este código se ejecuta cuando el DOM está completamente cargado
+            
+            console.log('🚀 Iniciando Sistema de Consulta...');
+            console.log('📊 Conceptos:', conceptosData.length, 'registros');
+            console.log('💰 Presupuestos:', presupuestosData.length, 'registros');
+            console.log('📋 Trámites:', tramitesData.length, 'registros');
+            
+            // Renderizar todas las tablas con sus datos correspondientes
+            renderTable(
+                conceptosData,           // Datos a mostrar
+                'tableConceptos',        // ID de la tabla
+                'headConceptos',         // ID del thead
+                'bodyConceptos',         // ID del tbody
+                'totalConceptos'         // ID del contador
+            );
+            
+            renderTable(
+                presupuestosData,
+                'tablePresupuestos',
+                'headPresupuestos',
+                'bodyPresupuestos',
+                'totalPresupuestos'
+            );
+            
+            renderTable(
+                tramitesData,
+                'tableTramites',
+                'headTramites',
+                'bodyTramites',
+                'totalTramites'
+            );
+            
+            console.log('✅ Sistema cargado completamente');
+        });
+    </script>
+</body>
+</html>
