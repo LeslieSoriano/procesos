@@ -34,6 +34,149 @@
         }
         
         /* ========================================
+           MODAL DE CONTRASEÑA
+           ======================================== */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .modal-header h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+        
+        .modal-header p {
+            color: #666;
+            font-size: 0.95em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        
+        .btn-modal {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-confirm {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-cancel {
+            background: #e0e0e0;
+            color: #666;
+        }
+        
+        .btn-cancel:hover {
+            background: #d0d0d0;
+        }
+        
+        .error-message {
+            display: none;
+            background: #fee;
+            color: #c33;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            border: 1px solid #fcc;
+        }
+        
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s ease;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        /* ========================================
            ENCABEZADO
            ======================================== */
         header {
@@ -41,6 +184,7 @@
             color: white;
             padding: 30px;
             text-align: center;
+            position: relative;
         }
         
         header h1 {
@@ -51,6 +195,71 @@
         header p {
             font-size: 1.1em;
             opacity: 0.9;
+        }
+        
+        /* ========================================
+           BOTÓN DE NAVEGACIÓN EN EL HEADER
+           ======================================== */
+        .btn-navigation {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-navigation:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        
+        .btn-navigation:active {
+            transform: translateY(0);
+        }
+        
+        /* ========================================
+           BOTONES DE ACCIÓN INFERIORES
+           ======================================== */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-top: 2px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+        
+        .btn-primary {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         /* ========================================
@@ -243,17 +452,76 @@
             .stat-card {
                 min-width: 100%;
             }
+            
+            .btn-navigation {
+                position: static;
+                margin-top: 15px;
+                width: 100%;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn-primary {
+                width: 100%;
+            }
+            
+            .modal-content {
+                padding: 25px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- ========================================
+         MODAL DE CONTRASEÑA
+         ======================================== -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔒 Acceso Restringido</h2>
+                <p>Ingresa la contraseña para continuar</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="passwordInput">Contraseña:</label>
+                <input 
+                    type="password" 
+                    id="passwordInput" 
+                    placeholder="Ingresa tu contraseña"
+                    onkeypress="handlePasswordKeyPress(event)"
+                    autocomplete="off"
+                >
+            </div>
+            
+            <div class="error-message" id="errorMessage">
+                ❌ Contraseña incorrecta. Inténtalo de nuevo.
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="btn-modal btn-cancel" onclick="cerrarModal()">
+                    Cancelar
+                </button>
+                <button class="btn-modal btn-confirm" onclick="verificarContrasena()">
+                    Ingresar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <!-- ========================================
-             ENCABEZADO
+             ENCABEZADO CON BOTÓN DE NAVEGACIÓN
              ======================================== -->
         <header>
+            <!-- BOTÓN PARA IR A OTRA VISTA CON CONTRASEÑA -->
+            <button class="btn-navigation" onclick="solicitarContrasena()">
+                🏠 Ir al Sistema Principal
+            </button>
+            
             <h1>📊 Sistema de Consulta</h1>
-            <p>Conceptos, Presupuestos y Trámites</p>
+            <p>Conceptos, Presupuestos y TrámitesATL MIAA 2026</p>
         </header>
         
         <!-- ========================================
@@ -347,9 +615,153 @@
                 </div>
             </div>
         </div>
+        
+        <!-- ========================================
+             BOTONES DE ACCIÓN INFERIORES
+             ======================================== -->
+        <div class="action-buttons">
+            <!-- BOTÓN PARA VOLVER AL SISTEMA PRINCIPAL CON CONTRASEÑA -->
+            <button class="btn-primary" onclick="solicitarContrasena()" style="background:#3498db;">
+                🏠 Volver al Sistema
+            </button>
+            
+            <!-- BOTÓN ADICIONAL -->
+            <button class="btn-primary" onclick="descargarReporte()" style="background:#27ae60;">
+                📥 Descargar Reporte
+            </button>
+            
+            <!-- BOTÓN PARA SALIR -->
+            <button class="btn-primary" onclick="salir()" style="background:#e74c3c;">
+                🚪 Salir
+            </button>
+        </div>
     </div>
 
     <script>
+        // ========================================
+        // PROTECCIÓN CONTRA INSPECCIÓN Y CONSOLA
+        // ========================================
+        
+        /**
+         * Deshabilitar click derecho (menú contextual)
+         */
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        }, false);
+        
+        /**
+         * Deshabilitar teclas de acceso a herramientas de desarrollo
+         * F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+Shift+C
+         */
+        document.addEventListener('keydown', function(e) {
+            // F12
+            if (e.keyCode === 123) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Ctrl+Shift+I (Inspector)
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Ctrl+Shift+J (Consola)
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Ctrl+U (Ver código fuente)
+            if (e.ctrlKey && e.keyCode === 85) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Ctrl+Shift+C (Selector de elementos)
+            if (e.ctrlKey && e.shiftKey && e.keyCode === 67) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Ctrl+S (Guardar página)
+            if (e.ctrlKey && e.keyCode === 83) {
+                e.preventDefault();
+                return false;
+            }
+        }, false);
+        
+        /**
+         * Detectar si las DevTools están abiertas
+         */
+        (function() {
+            const devtools = {
+                isOpen: false,
+                orientation: undefined
+            };
+            
+            const threshold = 160;
+            
+            const emitEvent = (isOpen, orientation) => {
+                if (devtools.isOpen !== isOpen || devtools.orientation !== orientation) {
+                    devtools.isOpen = isOpen;
+                    devtools.orientation = orientation;
+                    
+                    if (isOpen) {
+                        // Si las DevTools están abiertas, redirigir o mostrar mensaje
+                        console.clear();
+                        document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#667eea;color:white;font-family:Arial;font-size:2em;">⚠️ Acceso Denegado</div>';
+                    }
+                }
+            };
+            
+            setInterval(() => {
+                const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+                const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+                const orientation = widthThreshold ? 'vertical' : 'horizontal';
+                
+                if (!(heightThreshold && widthThreshold) &&
+                    ((window.Firebug && window.Firebug.chrome && window.Firebug.chrome.isInitialized) || widthThreshold || heightThreshold)) {
+                    emitEvent(true, orientation);
+                } else {
+                    emitEvent(false, undefined);
+                }
+            }, 500);
+        })();
+        
+        // ========================================
+        // PROTECCIÓN CONTRA NAVEGACIÓN HACIA ATRÁS
+        // ========================================
+        
+        /**
+         * Prevenir el botón de retroceso del navegador
+         * Añade una entrada al historial para evitar retroceso
+         */
+        (function() {
+            // Añadir estado al historial
+            history.pushState(null, null, location.href);
+            
+            // Escuchar evento popstate (botón atrás)
+            window.addEventListener('popstate', function() {
+                // Volver a añadir estado al historial
+                history.pushState(null, null, location.href);
+                
+                // Mostrar mensaje al usuario
+                alert('⚠️ No puedes regresar desde esta página. Usa el botón "Salir" para cerrar.');
+            });
+        })();
+        
+        /**
+         * Protección adicional: antes de que el usuario abandone la página
+         */
+        window.addEventListener('beforeunload', function(e) {
+            // Este mensaje puede no mostrarse en algunos navegadores modernos
+            const mensaje = '¿Estás seguro de que deseas salir?';
+            e.returnValue = mensaje;
+            return mensaje;
+        });
+        
         // ========================================
         // DATOS EMBEBIDOS DESDE ARCHIVOS EXCEL
         // ========================================
@@ -2682,43 +3094,172 @@
 ];
         
         // ========================================
+        // SISTEMA DE AUTENTICACIÓN
+        // ========================================
+        
+        // CONTRASEÑA DEL SISTEMA
+        const PASSWORD_CORRECTA = 'admin123';
+        
+        /**
+         * Función para solicitar la contraseña antes de navegar
+         */
+        function solicitarContrasena() {
+            const modal = document.getElementById('passwordModal');
+            const passwordInput = document.getElementById('passwordInput');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // Mostrar modal
+            modal.classList.add('active');
+            
+            // Limpiar campos
+            passwordInput.value = '';
+            errorMessage.classList.remove('show');
+            
+            // Enfocar el input
+            setTimeout(() => passwordInput.focus(), 100);
+        }
+        
+        /**
+         * Función para verificar la contraseña ingresada
+         */
+        function verificarContrasena() {
+            const passwordInput = document.getElementById('passwordInput');
+            const errorMessage = document.getElementById('errorMessage');
+            const passwordIngresada = passwordInput.value;
+            
+            // Verificar si la contraseña es correcta
+            if (passwordIngresada === PASSWORD_CORRECTA) {
+                // Contraseña correcta - cerrar modal y navegar
+                cerrarModal();
+                irAOtraVista();
+            } else {
+                // Contraseña incorrecta - mostrar error
+                errorMessage.classList.add('show');
+                passwordInput.value = '';
+                passwordInput.focus();
+                
+                // Ocultar mensaje de error después de 3 segundos
+                setTimeout(() => {
+                    errorMessage.classList.remove('show');
+                }, 3000);
+            }
+        }
+        
+        /**
+         * Función para manejar Enter en el campo de contraseña
+         */
+        function handlePasswordKeyPress(event) {
+            if (event.key === 'Enter') {
+                verificarContrasena();
+            }
+        }
+        
+        /**
+         * Función para cerrar el modal de contraseña
+         */
+        function cerrarModal() {
+            const modal = document.getElementById('passwordModal');
+            modal.classList.remove('active');
+        }
+        
+        // Cerrar modal si se hace click fuera de él
+        window.onclick = function(event) {
+            const modal = document.getElementById('passwordModal');
+            if (event.target === modal) {
+                cerrarModal();
+            }
+        }
+        
+        // ========================================
+        // FUNCIONES DE NAVEGACIÓN
+        // ========================================
+        
+        /**
+         * Función para ir a otra vista/página
+         * Esta función solo se ejecuta DESPUÉS de verificar la contraseña
+         */
+        function irAOtraVista() {
+            // IMPORTANTE: Remover protección de beforeunload antes de navegar
+            window.onbeforeunload = null;
+            
+            // PERSONALIZA LA RUTA SEGÚN TU ESTRUCTURA DE ARCHIVOS
+            
+            // OPCIÓN 1: Ir a otra página en la misma carpeta
+            window.location.href = '../../indexmenu.html';
+            
+            // OPCIÓN 2: Ir a otra página en subcarpeta
+            // window.location.href = './admin/dashboard.html';
+            
+            // OPCIÓN 3: Abrir en nueva pestaña
+            // window.open('sistema_principal.html', '_blank');
+            
+            // OPCIÓN 4: Reemplazar la entrada actual del historial (no permite volver atrás)
+            // window.location.replace('sistema_principal.html');
+        }
+        
+        /**
+         * Función para descargar reporte (ejemplo)
+         */
+        function descargarReporte() {
+            alert('Funcionalidad de descarga en desarrollo');
+            // Aquí podrías implementar descarga de CSV, PDF, etc.
+        }
+        
+        /**
+         * Función para salir del sistema
+         * Esta función SÍ funciona correctamente
+         */
+        function salir() {
+            if (confirm('¿Estás seguro que deseas salir del sistema?')) {
+                // Remover la protección de beforeunload
+                window.onbeforeunload = null;
+                
+                // OPCIÓN 1: Cerrar la pestaña actual (solo funciona si fue abierta por script)
+                window.close();
+                
+                // OPCIÓN 2: Redirigir a una página en blanco
+                window.location.href = 'about:blank';
+                
+                // OPCIÓN 3: Ir a página de login (descomenta y personaliza)
+                // window.location.replace('login.html');
+                
+                // OPCIÓN 4: Ir a página principal (descomenta y personaliza)
+                // window.location.replace('index.html');
+                
+                // Si window.close() no funciona (página no abierta por script),
+                // mostrar mensaje al usuario
+                setTimeout(() => {
+                    alert('Por favor, cierra manualmente esta pestaña del navegador.');
+                }, 100);
+            }
+        }
+        
+        // ========================================
         // FUNCIONES DEL SISTEMA
         // ========================================
         
         /**
          * Función para cambiar entre pestañas (tabs)
-         * @param {string} tabName - Nombre de la pestaña a mostrar ('conceptos', 'presupuestos', 'tramites')
-         * @param {Event} event - Evento del click en el botón
          */
         function showTab(tabName, event) {
-            // Paso 1: Ocultar todos los contenidos de las pestañas
             const contents = document.querySelectorAll('.tab-content');
             contents.forEach(content => {
                 content.classList.remove('active');
             });
             
-            // Paso 2: Desactivar todos los botones de pestañas
             const buttons = document.querySelectorAll('.tab-button');
             buttons.forEach(button => {
                 button.classList.remove('active');
             });
             
-            // Paso 3: Activar la pestaña seleccionada
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
         }
         
         /**
          * Función para renderizar una tabla con datos
-         * Esta función toma un array de objetos y lo convierte en una tabla HTML
-         * @param {Array} dataArray - Array de objetos con los datos a mostrar
-         * @param {string} tableId - ID del elemento table
-         * @param {string} headId - ID del elemento thead tr
-         * @param {string} bodyId - ID del elemento tbody
-         * @param {string} countId - ID del elemento que muestra el contador
          */
         function renderTable(dataArray, tableId, headId, bodyId, countId) {
-            // Paso 1: Validar si hay datos disponibles
             if (!dataArray || dataArray.length === 0) {
                 document.getElementById(bodyId).innerHTML = 
                     '<tr><td colspan="100" class="no-results">No hay datos disponibles</td></tr>';
@@ -2726,100 +3267,74 @@
                 return;
             }
             
-            // Paso 2: Obtener las columnas del primer registro
-            // Ejemplo: Si el primer objeto es {ID: 1, Nombre: "Juan", Edad: 25}
-            // entonces columns será ["ID", "Nombre", "Edad"]
             const columns = Object.keys(dataArray[0]);
             
-            // Paso 3: Generar encabezados de la tabla (thead)
             let headHTML = '';
             columns.forEach(col => {
                 headHTML += '<th>' + col + '</th>';
             });
             document.getElementById(headId).innerHTML = headHTML;
             
-            // Paso 4: Generar filas de la tabla (tbody)
             let bodyHTML = '';
             dataArray.forEach(row => {
                 bodyHTML += '<tr>';
-                
-                // Para cada columna, obtener el valor correspondiente
                 columns.forEach(col => {
                     let value = row[col];
                     
-                    // Manejar valores nulos, indefinidos o vacíos
                     if (value === null || value === undefined || value === '') {
                         value = '-';
                     }
                     
-                    // Formatear números con separador de miles (formato mexicano)
-                    // Ejemplo: 1234567.89 se convierte en "1,234,567.89"
                     if (typeof value === 'number') {
                         value = value.toLocaleString('es-MX');
                     }
                     
                     bodyHTML += '<td>' + value + '</td>';
                 });
-                
                 bodyHTML += '</tr>';
             });
             
-            // Paso 5: Insertar el HTML generado en el DOM
             document.getElementById(bodyId).innerHTML = bodyHTML;
-            
-            // Paso 6: Actualizar el contador de registros
             document.getElementById(countId).textContent = dataArray.length;
         }
         
         /**
          * Función para filtrar tabla por texto de búsqueda
-         * Busca en todas las columnas de todas las filas de forma case-insensitive
-         * @param {string} tableName - Nombre de la tabla ('conceptos', 'presupuestos', 'tramites')
          */
         function filterTable(tableName) {
-            // Paso 1: Construir IDs dinámicamente basados en el nombre de la tabla
-            // Capitaliza la primera letra del nombre
-            // Ejemplo: "conceptos" -> "Conceptos"
             const searchId = 'search' + tableName.charAt(0).toUpperCase() + tableName.slice(1);
             const tableId = 'table' + tableName.charAt(0).toUpperCase() + tableName.slice(1);
             
-            // Paso 2: Obtener elementos del DOM
             const input = document.getElementById(searchId);
-            const filter = input.value.toUpperCase(); // Convertir a mayúsculas para búsqueda case-insensitive
+            const filter = input.value.toUpperCase();
             const table = document.getElementById(tableId);
             const tr = table.getElementsByTagName('tr');
             
-            let visibleCount = 0; // Contador de filas visibles después del filtrado
+            let visibleCount = 0;
             
-            // Paso 3: Iterar sobre las filas (empezar desde índice 1 para saltar el header)
             for (let i = 1; i < tr.length; i++) {
-                const tds = tr[i].getElementsByTagName('td'); // Obtener todas las celdas de la fila
-                let found = false; // Flag para indicar si se encontró coincidencia en esta fila
+                const tds = tr[i].getElementsByTagName('td');
+                let found = false;
                 
-                // Paso 4: Buscar en todas las columnas de la fila actual
                 for (let j = 0; j < tds.length; j++) {
                     const td = tds[j];
                     if (td) {
                         const txtValue = td.textContent || td.innerText;
-                        
-                        // Verificar si el texto de la celda contiene el texto buscado
                         if (txtValue.toUpperCase().indexOf(filter) > -1) {
                             found = true;
-                            break; // Salir del loop de columnas si ya encontramos coincidencia
+                            break;
                         }
                     }
                 }
                 
-                // Paso 5: Mostrar u ocultar fila según resultado de búsqueda
                 if (found) {
-                    tr[i].style.display = ''; // Mostrar fila
+                    tr[i].style.display = '';
                     visibleCount++;
                 } else {
-                    tr[i].style.display = 'none'; // Ocultar fila
+                    tr[i].style.display = 'none';
                 }
             }
             
-            // Paso 6: Actualizar contador con número de resultados visibles
             const countId = 'total' + tableName.charAt(0).toUpperCase() + tableName.slice(1);
             document.getElementById(countId).textContent = visibleCount;
         }
@@ -2828,39 +3343,28 @@
         // INICIALIZACIÓN AL CARGAR LA PÁGINA
         // ========================================
         document.addEventListener('DOMContentLoaded', function() {
-            // Este código se ejecuta cuando el DOM está completamente cargado
-            
             console.log('🚀 Iniciando Sistema de Consulta...');
+            console.log('🔒 Sistema protegido con contraseña: admin123');
+            console.log('🛡️ Protecciones activas:');
+            console.log('   ✓ Click derecho deshabilitado');
+            console.log('   ✓ Teclas de desarrollo bloqueadas');
+            console.log('   ✓ Botón atrás deshabilitado');
+            console.log('   ✓ Detección de DevTools activa');
             console.log('📊 Conceptos:', conceptosData.length, 'registros');
             console.log('💰 Presupuestos:', presupuestosData.length, 'registros');
             console.log('📋 Trámites:', tramitesData.length, 'registros');
             
-            // Renderizar todas las tablas con sus datos correspondientes
-            renderTable(
-                conceptosData,           // Datos a mostrar
-                'tableConceptos',        // ID de la tabla
-                'headConceptos',         // ID del thead
-                'bodyConceptos',         // ID del tbody
-                'totalConceptos'         // ID del contador
-            );
-            
-            renderTable(
-                presupuestosData,
-                'tablePresupuestos',
-                'headPresupuestos',
-                'bodyPresupuestos',
-                'totalPresupuestos'
-            );
-            
-            renderTable(
-                tramitesData,
-                'tableTramites',
-                'headTramites',
-                'bodyTramites',
-                'totalTramites'
-            );
+            renderTable(conceptosData, 'tableConceptos', 'headConceptos', 'bodyConceptos', 'totalConceptos');
+            renderTable(presupuestosData, 'tablePresupuestos', 'headPresupuestos', 'bodyPresupuestos', 'totalPresupuestos');
+            renderTable(tramitesData, 'tableTramites', 'headTramites', 'bodyTramites', 'totalTramites');
             
             console.log('✅ Sistema cargado completamente');
+            
+            // Limpiar consola después de mostrar info inicial
+            setTimeout(() => {
+                console.clear();
+                console.log('🔒 Sistema Seguro Activo');
+            }, 2000);
         });
     </script>
 </body>
