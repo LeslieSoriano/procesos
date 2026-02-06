@@ -19,6 +19,192 @@
             min-height: 100vh;
             padding: 30px 15px;
         }
+
+        /* ============================================
+           ESTILOS ESPECÍFICOS PARA IMPRESIÓN
+           ============================================ */
+        @media print {
+            @page {
+                size: letter;
+                margin: 1.5cm 1cm;
+            }
+
+            body {
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .container {
+                max-width: 100% !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: 10px !important;
+                margin: 0 !important;
+                page-break-after: auto;
+            }
+
+            .header {
+                page-break-inside: avoid;
+                page-break-after: avoid;
+                margin-bottom: 20px !important;
+                padding-bottom: 15px !important;
+            }
+
+            .header h1 {
+                font-size: 1.8em !important;
+            }
+
+            .header .subtitle {
+                font-size: 1em !important;
+            }
+
+            .logo-container img {
+                height: 60px !important;
+            }
+
+            .flowchart {
+                gap: 10px !important;
+                margin: 10px 0 !important;
+            }
+
+            .flow-step {
+                page-break-inside: avoid;
+                page-break-after: auto;
+                margin-bottom: 15px !important;
+                animation: none !important;
+            }
+
+            .step-box {
+                padding: 15px !important;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+                border: 2px solid #0077be !important;
+                page-break-inside: avoid;
+            }
+
+            .step-box.alert {
+                border-left: 6px solid #f57c00 !important;
+            }
+
+            .step-box.warning {
+                border-left: 6px solid #d32f2f !important;
+            }
+
+            .step-title {
+                font-size: 1em !important;
+                margin-bottom: 10px !important;
+            }
+
+            .alert-badge {
+                padding: 5px 12px !important;
+                font-size: 0.8em !important;
+                box-shadow: none !important;
+            }
+
+            .step-description {
+                font-size: 0.85em !important;
+                line-height: 1.4 !important;
+            }
+
+            .image-container {
+                page-break-inside: avoid;
+                margin: 10px 0 !important;
+            }
+
+            .image-container img {
+                max-height: 250px !important;
+                width: auto !important;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+                page-break-inside: avoid;
+            }
+
+            .important-box {
+                padding: 12px !important;
+                margin: 10px 0 !important;
+                box-shadow: none !important;
+                border: 2px solid #ff9800 !important;
+                page-break-inside: avoid;
+            }
+
+            .important-box h3 {
+                font-size: 1em !important;
+                margin-bottom: 8px !important;
+            }
+
+            .important-box li {
+                font-size: 0.85em !important;
+                margin-bottom: 6px !important;
+            }
+
+            .document-list {
+                padding: 10px !important;
+                margin-top: 8px !important;
+            }
+
+            .document-list li {
+                padding: 8px 10px !important;
+                margin: 6px 0 !important;
+                font-size: 0.85em !important;
+            }
+
+            .case-container {
+                gap: 10px !important;
+                page-break-inside: avoid;
+            }
+
+            .case-box {
+                padding: 12px !important;
+                border: 2px solid #1976d2 !important;
+                border-left: 5px solid #1976d2 !important;
+                page-break-inside: avoid;
+            }
+
+            .case-title {
+                font-size: 0.95em !important;
+                margin-bottom: 8px !important;
+            }
+
+            .case-action {
+                font-size: 0.85em !important;
+                margin: 8px 0 !important;
+            }
+
+            .arrow {
+                margin: 8px auto !important;
+                border-top: 20px solid #0077be !important;
+                border-left: 15px solid transparent !important;
+                border-right: 15px solid transparent !important;
+                filter: none !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            /* Evitar que los step-box se dividan entre páginas */
+            .step-box,
+            .important-box,
+            .case-box,
+            .image-container {
+                page-break-inside: avoid !important;
+            }
+
+            /* Asegurar que las flechas y su contenido siguiente permanezcan juntos */
+            .arrow {
+                page-break-after: avoid !important;
+            }
+
+            /* Footer al final de cada página */
+            .footer-credits {
+                page-break-inside: avoid;
+                margin-top: 20px !important;
+                padding-top: 15px !important;
+            }
+        }
+        /* ============================================
+           FIN ESTILOS DE IMPRESIÓN
+           ============================================ */
+
         .button-container {
             text-align: center;
             margin-top: 40px;
@@ -390,72 +576,60 @@
                 height: 100px;
             }
         }
-        .button-container {
-    text-align: center;
-    margin-top: 40px;
-    padding-top: 30px;
-    border-top: 3px solid #e2e8f0;
-}
 
-.btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    padding: 18px 40px;
-    font-size: 1.1em;
-    font-weight: 700;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin: 0 10px;
-    display: inline-block;
-}
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.1em;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 10px;
+            display: inline-block;
+        }
 
-.btn:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.5);
-}
+        .btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.5);
+        }
 
-.btn:active {
-    transform: translateY(-1px);
-}
+        .btn:active {
+            transform: translateY(-1px);
+        }
 
-.btn.home {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    box-shadow: 0 8px 20px rgba(240, 147, 251, 0.4);
-}
+        .btn.home {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            box-shadow: 0 8px 20px rgba(240, 147, 251, 0.4);
+        }
 
-.btn.home:hover {
-    box-shadow: 0 12px 30px rgba(240, 147, 251, 0.5);
-}
+        .btn.home:hover {
+            box-shadow: 0 12px 30px rgba(240, 147, 251, 0.5);
+        }
 
-@media print {
-    .no-print {
-        display: none !important;
-    }
-}
+        /* Responsive para móviles */
+        @media (max-width: 768px) {
+            .btn {
+                padding: 15px 30px;
+                font-size: 1em;
+                margin: 5px;
+            }
+        }
 
-/* Responsive para móviles */
-@media (max-width: 768px) {
-    .btn {
-        padding: 15px 30px;
-        font-size: 1em;
-        margin: 5px;
-    }
-}
-
-@media (max-width: 480px) {
-    .btn {
-        padding: 12px 25px;
-        font-size: 0.9em;
-        display: block;
-        margin: 10px auto;
-        width: 80%;
-    }
-}
+        @media (max-width: 480px) {
+            .btn {
+                padding: 12px 25px;
+                font-size: 0.9em;
+                display: block;
+                margin: 10px auto;
+                width: 80%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -661,6 +835,14 @@
                         <img src="./img/botonfactura.png" alt="Botón Facturar Restante" style="height: 450px; object-fit: contain;">
                         <img src="./img/parcialidadmensaje.png" alt="Mensaje de Parcialidad" style="height: 450px; object-fit: contain;">
                     </div>
+                    <div class="step-description">
+                        <div class="important-box">
+                            <h3><Em>En el estado de cuenta aparecera parcialidad 3 a 11</Em></h3>
+                        </div>
+                        <div class="image-container">
+                            <img src="./img/estadoparcialidadintegrada.png" alt="Botón Facturar Restante" style="height: 450px; object-fit: contain;">
+                    </div>
+                    </div>
                 </div>
             </div>
             <!-- ✅ FIN DEL NUEVO PUNTO -->
@@ -828,7 +1010,7 @@
                     </a>
             </div>
 
-        <div style="margin-top: 40px; padding-top: 30px; border-top: 3px solid #e2e8f0; text-align: center;">
+        <div class="footer-credits" style="margin-top: 40px; padding-top: 30px; border-top: 3px solid #e2e8f0; text-align: center;">
             <p style="color: #4a5568; font-size: 1em; font-weight: 600; margin-bottom: 5px;">Elaborado por:</p>
             <p style="color: #667eea; font-size: 1.2em; font-weight: 700; margin: 0;">L.T.I. Leslie Guadalupe Ramírez Soriano</p>
         </div>
