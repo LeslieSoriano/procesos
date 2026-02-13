@@ -145,55 +145,66 @@ function guardarDatos() { try { localStorage.setItem('tramitesData', JSON.string
         function cerrarModalMenu() { document.getElementById('modalMenuPrincipal').style.display='none'; }
         function verificarPasswordMenu() { if(document.getElementById('inputPasswordMenu').value===PASSWORD){document.getElementById('modalMenuPrincipal').style.display='none';window.location.href=URL_MENU_PRINCIPAL;}else{document.getElementById('errorMsgMenu').textContent='❌ Incorrecta';document.getElementById('errorMsgMenu').style.display='block';document.getElementById('inputPasswordMenu').value='';} }
         document.addEventListener('DOMContentLoaded',()=>{document.getElementById('inputPasswordMenu')?.addEventListener('keypress',e=>{if(e.key==='Enter')verificarPasswordMenu();});});
-        // Datos originales con conceptos del Excel (copia de respaldo)
+        // Datos originales del código fuente (respaldo)
         const DATOS_ORIGINALES = JSON.parse(JSON.stringify(datos));
 
-        // Fusionar conceptos obligatorios/opcionales del código fuente en los datos cargados
-        function fusionarConceptos(datosActuales) {
+        // Sincronizar TODOS los campos del código fuente con los datos del localStorage
+        // Esto garantiza que cualquier cambio en datos.js se refleje aunque haya localStorage
+        function fusionarDatos(datosActuales) {
             DATOS_ORIGINALES.categorias.forEach(catOrig => {
                 const catAct = datosActuales.categorias.find(c => c.id === catOrig.id);
                 if (!catAct) return;
                 catOrig.tramites.forEach(tOrig => {
                     const tAct = catAct.tramites.find(t => t.clave === tOrig.clave);
                     if (!tAct) return;
-                    if (!tAct.presupuesto) tAct.presupuesto = {};
-                    // Siempre sobrescribir los conceptos obligatorios/opcionales del Excel
+                    // Sincronizar TODOS los campos del código fuente
+                    tAct.nombre = tOrig.nombre;
+                    tAct.estado = tOrig.estado;
+                    tAct.descripcion = tOrig.descripcion;
+                    tAct.requisitos = tOrig.requisitos;
+                    tAct.etapas = tOrig.etapas;
+                    tAct.filtros = tOrig.filtros;
+                    tAct.resultado = tOrig.resultado;
+                    // Presupuesto completo del código fuente
                     if (tOrig.presupuesto) {
+                        if (!tAct.presupuesto) tAct.presupuesto = {};
+                        tAct.presupuesto.nombre = tOrig.presupuesto.nombre || tAct.presupuesto.nombre;
+                        tAct.presupuesto.metodoPago = tOrig.presupuesto.metodoPago || tAct.presupuesto.metodoPago;
+                        tAct.presupuesto.negociable = tOrig.presupuesto.negociable || tAct.presupuesto.negociable;
                         tAct.presupuesto.conceptosObligatorios = tOrig.presupuesto.conceptosObligatorios || [];
                         tAct.presupuesto.conceptosOpcionales = tOrig.presupuesto.conceptosOpcionales || [];
-                        if (tOrig.presupuesto.nombre && !tAct.presupuesto.nombre) tAct.presupuesto.nombre = tOrig.presupuesto.nombre;
-                        if (tOrig.presupuesto.metodoPago) tAct.presupuesto.metodoPago = tOrig.presupuesto.metodoPago;
-                        if (tOrig.presupuesto.negociable) tAct.presupuesto.negociable = tOrig.presupuesto.negociable;
                     }
+                    // Conservar del localStorage: imágenes y conceptos manuales del usuario
+                    // (esos son datos que el usuario agrega desde la interfaz)
                 });
             });
         }
 
         window.onload = function() {
-            const DATA_VERSION = 'v2_conceptos';
-            const savedVersion = localStorage.getItem('tramitesVersion');
+            // SIEMPRE partir de los datos del archivo datos.js
+            // Solo rescatar del localStorage: imágenes y conceptos manuales que el usuario haya agregado
             const s = localStorage.getItem('tramitesData');
-
-            if (!s || savedVersion !== DATA_VERSION) {
-                // Primera vez o versión vieja: cargar datos frescos
-                inicializarTramites();
-                localStorage.setItem('tramitesVersion', DATA_VERSION);
-            } else {
+            if (s) {
                 try {
-                    const d = JSON.parse(s);
-                    const t = d.categorias.reduce((s,c) => s + (c.tramites ? c.tramites.length : 0), 0);
-                    if (t === 0) {
-                        inicializarTramites();
-                    } else {
-                        datos = d;
-                        // Fusionar conceptos del Excel por si se perdieron
-                        fusionarConceptos(datos);
-                        guardarDatos();
-                    }
-                } catch(e) {
-                    inicializarTramites();
-                }
+                    const datosGuardados = JSON.parse(s);
+                    // Rescatar solo datos del USUARIO (imágenes, conceptos manuales)
+                    datosGuardados.categorias.forEach(catG => {
+                        const catD = datos.categorias.find(c => c.id === catG.id);
+                        if (!catD) return;
+                        catG.tramites.forEach(tG => {
+                            const tD = catD.tramites.find(t => t.clave === tG.clave);
+                            if (!tD) return;
+                            // Solo rescatar lo que el usuario agrega desde la interfaz
+                            if (tG.imagenes && tG.imagenes.length) tD.imagenes = tG.imagenes;
+                            if (tG.presupuesto && tG.presupuesto.conceptos && tG.presupuesto.conceptos.length) {
+                                if (!tD.presupuesto) tD.presupuesto = {};
+                                tD.presupuesto.conceptos = tG.presupuesto.conceptos;
+                            }
+                        });
+                    });
+                } catch(e) {}
             }
+            guardarDatos();
             actualizarSelects();
             renderizar();
             const t = datos.categorias.reduce((s,c) => s + (c.tramites ? c.tramites.length : 0), 0);

@@ -3169,7 +3169,7 @@ let datos = {
                                 "nombre": "Alta de predio",
                                 "estado": "Se queda igual",
                                 "descripcion": "Trámite para alta de nuevos predios",
-                                "requisitos": " ",
+                                "requisitos": "",
                                 "etapas": [],
                                 "presupuesto": {
                                                 "nombre": "",
@@ -3186,7 +3186,7 @@ let datos = {
                                 "nombre": "Alta de derivación",
                                 "estado": "Se queda igual",
                                 "descripcion": "Trámite para alta de derivación en macrolotes",
-                                "requisitos": " ",
+                                "requisitos": "",
                                 "etapas": [],
                                 "presupuesto": {
                                                 "nombre": "",
