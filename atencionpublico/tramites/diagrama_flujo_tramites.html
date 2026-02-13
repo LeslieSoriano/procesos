@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagrama de Flujo - Sistema de Trámites 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0a0e1a; font-family: 'JetBrains Mono', monospace; overflow: hidden; height: 100vh; width: 100vw; }
+        
+        #header {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+            padding: 16px 24px;
+            background: linear-gradient(180deg, #0a0e1a 60%, transparent);
+            display: flex; justify-content: space-between; align-items: flex-start;
+        }
+        #header h1 { color: #22d3ee; font-size: 18px; letter-spacing: 2px; text-transform: uppercase; }
+        #header p { color: #94a3b8; font-size: 11px; margin-top: 4px; letter-spacing: 1px; }
+        
+        .controls { display: flex; gap: 8px; align-items: center; }
+        .controls button {
+            background: #111827; border: 1px solid #1e293b; color: #e2e8f0;
+            width: 32px; height: 32px; border-radius: 6px; cursor: pointer;
+            font-size: 16px; font-family: inherit; display: flex; align-items: center; justify-content: center;
+        }
+        .controls button:hover { border-color: #22d3ee; }
+        .controls .zoom-label { color: #94a3b8; font-size: 11px; min-width: 40px; text-align: center; }
+        .controls .btn-reset {
+            width: auto; padding: 0 10px; font-size: 10px; color: #94a3b8; margin-left: 4px;
+        }
+        
+        #legend {
+            position: fixed; bottom: 16px; left: 16px; z-index: 10;
+            background: #111827ee; border: 1px solid #1e293b; border-radius: 10px;
+            padding: 12px 16px; display: flex; gap: 16px; flex-wrap: wrap;
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .legend-item span.icon { font-size: 14px; }
+        .legend-item span.label { font-size: 10px; font-weight: 600; }
+        
+        #infoPanel {
+            position: fixed; bottom: 16px; right: 16px; z-index: 10;
+            background: #111827f5; border-radius: 10px; padding: 14px 18px;
+            max-width: 340px; display: none;
+        }
+        #infoPanel .info-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        #infoPanel .info-icon { font-size: 20px; }
+        #infoPanel .info-title { font-size: 13px; font-weight: 700; }
+        #infoPanel .info-desc { color: #94a3b8; font-size: 11px; line-height: 1.6; }
+        
+        svg { cursor: grab; }
+        svg:active { cursor: grabbing; }
+        
+        .node-group { cursor: pointer; }
+        .node-rect, .node-diamond { transition: all 0.3s; }
+        .node-text { pointer-events: none; }
+        .conn-path { transition: all 0.3s; }
+        .conn-label-bg { transition: all 0.3s; }
+        .conn-label-text { transition: all 0.3s; }
+    </style>
+</head>
+<body>
+
+<div id="header">
+    <div>
+        <h1>▸ Diagrama de Flujo</h1>
+        <p>Sistema Municipal de Trámites 2026 — Flujo de Procesos</p>
+    </div>
+    <div class="controls">
+        <button onclick="zoomIn()">+</button>
+        <span class="zoom-label" id="zoomLabel">75%</span>
+        <button onclick="zoomOut()">−</button>
+        <button class="btn-reset" onclick="resetView()">Reset</button>
+    </div>
+</div>
+
+<div id="legend">
+    <div class="legend-item"><span class="icon">👥</span><span class="label" style="color:#22d3ee">Inicio/Fin</span></div>
+    <div class="legend-item"><span class="icon">📋</span><span class="label" style="color:#a78bfa">Proceso</span></div>
+    <div class="legend-item"><span class="icon">🔀</span><span class="label" style="color:#facc15">Decisión</span></div>
+    <div class="legend-item"><span class="icon">📦</span><span class="label" style="color:#34d399">Datos</span></div>
+    <div class="legend-item"><span class="icon">🔒</span><span class="label" style="color:#10b981">Obligatorio</span></div>
+    <div class="legend-item"><span class="icon">🔓</span><span class="label" style="color:#f59e0b">Opcional</span></div>
+</div>
+
+<div id="infoPanel">
+    <div class="info-header">
+        <span class="info-icon" id="infoIcon"></span>
+        <span class="info-title" id="infoTitle"></span>
+    </div>
+    <p class="info-desc" id="infoDesc"></p>
+</div>
+
+<svg id="canvas" width="100%" height="100%">
+    <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569" opacity="0.6"/>
+        </marker>
+        <marker id="arrowActive" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#22d3ee"/>
+        </marker>
+    </defs>
+    <g id="worldGroup">
+        <!-- Grid dots rendered by JS -->
+        <g id="gridDots"></g>
+        <!-- Connections rendered by JS -->
+        <g id="connectionsGroup"></g>
+        <!-- Nodes rendered by JS -->
+        <g id="nodesGroup"></g>
+    </g>
+</svg>
+
+<script>
+// ═══════════════════════════════════════
+// DATOS DEL DIAGRAMA
+// ═══════════════════════════════════════
+const COLORS = {
+    bg: "#0a0e1a", cardBg: "#111827", cardBorder: "#1e293b",
+    accent1: "#22d3ee", accent2: "#a78bfa", accent3: "#34d399",
+    accent4: "#fb923c", accent5: "#f472b6", accent6: "#facc15",
+    text: "#e2e8f0", textMuted: "#94a3b8", textDark: "#475569",
+    success: "#10b981", danger: "#ef4444", warning: "#f59e0b"
+};
+
+const nodes = [
+    { id:"padron", x:400, y:40, w:220, h:70, label:"PADRÓN DE USUARIOS", icon:"👥", color:COLORS.accent1, type:"start" },
+    { id:"solicitud", x:400, y:150, w:220, h:60, label:"Solicitud de Trámite", icon:"📝", color:COLORS.accent2, type:"process" },
+    { id:"tramite", x:400, y:250, w:220, h:60, label:"Trámite Asignado", icon:"📋", color:COLORS.accent2, type:"process" },
+    { id:"tipo_proceso", x:400, y:360, w:200, h:60, label:"¿Tipo de Proceso?", icon:"🔀", color:COLORS.accent6, type:"decision" },
+    { id:"presupuesto", x:80, y:480, w:180, h:60, label:"Presupuesto", icon:"💰", color:COLORS.accent3, type:"process" },
+    { id:"orden_trabajo", x:300, y:480, w:180, h:60, label:"Orden de Trabajo", icon:"🔧", color:COLORS.accent4, type:"process" },
+    { id:"carta", x:520, y:480, w:180, h:60, label:"Carta", icon:"✉️", color:COLORS.accent5, type:"process" },
+    { id:"inspeccion", x:740, y:480, w:180, h:60, label:"Inspección", icon:"🔍", color:COLORS.accent1, type:"process" },
+    { id:"conceptos", x:80, y:590, w:180, h:50, label:"Conceptos", icon:"📦", color:COLORS.accent3, type:"subprocess" },
+    { id:"obligatorios", x:10, y:680, w:150, h:55, label:"Obligatorios", icon:"🔒", color:COLORS.success, type:"data" },
+    { id:"opcionales", x:180, y:680, w:150, h:55, label:"Opcionales", icon:"🔓", color:COLORS.warning, type:"data" },
+    { id:"quitar_opc", x:180, y:775, w:150, h:50, label:"¿Quitar?", icon:"❌", color:COLORS.accent6, type:"decision" },
+    { id:"recalcular", x:180, y:865, w:160, h:50, label:"Recalcular Importe", icon:"🔄", color:COLORS.accent4, type:"process" },
+    { id:"importe", x:80, y:955, w:180, h:55, label:"Importe Total", icon:"💲", color:COLORS.accent3, type:"data" },
+    { id:"pagado", x:80, y:1050, w:180, h:55, label:"¿Pagado?", icon:"💳", color:COLORS.accent6, type:"decision" },
+    { id:"no_pagado", x:320, y:1050, w:160, h:50, label:"Pendiente Pago", icon:"⏳", color:COLORS.danger, type:"end" },
+    { id:"resultado_ot", x:300, y:590, w:180, h:50, label:"Resultado OT", icon:"✅", color:COLORS.accent4, type:"subprocess" },
+    { id:"resultado_carta", x:520, y:590, w:180, h:50, label:"Resultado Carta", icon:"✅", color:COLORS.accent5, type:"subprocess" },
+    { id:"resultado_insp", x:740, y:590, w:180, h:50, label:"Resultado Inspección", icon:"✅", color:COLORS.accent1, type:"subprocess" },
+    { id:"siguiente_etapa", x:400, y:1160, w:220, h:60, label:"Siguiente Etapa", icon:"➡️", color:COLORS.accent2, type:"process" },
+    { id:"mas_etapas", x:400, y:1270, w:200, h:55, label:"¿Más Etapas?", icon:"🔁", color:COLORS.accent6, type:"decision" },
+    { id:"completado", x:400, y:1375, w:220, h:70, label:"TRÁMITE COMPLETADO", icon:"🏆", color:COLORS.success, type:"end" },
+    { id:"actualizar", x:400, y:1485, w:220, h:60, label:"Actualizar Padrón", icon:"🔄", color:COLORS.accent1, type:"process" }
+];
+
+const connections = [
+    { from:"padron", to:"solicitud", label:"Solicita servicio" },
+    { from:"solicitud", to:"tramite", label:"Se asigna" },
+    { from:"tramite", to:"tipo_proceso", label:"Evaluar" },
+    { from:"tipo_proceso", to:"presupuesto", label:"Presupuesto" },
+    { from:"tipo_proceso", to:"orden_trabajo", label:"OT" },
+    { from:"tipo_proceso", to:"carta", label:"Carta" },
+    { from:"tipo_proceso", to:"inspeccion", label:"Inspección" },
+    { from:"presupuesto", to:"conceptos" },
+    { from:"conceptos", to:"obligatorios" },
+    { from:"conceptos", to:"opcionales" },
+    { from:"opcionales", to:"quitar_opc" },
+    { from:"quitar_opc", to:"recalcular", label:"Sí" },
+    { from:"recalcular", to:"importe" },
+    { from:"obligatorios", to:"importe", label:"No se pueden quitar", type:"constraint" },
+    { from:"importe", to:"pagado" },
+    { from:"pagado", to:"no_pagado", label:"No" },
+    { from:"pagado", to:"siguiente_etapa", label:"Sí" },
+    { from:"orden_trabajo", to:"resultado_ot" },
+    { from:"carta", to:"resultado_carta" },
+    { from:"inspeccion", to:"resultado_insp" },
+    { from:"resultado_ot", to:"siguiente_etapa", label:"Completado" },
+    { from:"resultado_carta", to:"siguiente_etapa", label:"Entregada" },
+    { from:"resultado_insp", to:"siguiente_etapa", label:"Aprobada" },
+    { from:"siguiente_etapa", to:"mas_etapas" },
+    { from:"mas_etapas", to:"tipo_proceso", label:"Sí", type:"loop" },
+    { from:"mas_etapas", to:"completado", label:"No" },
+    { from:"completado", to:"actualizar" },
+    { from:"actualizar", to:"padron", label:"Actualiza estado", type:"loop" }
+];
+
+const INFO = {
+    padron: "Base de datos de todos los usuarios del servicio municipal de agua. Contiene datos del predio, titular y estado del servicio.",
+    solicitud: "El usuario solicita un trámite. Se validan requisitos y se genera el folio correspondiente.",
+    tramite: "Se asigna el trámite a la categoría correspondiente y se determinan las etapas necesarias.",
+    tipo_proceso: "Cada etapa del trámite requiere uno o más procesos: presupuesto, orden de trabajo, carta o inspección.",
+    presupuesto: "Se genera un presupuesto con conceptos obligatorios y opcionales. El importe varía según los conceptos seleccionados.",
+    orden_trabajo: "Se genera una orden de trabajo para ejecutar actividades en campo (instalaciones, reparaciones, etc.).",
+    carta: "Se emite una carta oficial (notificación, constancia, autorización, etc.).",
+    inspeccion: "Se programa y realiza una inspección en campo para validar condiciones del servicio.",
+    conceptos: "Cada presupuesto contiene conceptos que definen los cobros. Se dividen en obligatorios y opcionales.",
+    obligatorios: "NO se pueden eliminar. Son los cobros mínimos requeridos para el trámite. Siempre se incluyen en el importe.",
+    opcionales: "Se PUEDEN quitar según las necesidades. Al quitarlos, el importe total se recalcula a la baja.",
+    quitar_opc: "El usuario o el operador decide si quitar conceptos opcionales del presupuesto.",
+    recalcular: "Al quitar un concepto opcional, se recalcula el importe total sumando solo los conceptos restantes.",
+    importe: "Suma total de todos los conceptos (obligatorios + opcionales seleccionados). Es lo que el usuario debe pagar.",
+    pagado: "Se verifica si el usuario realizó el pago completo del presupuesto.",
+    no_pagado: "El trámite queda en espera hasta que se realice el pago. No avanza a la siguiente etapa.",
+    resultado_ot: "La orden de trabajo se completa en campo y se registra el resultado (exitoso, pendiente, etc.).",
+    resultado_carta: "La carta es entregada/notificada al usuario y se registra el acuse de recibo.",
+    resultado_insp: "La inspección se completa y se emite el dictamen (aprobado, rechazado, condicionado).",
+    siguiente_etapa: "Al completar el proceso actual, el trámite avanza a la siguiente etapa definida.",
+    mas_etapas: "Se evalúa si el trámite tiene más etapas pendientes por completar.",
+    completado: "Todas las etapas del trámite han sido completadas exitosamente.",
+    actualizar: "Se actualiza el estado del servicio en el padrón (activo, suspendido, cancelado, etc.)."
+};
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+const nodeMap = {};
+nodes.forEach(n => nodeMap[n.id] = n);
+
+function getBottom(n) { return { x: n.x + n.w/2, y: n.y + n.h }; }
+function getTop(n) { return { x: n.x + n.w/2, y: n.y }; }
+function getLeft(n) { return { x: n.x, y: n.y + n.h/2 }; }
+function getRight(n) { return { x: n.x + n.w, y: n.y + n.h/2 }; }
+
+function buildPath(conn) {
+    const f = nodeMap[conn.from], t = nodeMap[conn.to];
+    const fb = getBottom(f), tt = getTop(t);
+
+    if (conn.type === "loop" && conn.from === "mas_etapas") {
+        const fr = getRight(f), tr = getRight(t);
+        return `M${fr.x},${fr.y} H${fr.x+80} V${tr.y} H${tr.x}`;
+    }
+    if (conn.type === "loop" && conn.from === "actualizar") {
+        const fl = getLeft(f), tl = getLeft(t);
+        return `M${fl.x},${fl.y} H${fl.x-60} V${tl.y} H${tl.x}`;
+    }
+    if (conn.type === "constraint") {
+        const fb2 = getBottom(f), tl = getLeft(t);
+        return `M${fb2.x},${fb2.y} V${tl.y} H${tl.x}`;
+    }
+    if (conn.from === "pagado" && conn.to === "no_pagado") {
+        const fr = getRight(f), tl = getLeft(t);
+        return `M${fr.x},${fr.y} H${tl.x}`;
+    }
+    if (conn.from === "pagado" && conn.to === "siguiente_etapa") {
+        const fbot = getBottom(f), ttop = getTop(t);
+        return `M${fbot.x},${fbot.y} V${fbot.y+20} H${ttop.x} V${ttop.y}`;
+    }
+    if (["resultado_ot","resultado_carta","resultado_insp"].includes(conn.from)) {
+        const fbot = getBottom(f), ttop = getTop(t);
+        return `M${fbot.x},${fbot.y} V${ttop.y-40} H${ttop.x} V${ttop.y}`;
+    }
+    if (conn.from === "tipo_proceso" && ["presupuesto","orden_trabajo","carta","inspeccion"].includes(conn.to)) {
+        const fbot = getBottom(f), ttop = getTop(t);
+        return `M${fbot.x},${fbot.y} V${fbot.y+30} H${ttop.x} V${ttop.y}`;
+    }
+    if (conn.from === "conceptos") {
+        const fbot = getBottom(f), ttop = getTop(t);
+        return `M${fbot.x},${fbot.y} V${fbot.y+15} H${ttop.x} V${ttop.y}`;
+    }
+    if (Math.abs(fb.x - tt.x) < 5) return `M${fb.x},${fb.y} V${tt.y}`;
+    const midY = (fb.y + tt.y) / 2;
+    return `M${fb.x},${fb.y} V${midY} H${tt.x} V${tt.y}`;
+}
+
+function getLabelPos(conn) {
+    const f = nodeMap[conn.from], t = nodeMap[conn.to];
+    const fb = getBottom(f), tt = getTop(t);
+    let x = (fb.x + tt.x) / 2, y = (fb.y + tt.y) / 2;
+    if (conn.from === "pagado" && conn.to === "no_pagado") { x = (getRight(f).x + getLeft(t).x)/2; y = f.y + f.h/2 - 10; }
+    if (conn.type === "loop" && conn.from === "mas_etapas") { x = getRight(f).x + 85; y = (getRight(f).y + getRight(t).y)/2; }
+    if (conn.type === "loop" && conn.from === "actualizar") { x = getLeft(f).x - 65; y = (getLeft(f).y + getLeft(t).y)/2; }
+    return { x, y };
+}
+
+// ═══════════════════════════════════════
+// RENDER SVG
+// ═══════════════════════════════════════
+const svg = document.getElementById('canvas');
+const world = document.getElementById('worldGroup');
+const nodesG = document.getElementById('nodesGroup');
+const connsG = document.getElementById('connectionsGroup');
+const gridG = document.getElementById('gridDots');
+
+// Grid dots
+for (let i = 0; i < 55; i++) {
+    for (let j = 0; j < 40; j++) {
+        const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        c.setAttribute("cx", j * 30); c.setAttribute("cy", i * 30);
+        c.setAttribute("r", "0.5"); c.setAttribute("fill", COLORS.cardBorder); c.setAttribute("opacity", "0.4");
+        gridG.appendChild(c);
+    }
+}
+
+// Render connections
+connections.forEach((conn, idx) => {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.dataset.from = conn.from; g.dataset.to = conn.to;
+    g.classList.add("conn-group");
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", buildPath(conn));
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", COLORS.textDark);
+    path.setAttribute("stroke-width", "1.2");
+    path.setAttribute("opacity", "0.6");
+    path.setAttribute("marker-end", "url(#arrow)");
+    path.classList.add("conn-path");
+    if (conn.type === "constraint" || conn.type === "loop") path.setAttribute("stroke-dasharray", "6,4");
+    g.appendChild(path);
+
+    if (conn.label) {
+        const pos = getLabelPos(conn);
+        const tw = conn.label.length * 6.4 + 12;
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", pos.x - tw/2); rect.setAttribute("y", pos.y - 8);
+        rect.setAttribute("width", tw); rect.setAttribute("height", 16);
+        rect.setAttribute("rx", 4); rect.setAttribute("fill", COLORS.bg); rect.setAttribute("opacity", "0.9");
+        rect.classList.add("conn-label-bg");
+        g.appendChild(rect);
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", pos.x); text.setAttribute("y", pos.y + 3);
+        text.setAttribute("text-anchor", "middle"); text.setAttribute("fill", COLORS.textMuted);
+        text.setAttribute("font-size", "9"); text.setAttribute("font-family", "'JetBrains Mono', monospace");
+        text.setAttribute("font-weight", "500"); text.textContent = conn.label;
+        text.classList.add("conn-label-text");
+        g.appendChild(text);
+    }
+    connsG.appendChild(g);
+});
+
+// Render nodes
+nodes.forEach(node => {
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.classList.add("node-group"); g.dataset.id = node.id;
+
+    if (node.type === "decision") {
+        const cx = node.x + node.w/2, cy = node.y + node.h/2;
+        const rx = node.w/2 + 10, ry = node.h/2 + 5;
+        const poly = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+        poly.setAttribute("points", `${cx},${cy-ry} ${cx+rx},${cy} ${cx},${cy+ry} ${cx-rx},${cy}`);
+        poly.setAttribute("fill", COLORS.cardBg); poly.setAttribute("stroke", node.color); poly.setAttribute("stroke-width", "1.5");
+        poly.classList.add("node-diamond"); poly.dataset.nodeColor = node.color;
+        g.appendChild(poly);
+
+        const t1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        t1.setAttribute("x", cx); t1.setAttribute("y", cy - 8); t1.setAttribute("text-anchor", "middle");
+        t1.setAttribute("fill", node.color); t1.setAttribute("font-size", "16"); t1.textContent = node.icon;
+        t1.classList.add("node-text"); g.appendChild(t1);
+
+        const t2 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        t2.setAttribute("x", cx); t2.setAttribute("y", cy + 12); t2.setAttribute("text-anchor", "middle");
+        t2.setAttribute("fill", COLORS.text); t2.setAttribute("font-size", "11"); t2.setAttribute("font-weight", "600");
+        t2.setAttribute("font-family", "'JetBrains Mono', monospace"); t2.textContent = node.label;
+        t2.classList.add("node-text"); g.appendChild(t2);
+    } else {
+        const r = (node.type === "start" || node.type === "end") ? 16 : 10;
+        const bw = (node.type === "start" || node.type === "end") ? 2 : 1.5;
+        const fs = (node.type === "start" || node.type === "end") ? 13 : 11.5;
+        const fw = (node.type === "start" || node.type === "end") ? "700" : "600";
+
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", node.x); rect.setAttribute("y", node.y);
+        rect.setAttribute("width", node.w); rect.setAttribute("height", node.h);
+        rect.setAttribute("rx", r); rect.setAttribute("fill", COLORS.cardBg);
+        rect.setAttribute("stroke", node.color); rect.setAttribute("stroke-width", bw);
+        rect.classList.add("node-rect"); rect.dataset.nodeColor = node.color;
+        g.appendChild(rect);
+
+        if (node.type === "start" || node.type === "end") {
+            const inner = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            inner.setAttribute("x", node.x+3); inner.setAttribute("y", node.y+3);
+            inner.setAttribute("width", node.w-6); inner.setAttribute("height", node.h-6);
+            inner.setAttribute("rx", r-3); inner.setAttribute("fill", "none");
+            inner.setAttribute("stroke", node.color); inner.setAttribute("stroke-width", "0.5"); inner.setAttribute("opacity", "0.4");
+            g.appendChild(inner);
+        }
+
+        const t1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        t1.setAttribute("x", node.x + 14); t1.setAttribute("y", node.y + node.h/2 + 1);
+        t1.setAttribute("text-anchor", "start"); t1.setAttribute("dominant-baseline", "middle");
+        t1.setAttribute("fill", node.color); t1.setAttribute("font-size", "16"); t1.textContent = node.icon;
+        t1.classList.add("node-text"); g.appendChild(t1);
+
+        const t2 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        t2.setAttribute("x", node.x + 36); t2.setAttribute("y", node.y + node.h/2 + 1);
+        t2.setAttribute("text-anchor", "start"); t2.setAttribute("dominant-baseline", "middle");
+        t2.setAttribute("fill", COLORS.text); t2.setAttribute("font-size", fs); t2.setAttribute("font-weight", fw);
+        t2.setAttribute("font-family", "'JetBrains Mono', monospace"); t2.textContent = node.label;
+        t2.classList.add("node-text"); g.appendChild(t2);
+    }
+
+    // Hover events
+    g.addEventListener("mouseenter", () => highlightNode(node.id));
+    g.addEventListener("mouseleave", () => highlightNode(null));
+    nodesG.appendChild(g);
+});
+
+// ═══════════════════════════════════════
+// INTERACCIÓN: HOVER
+// ═══════════════════════════════════════
+let currentHover = null;
+function highlightNode(id) {
+    currentHover = id;
+    const panel = document.getElementById('infoPanel');
+
+    // Reset all nodes
+    document.querySelectorAll('.node-group').forEach(g => {
+        const shape = g.querySelector('.node-rect, .node-diamond');
+        if (shape) {
+            shape.style.strokeWidth = shape.classList.contains('node-diamond') ? '1.5' : (nodeMap[g.dataset.id]?.type === 'start' || nodeMap[g.dataset.id]?.type === 'end' ? '2' : '1.5');
+            shape.style.filter = 'none';
+        }
+    });
+
+    // Reset all connections
+    document.querySelectorAll('.conn-group').forEach(g => {
+        const path = g.querySelector('.conn-path');
+        const label = g.querySelector('.conn-label-text');
+        if (path) { path.setAttribute('stroke', COLORS.textDark); path.setAttribute('stroke-width', '1.2'); path.setAttribute('opacity', '0.6'); path.setAttribute('marker-end', 'url(#arrow)'); }
+        if (label) label.setAttribute('fill', COLORS.textMuted);
+    });
+
+    if (!id) { panel.style.display = 'none'; return; }
+
+    const node = nodeMap[id];
+    
+    // Highlight active node
+    const activeG = document.querySelector(`.node-group[data-id="${id}"]`);
+    if (activeG) {
+        const shape = activeG.querySelector('.node-rect, .node-diamond');
+        if (shape) {
+            shape.style.strokeWidth = '2.5';
+            shape.style.filter = `drop-shadow(0 0 12px ${node.color}60)`;
+        }
+    }
+
+    // Highlight connected lines
+    document.querySelectorAll('.conn-group').forEach(g => {
+        if (g.dataset.from === id || g.dataset.to === id) {
+            const fromNode = nodeMap[g.dataset.from];
+            const path = g.querySelector('.conn-path');
+            const label = g.querySelector('.conn-label-text');
+            if (path) { path.setAttribute('stroke', fromNode.color); path.setAttribute('stroke-width', '2.5'); path.setAttribute('opacity', '1'); path.setAttribute('marker-end', 'url(#arrowActive)'); }
+            if (label) label.setAttribute('fill', fromNode.color);
+        }
+    });
+
+    // Show info panel
+    document.getElementById('infoIcon').textContent = node.icon;
+    document.getElementById('infoTitle').textContent = node.label;
+    document.getElementById('infoTitle').style.color = node.color;
+    document.getElementById('infoDesc').textContent = INFO[id] || '';
+    panel.style.display = 'block';
+    panel.style.borderColor = node.color + '40';
+    panel.style.boxShadow = `0 0 20px ${node.color}15`;
+}
+
+// ═══════════════════════════════════════
+// ZOOM Y PAN
+// ═══════════════════════════════════════
+let zoom = 0.75, panX = 50, panY = 20;
+let isDragging = false, startX = 0, startY = 0;
+
+function updateTransform() {
+    world.setAttribute('transform', `translate(${panX},${panY}) scale(${zoom})`);
+    document.getElementById('zoomLabel').textContent = Math.round(zoom * 100) + '%';
+}
+updateTransform();
+
+function zoomIn() { zoom = Math.min(2, zoom + 0.15); updateTransform(); }
+function zoomOut() { zoom = Math.max(0.3, zoom - 0.15); updateTransform(); }
+function resetView() { zoom = 0.75; panX = 50; panY = 20; updateTransform(); }
+
+svg.addEventListener('wheel', e => {
+    e.preventDefault();
+    zoom = Math.max(0.3, Math.min(2, zoom - e.deltaY * 0.001));
+    updateTransform();
+}, { passive: false });
+
+svg.addEventListener('mousedown', e => {
+    if (e.target.closest('.node-group')) return;
+    isDragging = true; startX = e.clientX - panX; startY = e.clientY - panY;
+    svg.style.cursor = 'grabbing';
+});
+svg.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    panX = e.clientX - startX; panY = e.clientY - startY;
+    updateTransform();
+});
+svg.addEventListener('mouseup', () => { isDragging = false; svg.style.cursor = 'grab'; });
+svg.addEventListener('mouseleave', () => { isDragging = false; svg.style.cursor = 'grab'; });
+
+// Touch support
+svg.addEventListener('touchstart', e => {
+    if (e.touches.length === 1) {
+        isDragging = true;
+        startX = e.touches[0].clientX - panX;
+        startY = e.touches[0].clientY - panY;
+    }
+}, { passive: true });
+svg.addEventListener('touchmove', e => {
+    if (!isDragging || e.touches.length !== 1) return;
+    panX = e.touches[0].clientX - startX;
+    panY = e.touches[0].clientY - startY;
+    updateTransform();
+}, { passive: true });
+svg.addEventListener('touchend', () => { isDragging = false; });
+</script>
+</body>
+</html>
