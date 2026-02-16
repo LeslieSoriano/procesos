@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagrama de Flujo — Gestión de Empresas y Permisos de Descarga</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --surface-2: #1a2234;
+    --border: #2a3548;
+    --text: #e2e8f0;
+    --text-muted: #8896aa;
+    --accent-cyan: #22d3ee;
+    --accent-green: #34d399;
+    --accent-amber: #fbbf24;
+    --accent-red: #f87171;
+    --accent-purple: #a78bfa;
+    --accent-blue: #60a5fa;
+    --accent-orange: #fb923c;
+    --glow-cyan: rgba(34,211,238,0.15);
+    --glow-green: rgba(52,211,153,0.15);
+    --glow-amber: rgba(251,191,36,0.15);
+    --glow-red: rgba(248,113,113,0.15);
+    --glow-purple: rgba(167,139,250,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(34,211,238,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34,211,238,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .header h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  .header p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  .header .tag {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 4px 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent-cyan);
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .legend-shape {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 2px solid;
+  }
+
+  .legend-shape.proceso { border-color: var(--accent-cyan); background: var(--glow-cyan); }
+  .legend-shape.decision { border-color: var(--accent-amber); background: var(--glow-amber); transform: rotate(45deg); width: 16px; height: 16px; }
+  .legend-shape.sistema { border-color: var(--accent-purple); background: var(--glow-purple); border-radius: 50%; }
+  .legend-shape.documento { border-color: var(--accent-green); background: var(--glow-green); }
+  .legend-shape.resultado { border-color: var(--accent-orange); background: rgba(251,146,60,0.15); border-radius: 50% / 40%; }
+
+  /* Flow container */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* Nodes */
+  .node {
+    position: relative;
+    width: 420px;
+    max-width: 95vw;
+    padding: 18px 24px;
+    border-radius: 12px;
+    border: 1.5px solid;
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.5s ease both;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .node:hover {
+    transform: translateY(-2px);
+  }
+
+  .node .step-num {
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .node .title {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .node .desc {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .node .desc strong { color: var(--text); font-weight: 600; }
+
+  /* Node types */
+  .node.proceso {
+    background: linear-gradient(135deg, rgba(34,211,238,0.08), rgba(34,211,238,0.02));
+    border-color: rgba(34,211,238,0.3);
+  }
+  .node.proceso:hover { box-shadow: 0 0 30px var(--glow-cyan); }
+  .node.proceso .step-num { background: var(--accent-cyan); color: var(--bg); }
+  .node.proceso .title { color: var(--accent-cyan); }
+
+  .node.decision {
+    background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(251,191,36,0.02));
+    border-color: rgba(251,191,36,0.3);
+    border-radius: 4px;
+    clip-path: none;
+  }
+  .node.decision:hover { box-shadow: 0 0 30px var(--glow-amber); }
+  .node.decision .step-num { background: var(--accent-amber); color: var(--bg); }
+  .node.decision .title { color: var(--accent-amber); }
+
+  .node.sistema {
+    background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(167,139,250,0.02));
+    border-color: rgba(167,139,250,0.3);
+  }
+  .node.sistema:hover { box-shadow: 0 0 30px var(--glow-purple); }
+  .node.sistema .step-num { background: var(--accent-purple); color: var(--bg); }
+  .node.sistema .title { color: var(--accent-purple); }
+
+  .node.documento {
+    background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(52,211,153,0.02));
+    border-color: rgba(52,211,153,0.3);
+  }
+  .node.documento:hover { box-shadow: 0 0 30px var(--glow-green); }
+  .node.documento .step-num { background: var(--accent-green); color: var(--bg); }
+  .node.documento .title { color: var(--accent-green); }
+
+  .node.resultado {
+    background: linear-gradient(135deg, rgba(251,146,60,0.08), rgba(251,146,60,0.02));
+    border-color: rgba(251,146,60,0.3);
+  }
+  .node.resultado:hover { box-shadow: 0 0 30px rgba(251,146,60,0.15); }
+  .node.resultado .step-num { background: var(--accent-orange); color: var(--bg); }
+  .node.resultado .title { color: var(--accent-orange); }
+
+  .node.final-ok {
+    background: linear-gradient(135deg, rgba(52,211,153,0.12), rgba(52,211,153,0.03));
+    border-color: rgba(52,211,153,0.5);
+    border-width: 2px;
+  }
+  .node.final-ok:hover { box-shadow: 0 0 40px var(--glow-green); }
+  .node.final-ok .step-num { background: var(--accent-green); color: var(--bg); }
+  .node.final-ok .title { color: var(--accent-green); font-size: 1rem; }
+
+  .node.final-no {
+    background: linear-gradient(135deg, rgba(248,113,113,0.12), rgba(248,113,113,0.03));
+    border-color: rgba(248,113,113,0.5);
+    border-width: 2px;
+  }
+  .node.final-no:hover { box-shadow: 0 0 40px var(--glow-red); }
+  .node.final-no .step-num { background: var(--accent-red); color: var(--bg); }
+  .node.final-no .title { color: var(--accent-red); font-size: 1rem; }
+
+  /* Arrows */
+  .arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4px 0;
+    animation: fadeIn 0.3s ease both;
+  }
+
+  .arrow .line {
+    width: 2px;
+    height: 28px;
+    background: linear-gradient(to bottom, var(--border), var(--accent-cyan));
+  }
+
+  .arrow .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    padding: 3px 12px;
+    border-radius: 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .arrow .label.si { color: var(--accent-green); border-color: rgba(52,211,153,0.3); }
+  .arrow .label.no { color: var(--accent-red); border-color: rgba(248,113,113,0.3); }
+
+  .arrow .line-2 {
+    width: 2px;
+    height: 28px;
+    background: linear-gradient(to bottom, var(--accent-cyan), var(--border));
+  }
+
+  /* Branch */
+  .branch {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 900px;
+  }
+
+  .branch-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    gap: 0;
+  }
+
+  .branch-col .node {
+    width: 380px;
+    max-width: 100%;
+  }
+
+  /* Merge indicator */
+  .merge-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: 20px;
+  }
+
+  /* Section divider */
+  .section-divider {
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 12px 0;
+  }
+
+  .section-divider::before,
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+  }
+
+  .section-divider span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    white-space: nowrap;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .flow > *:nth-child(1) { animation-delay: 0.05s; }
+  .flow > *:nth-child(2) { animation-delay: 0.1s; }
+  .flow > *:nth-child(3) { animation-delay: 0.15s; }
+  .flow > *:nth-child(4) { animation-delay: 0.2s; }
+  .flow > *:nth-child(5) { animation-delay: 0.25s; }
+  .flow > *:nth-child(6) { animation-delay: 0.3s; }
+  .flow > *:nth-child(7) { animation-delay: 0.35s; }
+  .flow > *:nth-child(8) { animation-delay: 0.4s; }
+  .flow > *:nth-child(9) { animation-delay: 0.45s; }
+  .flow > *:nth-child(10) { animation-delay: 0.5s; }
+  .flow > *:nth-child(11) { animation-delay: 0.55s; }
+  .flow > *:nth-child(12) { animation-delay: 0.6s; }
+  .flow > *:nth-child(13) { animation-delay: 0.65s; }
+  .flow > *:nth-child(14) { animation-delay: 0.7s; }
+  .flow > *:nth-child(15) { animation-delay: 0.75s; }
+  .flow > *:nth-child(n+16) { animation-delay: 0.8s; }
+
+  /* Responsive */
+  @media (max-width: 860px) {
+    .branch { flex-direction: column; align-items: center; gap: 10px; }
+    .branch-col .node { width: 420px; }
+  }
+
+  @media (max-width: 480px) {
+    .node { padding: 14px 16px; }
+    .node .title { font-size: 0.82rem; }
+    .node .desc { font-size: 0.78rem; }
+    .header h1 { font-size: 1.3rem; }
+  }
+
+  /* Print styles */
+  @media print {
+    body { background: #fff; color: #111; }
+    body::before { display: none; }
+    .node { border-width: 2px; break-inside: avoid; }
+    .node .desc { color: #444; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>Gestión de Empresas y Permisos de Descarga</h1>
+    <p>Flujo completo: Registro → Visita → Muestreo → Dictamen</p>
+    <div class="tag">MIAA · Sistema de Aguas 2026</div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-shape proceso"></div>Proceso</div>
+    <div class="legend-item"><div class="legend-shape decision"></div>Decisión</div>
+    <div class="legend-item"><div class="legend-shape sistema"></div>Sistema Externo</div>
+    <div class="legend-item"><div class="legend-shape documento"></div>Documento</div>
+    <div class="legend-item"><div class="legend-shape resultado"></div>Resultado Final</div>
+  </div>
+
+  <div class="flow">
+
+    <!-- ========== FASE 1: REGISTRO ========== -->
+    <div class="section-divider"><span>Fase 1 · Registro de Empresa</span></div>
+
+    <!-- 1 -->
+    <div class="node proceso">
+      <span class="step-num">PASO 01</span>
+      <div class="title">⬤ Solicitud de Registro de Empresa</div>
+      <div class="desc">Se recibe la solicitud para dar de alta una empresa en el sistema. Se capturan datos iniciales: <strong>razón social, RFC, giro, contacto</strong>.</div>
+    </div>
+
+    <div class="arrow"><div class="line"></div><div class="line-2"></div></div>
+
+    <!-- 2 -->
+    <div class="node decision">
+      <span class="step-num">DECISIÓN</span>
+      <div class="title">◆ ¿La empresa ya existe en el sistema?</div>
+      <div class="desc">Se busca por <strong>RFC o razón social</strong> en la base de datos del sistema para verificar si ya fue registrada previamente.</div>
+    </div>
+
+    <div class="arrow"><div class="line"></div><div class="label">Bifurcación</div><div class="line-2"></div></div>
+
+    <!-- Branch: Existe / No existe -->
+    <div class="branch">
+      <div class="branch-col">
+        <div class="arrow"><div class="label si">SÍ EXISTE</div></div>
+        <div class="node proceso">
+          <span class="step-num">PASO 02A</span>
+          <div class="title">⬤ Recuperar Registro Existente</div>
+          <div class="desc">Se carga el expediente de la empresa. Se pueden realizar operaciones <strong>CRUD</strong> (Consultar, Editar, Eliminar) sobre sus datos.</div>
+        </div>
+      </div>
+      <div class="branch-col">
+        <div class="arrow"><div class="label no">NO EXISTE</div></div>
+        <div class="node proceso">
+          <span class="step-num">PASO 02B</span>
+          <div class="title">⬤ Registrar Nueva Empresa</div>
+          <div class="desc">Se crea el registro de la empresa en el sistema. Se capturan todos los campos requeridos para su alta.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="line"></div><div class="merge-indicator">↓ Ambas rutas convergen ↓</div><div class="line-2"></div></div>
+
+    <!-- 3 - ATL -->
+    <div class="node sistema">
+      <span class="step-num">SISTEMA ATL</span>
+      <div class="title">◉ Consulta al Sistema Comercial ATL</div>
+      <div class="desc">Se consulta el sistema <strong>ATL</strong> para obtener datos complementarios de la empresa: <strong>Predio, Domicilio, Cuenta Contrato, Clave Catastral, Giro Comercial, Medidor</strong> y demás campos del padrón comercial.</div>
+    </div>
+
+    <div class="arrow"><div class="line"></div><div class="line-2"></div></div>
+
+    <!-- 4 - CRUD -->
+    <div class="node proceso">
+      <span class="step-num">PASO 03</span>
+      <div class="title">⬤ Gestión CRUD de la Empresa</div>
+      <div class="desc">Con los datos integrados (sistema + ATL), se habilita la gestión completa:<br>
+        <strong>C</strong> – Crear registros asociados<br>
+        <strong>R</strong> – Consultar expediente completo<br>
+        <strong>U</strong> – Actualizar información<br>
+        <strong>D</strong> – Desactivar/eliminar empresa
+      </div>
+    </div>
+
+    <div class="arrow"><div class="line"></div><div class="line-2"></div></div>
+
+    <!-- ========== FASE 2: VISITA ========== -->
+    <div class="section-divider"><span>Fase 2 · Generación de Folio de Visita</span></div>
+
+    <!-- 5 -->
+    <div class="node documento">
+      <span class="step-num">PASO 04</span>
+      <div class="title">◼ Generar Folio de Visita</div>
+      <div class="desc">Se genera un <strong>folio único de visita</strong> asociado a la empresa. Este folio identifica la inspección y todo el expediente documental que se derive.</div>
+    </div>
+
+    <div class="arrow"><div class="line"></div><div class="line-2"></div></div>
+
+    <!-- 6 - Decision rep legal -->
+    <div class="node decision">
+      <span class="step-num">DECISIÓN</span>
+      <div class="title">◆ ¿La empresa tiene Representante Legal presente?</div>
+      <div class="desc">Al momento de la visita se verifica si el <strong>representante legal</strong> de la empresa está disponible para atender la diligencia.</div>
+    </div>
+
+    <div class="arrow"><div class="line"></div><div class="label">Bifurcación</div><div class="line-2"></div></div>
+
+    <!-- Branch: Rep Legal -->
+    <div class="branch">
+      <div class="branch-col">
+        <div class="arrow"><div class="label si">SÍ · Presente</div></div>
+        <div class="node documento">
+          <span class="step-num">PASO 05A</span>
+          <div class="title">◼ Generar Documentos de Inspección</div>
+          <div class="desc">Se generan los documentos oficiales de la visita:<br>
+            <strong>• Orden de Inspección</strong><br>
+            <strong>• Acta de Inspección</strong><br>
+            <strong>• Acta Circunstanciada</strong><br>
+            <strong>• Notificación de Resultados</strong><br>
+            Todos vinculados al folio de visita.
+          </div>
+        </div>
+      </div>
+      <div class="branch-col">
+        <div class="arrow"><div class="label no">NO · Ausente</div></div>
+        <div class="node documento">
+          <span class="step-num">PASO 05B</span>
+          <div class="title">◼ Generar Citatorio</div>
+          <div class="desc">Se genera un <strong>Citatorio</strong> con el <strong>mismo folio de visita</strong>. Se establece fecha y hora para que el representante legal se presente y se pueda realizar la inspección formal.</div>
+        </div>
+        <div class="arrow"><div class="line"></div><div class="label" style="color: var(--accent-cyan);">Regresa a verificar</div><div class="line-2"></div></div>
+        <div class="node decision" style="width: 340px;">
+          <span class="step-num">RE-VERIFICAR</span>
+          <div class="title" style="font-size: 0.82rem;">◆ ¿Se presentó en la fecha citada?</div>
+          <div class="desc">Si se presenta → se generan los documentos (Paso 05A). Si no → se puede emitir segundo citatorio o iniciar procedimiento administrativo.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="line"></div><div class="merge-indicator">↓ Documentos generados · Continúa ↓</div><div class="line-2"></div></div>
+
+    <!-- ========== FASE 3: MUESTREO ========== -->
+    <div class="section-divider"><span>Fase 3 · Trabajo de Campo y Muestreo</span></div>
+
+    <!-- 7 -->
+    <div class="node proceso">
+      <span class="step-num">PASO 06</span>
+      <div class="title">⬤ Visita de Campo — Inspección</div>
+      <div class="desc">El inspector acude a la empresa para realizar la <strong>inspección física</strong> de las instalaciones y los puntos de descarga de aguas residuales.</div>
+    </div>
+
+    <div class="arrow"><div class="line"></div><div class="line-2"></div></div>
+
+    <!-- 8 -->
+    <div class="node decision">
+      <span class="step-num">DECISIÓN</span>
+      <div class="title">◆ ¿Se realizará más de una muestra?</div>
+      <div class="desc">Se evalúa si por el tipo de descarga, número de puntos o complejidad del giro, se requiere <strong>tomar múltiples muestras</strong> o basta con una sola.</div>
+    </div>
+
+    <div class="arrow"><div class="line"></div><div class="label">Bifurcación</div><div class="line-2"></div></div>
+
+    <!-- Branch: Muestras -->
+    <div class="branch">
+      <div class="branch-col">
+        <div class="arrow"><div class="label si">SÍ · Múltiples</div></div>
+        <div class="node proceso">
+          <span class="step-num">PASO 07A</span>
+          <div class="title">⬤ Toma de Múltiples Muestras</div>
+          <div class="desc">Se toman muestras en <strong>distintos puntos de descarga</strong> o en diferentes horarios. Cada muestra se etiqueta con cadena de custodia y se envía a laboratorio.</div>
+        </div>
+      </div>
+      <div class="branch-col">
+        <div class="arrow"><div class="label no">NO · Una sola</div></div>
+        <div class="node proceso">
+          <span class="step-num">PASO 07B</span>
+          <div class="title">⬤ Toma de Muestra Única</div>
+          <div class="desc">Se toma una sola muestra representativa en el punto de descarga principal. Se documenta con cadena de custodia y se envía a laboratorio.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"><div class="line"></div><div class="merge-indicator">↓ Resultados de laboratorio ↓</div><div class="line-2"></div></div>
+
+    <!-- ========== FASE 4: DICTAMEN ========== -->
+    <div class="section-divider"><span>Fase 4 · Análisis y Dictamen</span></div>
+
+    <!-- 9 -->
+    <div class="node sistema">
+      <span class="step-num">LABORATORIO</span>
+      <div class="title">◉ Recepción de Resultados de Laboratorio</div>
+      <div class="desc">Se reciben los resultados analíticos del laboratorio acreditado. Se registran los valores de los parámetros: <strong>DBO, DQO, SST, Grasas y Aceites, pH, Coliformes</strong>, entre otros.</div>
+    </div>
+
+    <div class="arrow"><div class="line"></div><div class="line-2"></div></div>
+
+    <!-- 10 -->
+    <div class="node decision">
+      <span class="step-num">DECISIÓN CLAVE</span>
+      <div class="title">◆ ¿Los resultados están dentro de los Límites Máximos Permisibles?</div>
+      <div class="desc">Se comparan los resultados contra la <strong>NOM-002-SEMARNAT-1996</strong> (o normativa vigente aplicable) y los límites establecidos en las condiciones particulares de descarga.</div>
+    </div>
+
+    <div class="arrow"><div class="line"></div><div class="label">Dictamen Final</div><div class="line-2"></div></div>
+
+    <!-- Branch: Resultado final -->
+    <div class="branch">
+      <div class="branch-col">
+        <div class="arrow"><div class="label si">SÍ · Cumple LMP</div></div>
+        <div class="node final-ok">
+          <span class="step-num">RESULTADO</span>
+          <div class="title">✓ PERMISO DE DESCARGA APROBADO</div>
+          <div class="desc">La empresa <strong>cumple con los límites máximos permisibles</strong>. Se emite el <strong>Permiso de Descarga</strong> con vigencia establecida. Se archiva el expediente completo vinculado al folio de visita.</div>
+        </div>
+      </div>
+      <div class="branch-col">
+        <div class="arrow"><div class="label no">NO · Excede LMP</div></div>
+        <div class="node final-no">
+          <span class="step-num">RESULTADO</span>
+          <div class="title">✗ PERMISO DE DESCARGA DENEGADO</div>
+          <div class="desc">La empresa <strong>NO cumple con los límites permisibles</strong>. Se notifica el incumplimiento. Se establece un <strong>plazo para regularización</strong> y se puede iniciar procedimiento sancionatorio conforme a la normativa aplicable.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
