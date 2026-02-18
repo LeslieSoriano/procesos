@@ -2170,7 +2170,7 @@ let datos = {
                     "filtros": ""
                 },
                 {
-                    "clave": 187,
+                    "clave": 105,
                     "nombre": "Rodamiento nuevo servicio de agua 1\" G.U.",
                     "estado": "Se queda igual",
                     "descripcion": "Trámite para contratación de servicio de toma de agua, cuadro y medidor",
@@ -2182,20 +2182,24 @@ let datos = {
                         }
                     ],
                     "presupuesto": {
-                        "nombre": "Rodamiento Toma, cuadro y medidor G.U. 1\" (177)",
+                        "nombre": "Rodamiento Toma, cuadro y medidor G.U. 1\" (187)",
                         "cantidadM3": 0,
                         "negociable": "NO",
                         "metodoPago": "Importe fijo",
                         "conceptosObligatorios": [
                             {
                                 "clave": 216,
-                                "nombre": ""
+                                "nombre": "Rodamiento nuevo servicio de agua 1/2\" a 1\" (no incluye medidor)"
                             }
                         ],
                         "conceptosOpcionales": [
                             {
                                 "clave": 204,
-                                "nombre": ". Cuadro medidor de 1/2 a 1\""
+                                "nombre": ". Medidor de lectura remota (1\")"
+                            },
+                            {
+                                "clave": 198,
+                                "nombre": ". Cuadro medidor de 1/2\" a 1\""
                             }
                         ],
                         "conceptos": []
@@ -5320,20 +5324,24 @@ let datos = {
                                                 }
                                 ],
                                 "presupuesto": {
-                                                "nombre": "Rodamiento Toma, cuadro y medidor G.U. 1\" (177)",
+                                                "nombre": "Rodamiento Toma, cuadro y medidor G.U. 1\" (105)",
                                                 "cantidadM3": 0,
                                                 "negociable": "NO",
                                                 "metodoPago": "Importe fijo",
                                                 "conceptosObligatorios": [
                                                                 {
                                                                                 "clave": 216,
-                                                                                "nombre": ""
+                                                                                "nombre": "Rodamiento nuevo servicio de agua 1/2\" a 1\" (no incluye medidor)"
                                                                 }
                                                 ],
                                                 "conceptosOpcionales": [
                                                                 {
                                                                                 "clave": 204,
-                                                                                "nombre": ". Cuadro medidor de 1/2 a 1\""
+                                                                                "nombre": "Medidor de lectura remota (1\")"
+                                                                },
+                                                                {
+                                                                                "clave": 198,
+                                                                                "nombre": "Cuadro medidor de 1/2\" a 1\""
                                                                 }
                                                 ],
                                                 "conceptos": []
