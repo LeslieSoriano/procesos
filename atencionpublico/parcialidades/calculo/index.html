@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Parcialidades · SSCA</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+
+  <div class="logo-area">
+    <!-- REEMPLAZAR: <img src="logo.png" alt="Logo SSCA"> -->
+    <div><img src="img/MIAA.png" alt="Logo MIAA"></div>
+  </div>
+
+  <!-- ── ENCABEZADO ─────────────────────────────────── -->
+  <div class="header">
+    <div class="header-badge">💧 MIAA · Sistema de Pagos</div>
+    <h1>Calculadora de <span>Parcialidades</span></h1>
+    <p class="subtitle">Desglose detallado con saldo insoluto y costo financiero</p>
+  </div>
+
+  <!-- ── FORMULARIO ────────────────────────────────── -->
+  <div class="form-card">
+    <div class="form-grid">
+
+      <div class="field">
+        <label>Total de la Deuda</label>
+        <div class="input-wrap">
+          <span>$</span>
+          <input type="number" id="deuda" placeholder="12600.00" min="0" step="0.01">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Anticipo Pagado</label>
+        <div class="input-wrap">
+          <span>$</span>
+          <input type="number" id="anticipo" placeholder="3000.00" min="0" step="0.01">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Número de Parcialidades</label>
+        <div class="input-wrap">
+          <span>#</span>
+          <input type="number" id="parcialidades" placeholder="11" min="1" max="120" step="1">
+        </div>
+      </div>
+
+      <!-- Tasa bloqueada — no editable por el usuario -->
+      <div class="field field-locked">
+        <label>Tasa Mensual (fija)</label>
+        <div class="input-wrap">
+          <span>%</span>
+          <input type="number" id="tasa" value="1.26" readonly tabindex="-1">
+        </div>
+      </div>
+
+    </div>
+
+    <button class="btn-calc" onclick="calcular()">Calcular Desglose →</button>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+
+  <!-- ── RESULTADOS ─────────────────────────────────── -->
+  <div class="resumen" id="resumen">
+
+    <p class="resumen-title">📊 Resumen del convenio</p>
+
+    <div class="resumen-grid">
+      <div class="stat-card orange">
+        <div class="stat-label">Deuda Total</div>
+        <div class="stat-value" id="s-deuda">—</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Anticipo (%)</div>
+        <div class="stat-value" id="s-anticipo">—</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">Saldo Financiado</div>
+        <div class="stat-value" id="s-saldo">—</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-label">Capital x Parcialidad</div>
+        <div class="stat-value" id="s-capital">—</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">Intereses Totales</div>
+        <div class="stat-value" id="s-intereses">—</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">Gran Total a Pagar</div>
+        <div class="stat-value" id="s-total">—</div>
+      </div>
+    </div>
+
+    <!-- Caja de fórmulas (llenada por JS) -->
+    <div class="formula-box" id="formulaBox"></div>
+
+    <!-- Tabla de desglose -->
+    <div class="table-wrap">
+      <div class="table-header">
+        <h3>Desglose por Parcialidad</h3>
+        <span id="labelParcialidades">— parcialidades</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Saldo Insoluto</th>
+              <th>Capital</th>
+              <th>Cálculo Interés</th>
+              <th>Interés</th>
+              <th>Total Parcialidad</th>
+            </tr>
+          </thead>
+          <tbody id="tablaBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /resumen -->
+
+  <!-- ── PIE DE PÁGINA ──────────────────────────────── -->
+  <div class="footer">
+    Herramienta de cálculo interno · SSCA · Sistema de saldo insoluto con tasa mensual fija
+  </div>
+
+</div><!-- /container -->
+
+<!-- Script -->
+<script src="app.js"></script>
+</body>
+</html>
