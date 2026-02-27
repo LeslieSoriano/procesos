@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Conciliación Bancaria — Sistema de Agua</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ── LOADING ── -->
+<div id="loading-overlay" class="loading-overlay">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Procesando…</div>
+    <div class="progress-track">
+      <div class="progress-fill" id="loading-bar" style="width:0%"></div>
+    </div>
+    <div class="loading-pct" id="loading-pct">0%</div>
+  </div>
+</div>
+
+<!-- ── TOASTS ── -->
+<div id="toast-wrap" class="toast-wrap"></div>
+
+<!-- ════════════════════════════════════════════════════
+     TOOLBAR
+════════════════════════════════════════════════════ -->
+<header class="toolbar">
+
+  <!-- Marca -->
+  <div class="toolbar-brand">
+    <div class="brand-logo">💧</div>
+    <div class="brand-texts">
+      <span class="brand-title">Conciliación Bancaria</span>
+      <span class="brand-sub">Sistema Municipal de Agua</span>
+    </div>
+  </div>
+
+  <!-- Filtros de fecha / cuenta -->
+  <div class="toolbar-filters">
+    <div class="filter-group">
+      <label>Cuenta:</label>
+      <select id="fil-cuenta" class="tb-select">
+        <option value="">..Todas</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Del:</label>
+      <input type="date" id="fil-desde" class="tb-input-date" />
+    </div>
+    <div class="filter-group">
+      <label>Al:</label>
+      <input type="date" id="fil-hasta" class="tb-input-date" />
+    </div>
+    <button class="tb-btn tb-btn-apply" id="btn-filtrar">🔍 Aplicar</button>
+    <button class="tb-btn" id="btn-limpiar-filtro" title="Limpiar búsqueda">✕ Limpiar</button>
+  </div>
+
+  <!-- Acciones principales -->
+  <div class="toolbar-actions">
+
+    <button class="tb-icon-btn" id="btn-open-carga" title="Cargar archivos CSV / XLSX">
+      <span class="tb-icon-glyph">📂</span>
+      <span class="tb-icon-label">Cargar</span>
+    </button>
+
+    <button class="tb-icon-btn btn-conciliar-main" id="btn-conciliar"
+            title="Ejecutar conciliación automática" disabled>
+      <span class="tb-icon-glyph">⚡</span>
+      <span class="tb-icon-label">Conciliar</span>
+    </button>
+
+    <button class="tb-icon-btn" id="btn-export-excel"
+            title="Exportar resultados a CSV" disabled>
+      <span class="tb-icon-glyph">📊</span>
+      <span class="tb-icon-label">Exportar</span>
+    </button>
+
+    <button class="tb-icon-btn" id="btn-reiniciar" title="Reiniciar todo">
+      <span class="tb-icon-glyph">↺</span>
+      <span class="tb-icon-label">Reiniciar</span>
+    </button>
+
+    <div class="tb-sep"></div>
+    <div class="status-badge" id="status-badge">Sin datos</div>
+  </div>
+
+</header>
+
+<!-- ════════════════════════════════════════════════════
+     MODAL — CARGA Y CONFIGURACIÓN
+════════════════════════════════════════════════════ -->
+<div id="modal-carga" class="modal-overlay">
+  <div class="modal-box">
+
+    <div class="modal-header">
+      <h2>📂 Cargar archivos y configurar columnas</h2>
+      <button class="modal-close" id="btn-cerrar-modal">✕</button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- PASO 1: Archivos -->
+      <div class="modal-section">
+        <div class="modal-section-title">Paso 1 — Seleccionar archivos</div>
+
+        <div class="upload-row">
+
+          <!-- Sistema Comercial -->
+          <div class="upload-card" id="zona-sistema">
+            <input type="file" id="input-sistema" accept=".csv,.txt,.xlsx,.xls" />
+            <span class="upload-card-icon">💻</span>
+            <div class="upload-card-title">Sistema Comercial</div>
+            <div class="upload-card-sub">
+              Reporte de pagos / cobros registrados<br/>en el sistema (SISCO, SAP, etc.)
+            </div>
+            <span class="upload-card-badge sistema-color">CSV · TXT · XLSX</span>
+            <div class="upload-info" id="info-sistema"></div>
+          </div>
+
+          <div class="upload-vs">VS</div>
+
+          <!-- Banco -->
+          <div class="upload-card" id="zona-banco">
+            <input type="file" id="input-banco" accept=".csv,.txt,.xlsx,.xls" />
+            <span class="upload-card-icon">🏦</span>
+            <div class="upload-card-title">Banco</div>
+            <div class="upload-card-sub">
+              Extracto / movimientos descargados<br/>del portal bancario
+            </div>
+            <span class="upload-card-badge banco-color">CSV · TXT · XLSX</span>
+            <div class="upload-info" id="info-banco"></div>
+          </div>
+
+        </div>
+      </div><!-- /paso 1 -->
+
+      <!-- PASO 2: Columnas Sistema -->
+      <div class="modal-section" id="seccion-cols-sistema" style="display:none">
+        <div class="modal-section-title">Paso 2 — Columnas del Sistema Comercial</div>
+        <div class="cols-grid">
+          <div class="col-row">
+            <label>🔑 Referencia / Folio <span class="req">*obligatorio</span></label>
+            <select id="col-sistema-referencia"><option value="">-- seleccionar columna --</option></select>
+          </div>
+          <div class="col-row">
+            <label>💰 Monto / Importe <span class="req">*obligatorio</span></label>
+            <select id="col-sistema-monto"><option value="">-- seleccionar columna --</option></select>
+          </div>
+          <div class="col-row">
+            <label>📅 Fecha <span style="color:var(--tx3)">(opcional)</span></label>
+            <select id="col-sistema-fecha"><option value="">-- ninguna --</option></select>
+          </div>
+          <div class="col-row">
+            <label>📝 Descripción / Concepto <span style="color:var(--tx3)">(opcional)</span></label>
+            <select id="col-sistema-descripcion"><option value="">-- ninguna --</option></select>
+          </div>
+          <div class="col-row">
+            <label>🏷 Cuenta / Banco <span style="color:var(--tx3)">(opcional)</span></label>
+            <select id="col-sistema-cuenta"><option value="">-- ninguna --</option></select>
+          </div>
+        </div>
+        <div class="preview-mini" id="prev-sistema"></div>
+      </div>
+
+      <!-- PASO 3: Columnas Banco -->
+      <div class="modal-section" id="seccion-cols-banco" style="display:none">
+        <div class="modal-section-title">Paso 3 — Columnas del Banco</div>
+        <div class="cols-grid">
+          <div class="col-row">
+            <label>🔑 Referencia / Folio <span class="req">*obligatorio</span></label>
+            <select id="col-banco-referencia"><option value="">-- seleccionar columna --</option></select>
+          </div>
+          <div class="col-row">
+            <label>💰 Monto / Importe <span class="req">*obligatorio</span></label>
+            <select id="col-banco-monto"><option value="">-- seleccionar columna --</option></select>
+          </div>
+          <div class="col-row">
+            <label>📅 Fecha <span style="color:var(--tx3)">(opcional)</span></label>
+            <select id="col-banco-fecha"><option value="">-- ninguna --</option></select>
+          </div>
+          <div class="col-row">
+            <label>📝 Descripción / Concepto <span style="color:var(--tx3)">(opcional)</span></label>
+            <select id="col-banco-descripcion"><option value="">-- ninguna --</option></select>
+          </div>
+          <div class="col-row">
+            <label>🏷 Cuenta / Banco <span style="color:var(--tx3)">(opcional)</span></label>
+            <select id="col-banco-cuenta"><option value="">-- ninguna --</option></select>
+          </div>
+        </div>
+        <div class="preview-mini" id="prev-banco"></div>
+      </div>
+
+      <!-- PASO 4: Opciones -->
+      <div class="modal-section" id="seccion-opciones" style="display:none">
+        <div class="modal-section-title">Paso 4 — Opciones de comparación</div>
+        <div class="opciones-grid">
+          <label class="opt-check">
+            <input type="checkbox" id="opt-norm-ref" checked />
+            Normalizar referencia: eliminar ceros iniciales y espacios (recomendado)
+          </label>
+          <label class="opt-check">
+            <input type="checkbox" id="opt-ignorar-fecha" />
+            Ignorar la fecha al comparar — solo usar referencia + monto
+          </label>
+          <div class="opt-row">
+            <label>Separador decimal en los montos:</label>
+            <select id="opt-sep-decimal" class="opt-select">
+              <option value=".">Punto   →  1,234.56 (estándar México)</option>
+              <option value=",">Coma    →  1.234,56 (europeo)</option>
+            </select>
+          </div>
+          <div class="opt-row">
+            <label>Tolerancia permitida en centavos:</label>
+            <div class="slider-row">
+              <input type="range" id="opt-tolerancia" min="0" max="10" step="0.01" value="0" />
+              <span id="tol-val">$0.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /modal-body -->
+
+    <div class="modal-footer">
+      <button class="btn-modal-sec" id="btn-cerrar-modal2">Cancelar</button>
+      <button class="btn-modal-pri" id="btn-modal-ok" disabled>✓ Guardar y preparar</button>
+    </div>
+
+  </div>
+</div><!-- /modal -->
+
+<!-- ════════════════════════════════════════════════════
+     DOS PANELES PRINCIPALES
+════════════════════════════════════════════════════ -->
+<main class="main-area">
+
+  <!-- PANEL SUPERIOR: Sistema Comercial -->
+  <div class="panel-wrap" id="panel-sistema">
+    <div class="panel-bar sistema-bar">
+      <span class="panel-bar-icon">💻</span>
+      <span class="panel-bar-title">Detalle de movimientos en sistema</span>
+      <span class="panel-bar-info" id="info-bar-sistema"></span>
+      <div class="panel-bar-right">
+        <span class="panel-stat" id="pstat-sistema">—</span>
+        <input type="text" class="panel-search" id="search-sistema" placeholder="Buscar…" />
+        <div class="panel-filter-btns">
+          <button class="pf-btn active" data-panel="sistema" data-f="todos">Todos</button>
+          <button class="pf-btn" data-panel="sistema" data-f="conciliado">✓ Conciliados</button>
+          <button class="pf-btn" data-panel="sistema" data-f="pendiente">⚠ Sin conciliar</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel-table-wrap" id="tabla-sistema-wrap">
+      <div class="panel-empty" id="empty-sistema">
+        <span class="empty-icon">💻</span>
+        <p>Aún no hay datos del Sistema Comercial</p>
+        <button class="btn-empty-load" id="btn-load-sistema">📂 Cargar archivo del sistema</button>
+      </div>
+    </div>
+    <div class="panel-footer" id="footer-sistema"></div>
+  </div>
+
+  <!-- DIVISOR -->
+  <div class="divider" id="divider" title="Arrastra para redimensionar los paneles"></div>
+
+  <!-- PANEL INFERIOR: Banco -->
+  <div class="panel-wrap" id="panel-banco">
+    <div class="panel-bar banco-bar">
+      <span class="panel-bar-icon">🏦</span>
+      <span class="panel-bar-title">Detalle de movimientos según banco</span>
+      <span class="panel-bar-info" id="info-bar-banco"></span>
+      <div class="panel-bar-right">
+        <span class="panel-stat" id="pstat-banco">—</span>
+        <input type="text" class="panel-search" id="search-banco" placeholder="Buscar…" />
+        <div class="panel-filter-btns">
+          <button class="pf-btn active" data-panel="banco" data-f="todos">Todos</button>
+          <button class="pf-btn" data-panel="banco" data-f="conciliado">✓ Conciliados</button>
+          <button class="pf-btn" data-panel="banco" data-f="pendiente">⚠ Sin conciliar</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel-table-wrap" id="tabla-banco-wrap">
+      <div class="panel-empty" id="empty-banco">
+        <span class="empty-icon">🏦</span>
+        <p>Aún no hay datos del Banco</p>
+        <button class="btn-empty-load" id="btn-load-banco">📂 Cargar archivo del banco</button>
+      </div>
+    </div>
+    <div class="panel-footer" id="footer-banco"></div>
+  </div>
+
+</main>
+
+<!-- ════════════════════════════════════════════════════
+     BARRA DE TOTALES
+════════════════════════════════════════════════════ -->
+<footer class="summary-bar">
+  <div class="sum-item">
+    <span class="sum-label">💻 Sistema</span>
+    <span class="sum-val sistema-color" id="sum-sistema-total">—</span>
+  </div>
+  <span class="sum-sep">|</span>
+  <div class="sum-item">
+    <span class="sum-label">🏦 Banco</span>
+    <span class="sum-val banco-color" id="sum-banco-total">—</span>
+  </div>
+  <span class="sum-sep">|</span>
+  <div class="sum-item">
+    <span class="sum-label">✅ Conciliados</span>
+    <span class="sum-val match-color" id="sum-conciliados">—</span>
+  </div>
+  <span class="sum-sep">|</span>
+  <div class="sum-item">
+    <span class="sum-label">🏦 Solo Banco</span>
+    <span class="sum-val banco-color" id="sum-solo-banco">—</span>
+  </div>
+  <span class="sum-sep">|</span>
+  <div class="sum-item">
+    <span class="sum-label">💻 Solo Sistema</span>
+    <span class="sum-val sistema-color" id="sum-solo-sistema">—</span>
+  </div>
+  <span class="sum-sep">|</span>
+  <div class="sum-item">
+    <span class="sum-label">⚠ Diferencias</span>
+    <span class="sum-val diff-color" id="sum-diferencias">—</span>
+  </div>
+  <span class="sum-sep">|</span>
+  <div class="sum-item">
+    <span class="sum-label">⚖ Brecha</span>
+    <span class="sum-val" id="sum-brecha">—</span>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
