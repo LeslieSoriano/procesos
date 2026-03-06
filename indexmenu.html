@@ -163,6 +163,64 @@
     </style>
 </head>
 <body>
+    <div id="pantalla-login" style="
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #1a2744;
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+">
+  <div style="
+    background: white;
+    padding: 2.5rem;
+    border-radius: 12px;
+    width: 340px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    text-align: center;
+  ">
+    <img src="img/MIAA.png" alt="MIAA" style="height:60px; margin-bottom:1rem;">
+    <h2 style="color:#1a2744; margin-bottom:1.5rem;">Acceso al sistema</h2>
+
+    <input
+      id="login-usuario"
+      type="text"
+      placeholder="Usuario"
+      style="width:100%; padding:0.6rem; margin-bottom:0.8rem; border:1px solid #ccc; border-radius:6px; font-size:1rem; box-sizing:border-box;"
+    />
+    <input
+      id="login-pass"
+      type="password"
+      placeholder="Contraseña"
+      style="width:100%; padding:0.6rem; margin-bottom:0.8rem; border:1px solid #ccc; border-radius:6px; font-size:1rem; box-sizing:border-box;"
+    />
+
+    <p id="login-error" style="color:red; font-size:0.85rem; display:none; margin-bottom:0.5rem;"></p>
+
+    <button
+      id="btn-entrar"
+      onclick="iniciarSesion()"
+      style="width:100%; padding:0.75rem; background:#1a2744; color:white; border:none; border-radius:6px; font-size:1rem; cursor:pointer;"
+    >
+      Entrar
+    </button>
+
+    <p style="margin-top:1rem; font-size:0.75rem; color:#999;">SSCA — MIAA 2026</p>
+  </div>
+</div>
+
+<!-- ═══════════ APP (tu contenido actual) ═══════════ -->
+<div id="pantalla-app" style="display:none;">
+
+  <!-- Barra superior con info de sesión -->
+  <div style="background:#1a2744; color:white; padding:0.4rem 1rem; font-size:0.8rem; display:flex; justify-content:flex-end; align-items:center; gap:1rem;">
+    <span>👤 <strong id="usuario-activo"></strong></span>
+    <button onclick="cerrarSesion()" style="background:transparent; color:#aaa; border:1px solid #aaa; border-radius:4px; padding:0.2rem 0.6rem; cursor:pointer; font-size:0.75rem;">
+      Cerrar sesión
+    </button>
+  </div>
+
     <div class="container">
         <div class="header">
             <h1>🏢 Menu de Procesos MIAA</h1>
@@ -415,7 +473,7 @@
             <p>Todos los derechos reservados MIAA 2026</p>
         </div>
     </div>
-
+    <script src="login.js"></script>
     <script>
         function toggleModule(card) {
             const processList = card.querySelector('.processes-list');
