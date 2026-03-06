@@ -17,7 +17,7 @@
     window.location.href = "https://lesliesoriano.github.io/procesos/recfinancier/conciliacion/index.html";
     window.location.href = "https://lesliesoriano.github.io/procesos/extras/separadorexcel.html";
     window.location.href = "https://lesliesoriano.github.io/procesos/USCA/diagrama.html";
-    window.location.href = "https://lesliesoriano.github.io/procesos/recfinancier/calculadordv.html";
+  
     return;
   }
 
