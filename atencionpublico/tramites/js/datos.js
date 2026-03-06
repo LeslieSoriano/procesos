@@ -11,9 +11,10 @@ let datos = {
                 {
                     "clave": 1,
                     "nombre": "Alta de predio",
-                    "estado": "Se queda igual",
+                    "estado": "Se queda igual para el año 2026",
                     "descripcion": "Trámite para alta de nuevos predios",
-                    "requisitos": " ",
+                    "requisitos": "Para usuarios con estatus Baja, Factible y Real y situaciones comerciales Activo, En Tramite, Potencial y Susp. Columpio",
+                    "acciones": "Cambia estatus a Real y Situacion:Potencial",
                     "etapas": [],
                     "presupuesto": {
                         "nombre": "",
@@ -31,6 +32,7 @@ let datos = {
                     "estado": "Se queda igual",
                     "descripcion": "Trámite para alta de derivación en macrolotes",
                     "requisitos": " ",
+                    "acciones": "Cambia estatus a Real y Situacion:Potencial",
                     "etapas": [],
                     "presupuesto": {
                         "nombre": "",
