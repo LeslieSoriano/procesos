@@ -32,6 +32,16 @@ async function llamarAPI(body) {
     return await resp.json();
 }
 
+// ── Registrar actividad (fire & forget, nunca bloquea) ────────
+function registrarActividad(accion, detalle) {
+    const usuario = sessionStorage.getItem("miaa_usuario") || "desconocido";
+    fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ accion: "registrarActividad", usuario: usuario, tipo: accion, detalle: detalle })
+    }).catch(() => {});
+}
+
 // ── Aplicar overrides de Sheets sobre los datos de datos.js ──
 // Solo modifica los trámites que admin haya tocado
 function aplicarOverrides(overrides) {
@@ -206,6 +216,7 @@ function aplicarOverrides(overrides) {
                     // 2. Actualizar memoria local
                     if (i !== -1) cat.tramites.splice(i, 1);
 
+                    registrarActividad("ELIMINAR TRÁMITE", `Clave: ${tramiteEnEdicion.clave} — ${nombre}`);
                     alert('✅ Eliminado: ' + nombre);
                     cerrarPassword();
                     renderizar();
@@ -263,9 +274,11 @@ function aplicarOverrides(overrides) {
                 if (modoEdicion) {
                     const idx = cat.tramites.findIndex(x => x.clave == tramiteEnEdicion.clave);
                     cat.tramites[idx] = t;
+                    registrarActividad("EDITAR TRÁMITE", `Clave: ${t.clave} — ${t.nombre}`);
                     alert('✅ Actualizado');
                 } else {
                     cat.tramites.push(t);
+                    registrarActividad("AGREGAR TRÁMITE", `Clave: ${t.clave} — ${t.nombre}`);
                     alert('✅ Agregado');
                 }
 
@@ -289,6 +302,8 @@ function aplicarOverrides(overrides) {
         function descargarExcel() { let csv='\uFEFFClave,Nombre,Categoría,Estado,Descripción,Requisitos,Conceptos Obligatorios,Conceptos Opcionales,Etapas,Resultado\n'; datos.categorias.forEach(cat=>{cat.tramites.forEach(t=>{const ob=(t.presupuesto?.conceptosObligatorios||[]).map(c=>`(${c.clave}) ${c.nombre}`).join(' | ')||'N/A'; const op=(t.presupuesto?.conceptosOpcionales||[]).map(c=>`(${c.clave}) ${c.nombre}`).join(' | ')||'N/A'; const et=t.etapas.map((e,i)=>`${i+1}. ${e.nombre}`).join(' | ')||'N/A'; csv+=[t.clave,`"${t.nombre}"`,`"${cat.nombre}"`,`"${t.estado}"`,`"${t.descripcion.replace(/"/g,'""')}"`,`"${t.requisitos.replace(/"/g,'""')}"`,`"${ob.replace(/"/g,'""')}"`,`"${op.replace(/"/g,'""')}"`,`"${et.replace(/"/g,'""')}"`,`"${(t.resultado||'').replace(/"/g,'""')}"`].join(',')+`\n`;});}); const b=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const l=document.createElement('a'); l.href=URL.createObjectURL(b); l.download=`tramites_2026_${new Date().toISOString().split('T')[0]}.csv`; document.body.appendChild(l); l.click(); document.body.removeChild(l); }
         // Salir — limpia sesión y regresa al login
         function solicitarSalir() {
+            const usuario = sessionStorage.getItem("miaa_usuario") || "desconocido";
+            registrarActividad("LOGOUT", "Cerró sesión desde trámites");
             sessionStorage.clear();
             window.location.href = URL_MENU_PRINCIPAL;
         }
@@ -362,8 +377,88 @@ function aplicarOverrides(overrides) {
                 if (btnAgregar) btnAgregar.style.display = 'none';
                 document.getElementById('btnCargarDatos').style.display = 'none';
             } else {
-                // Para admin: ocultar "Cargar Datos" si ya hay trámites cargados
+                // Para admin: mostrar botón actividad y ocultar "Cargar Datos" si ya hay trámites
+                document.getElementById('btnActividad').style.display = 'inline-block';
                 const total = datos.categorias.reduce((s,c) => s + (c.tramites ? c.tramites.length : 0), 0);
                 if (total > 0) document.getElementById('btnCargarDatos').style.display = 'none';
             }
         };
+
+        // ── MODAL DE ACTIVIDAD ────────────────────────────────────
+        let todosLosRegistros = [];
+
+        async function abrirActividad() {
+            document.getElementById('modalActividad').style.display = 'flex';
+            document.getElementById('actividadCargando').style.display = 'block';
+            document.getElementById('tablaActividad').style.display    = 'none';
+            document.getElementById('actividadVacia').style.display    = 'none';
+            document.getElementById('filtroActividad').value = '';
+            document.getElementById('filtroAccion').value   = '';
+
+            try {
+                const res = await llamarAPI({ accion: 'leerActividad' });
+                todosLosRegistros = res.success ? res.registros : [];
+            } catch (e) {
+                todosLosRegistros = [];
+            }
+
+            document.getElementById('actividadCargando').style.display = 'none';
+            renderizarActividad(todosLosRegistros);
+        }
+
+        function cerrarActividad() {
+            document.getElementById('modalActividad').style.display = 'none';
+        }
+
+        function filtrarActividad() {
+            const texto  = document.getElementById('filtroActividad').value.toLowerCase();
+            const accion = document.getElementById('filtroAccion').value.toUpperCase();
+
+            const filtrados = todosLosRegistros.filter(r => {
+                const coincideTexto  = !texto  || [r.usuario, r.accion, r.detalle].join(' ').toLowerCase().includes(texto);
+                const coincideAccion = !accion || r.accion.toUpperCase().includes(accion);
+                return coincideTexto && coincideAccion;
+            });
+
+            renderizarActividad(filtrados);
+        }
+
+        const COLORES_ACCION = {
+            'LOGIN':           { bg: '#dcfce7', color: '#15803d' },
+            'LOGOUT':          { bg: '#fef3c7', color: '#92400e' },
+            'AGREGAR TRÁMITE': { bg: '#dbeafe', color: '#1e40af' },
+            'EDITAR TRÁMITE':  { bg: '#ede9fe', color: '#6d28d9' },
+            'ELIMINAR TRÁMITE':{ bg: '#fee2e2', color: '#dc2626' },
+        };
+
+        function renderizarActividad(registros) {
+            const tbody   = document.getElementById('actividadBody');
+            const tabla   = document.getElementById('tablaActividad');
+            const vacia   = document.getElementById('actividadVacia');
+            const contador = document.getElementById('contadorActividad');
+
+            contador.textContent = `${registros.length} registro${registros.length !== 1 ? 's' : ''}`;
+
+            if (!registros.length) {
+                tabla.style.display = 'none';
+                vacia.style.display = 'block';
+                return;
+            }
+
+            tabla.style.display = 'table';
+            vacia.style.display = 'none';
+
+            tbody.innerHTML = registros.map((r, i) => {
+                const estilo = COLORES_ACCION[r.accion] || { bg: '#f3f4f6', color: '#374151' };
+                const fondo  = i % 2 === 0 ? 'white' : '#fafbff';
+                return `<tr style="background:${fondo};">
+                    <td style="padding:9px 12px;border-bottom:1px solid #f0f0f0;color:#555;">${r.fecha}</td>
+                    <td style="padding:9px 12px;border-bottom:1px solid #f0f0f0;color:#555;">${r.hora}</td>
+                    <td style="padding:9px 12px;border-bottom:1px solid #f0f0f0;font-weight:600;color:#1a2744;">${r.usuario}</td>
+                    <td style="padding:9px 12px;border-bottom:1px solid #f0f0f0;">
+                        <span style="background:${estilo.bg};color:${estilo.color};padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">${r.accion}</span>
+                    </td>
+                    <td style="padding:9px 12px;border-bottom:1px solid #f0f0f0;color:#555;">${r.detalle}</td>
+                </tr>`;
+            }).join('');
+        }

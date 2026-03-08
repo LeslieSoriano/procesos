@@ -6,7 +6,7 @@ function registrarActividad(usuario, accion, detalle) {
   fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain" },
-    body: JSON.stringify({ accion: "registrarActividad", usuario, accion, detalle })
+    body: JSON.stringify({ accion: "registrarActividad", usuario: usuario, tipo: accion, detalle: detalle })
   }).catch(() => {}); // silencioso — el log nunca debe bloquear la UI
 }
 
