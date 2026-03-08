@@ -1,8 +1,7 @@
-// login.js — Lógica de autenticación contra Google Apps Script
-
+// login.js — Autenticación MIAA contra Google Apps Script
 const API_URL = "https://script.google.com/macros/s/AKfycbzAD3rNYkjEhJ2HzhFI0lmz2pjUENsKlW_QgwR-rsI_l_EF-2KNnw9_rSCsiDmjxIi0/exec";
 
-// ─── Verificar si ya hay sesión al cargar la página ───────────────────────
+// ── Al cargar la página: revisar si ya hay sesión activa ──────────────────
 window.addEventListener("DOMContentLoaded", function () {
   const usuario = sessionStorage.getItem("miaa_usuario");
   const rol     = sessionStorage.getItem("miaa_rol");
@@ -17,27 +16,28 @@ window.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// ─── Función que se llama al dar click en "Entrar" ────────────────────────
+// ── Función que se llama al dar click en "Entrar" ─────────────────────────
 async function iniciarSesion() {
-  const username = document.getElementById("login-usuario").value.trim();
-  const password = document.getElementById("login-pass").value.trim();
+  const username  = document.getElementById("login-usuario").value.trim();
+  const password  = document.getElementById("login-pass").value.trim();
   const btnEntrar = document.getElementById("btn-entrar");
   const errorMsg  = document.getElementById("login-error");
 
   if (!username || !password) {
-    errorMsg.textContent = "Ingresa usuario y contraseña.";
+    errorMsg.textContent   = "Ingresa usuario y contraseña.";
     errorMsg.style.display = "block";
     return;
   }
 
   // Deshabilitar botón mientras espera respuesta
-  btnEntrar.disabled     = true;
-  btnEntrar.textContent  = "Verificando...";
+  btnEntrar.disabled    = true;
+  btnEntrar.textContent = "Verificando...";
   errorMsg.style.display = "none";
 
   try {
     const respuesta = await fetch(API_URL, {
       method: "POST",
+      headers: { "Content-Type": "text/plain" },
       body: JSON.stringify({ username, password })
     });
 
@@ -58,40 +58,34 @@ async function iniciarSesion() {
     errorMsg.style.display = "block";
   }
 
-  // Rehabilitar botón
   btnEntrar.disabled    = false;
   btnEntrar.textContent = "Entrar";
 }
 
-// ─── Mostrar la app y aplicar restricciones por rol ───────────────────────
+// ── Mostrar la app y aplicar restricciones por rol ────────────────────────
 function mostrarApp(usuario, rol) {
   document.getElementById("pantalla-login").style.display = "none";
   document.getElementById("pantalla-app").style.display   = "block";
 
-  // Mostrar nombre de usuario en la barra
-  const spanUsuario = document.getElementById("usuario-activo");
-  if (spanUsuario) {
-    spanUsuario.textContent = `${usuario} (${rol})`;
-  }
+  // Mostrar nombre en barra superior
+  const span = document.getElementById("usuario-activo");
+  if (span) span.textContent = `${usuario} (${rol})`;
 
-  // ── Control por rol ──────────────────────────────────────────────────────
-  // Si el rol es "viewer" → ocultar módulos que no debe ver
-  if (rol === "viewer") {
-    // Agrega aquí los IDs o clases de módulos restringidos
-    // Ejemplo: ocultar el módulo de "Extras"
-    const modulosRestringidos = document.querySelectorAll(".modulo-restringido");
-    modulosRestringidos.forEach(m => m.style.display = "none");
+  // Ocultar módulos que el rol no puede ver
+  // aplicarPermisosPorRol está definida en indexmenu.html
+  if (typeof aplicarPermisosPorRol === "function") {
+    aplicarPermisosPorRol(rol);
   }
 }
 
-// ─── Cerrar sesión ────────────────────────────────────────────────────────
+// ── Cerrar sesión ─────────────────────────────────────────────────────────
 function cerrarSesion() {
   sessionStorage.removeItem("miaa_usuario");
   sessionStorage.removeItem("miaa_rol");
   location.reload();
 }
 
-// ─── Permitir login con tecla Enter ──────────────────────────────────────
+// ── Login con tecla Enter ─────────────────────────────────────────────────
 document.addEventListener("keydown", function (e) {
   if (e.key === "Enter") {
     const loginVisible = document.getElementById("pantalla-login").style.display !== "none";

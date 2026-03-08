@@ -34,7 +34,7 @@
     // ── Cobranza ─────────────────────────────────────────────────────
     // /cobranza/conceptosduplicados.html
     // /cobranza/conceptosduplicados2archivos.html
-    "cobranza":                   ["admin", "cobranza", "atencion"],
+    "cobranza":                   ["admin", "cobranza"],
 
     // ── Recaudación / Financiero ──────────────────────────────────────
     // /recfinancier/iva.html
@@ -44,7 +44,7 @@
 
     // ── Extras ───────────────────────────────────────────────────────
     // /extras/separadorexcel.html
-    "extras":                     ["admin","atencion","cobranza"],
+    "extras":                     ["admin"],
 
     // ── USCA / Saneamiento ───────────────────────────────────────────
     // /usca/diagrama.html
