@@ -1,6 +1,15 @@
 // login.js — Autenticación MIAA contra Google Apps Script
 const API_URL = "https://script.google.com/macros/s/AKfycbzAD3rNYkjEhJ2HzhFI0lmz2pjUENsKlW_QgwR-rsI_l_EF-2KNnw9_rSCsiDmjxIi0/exec";
 
+// ── Registrar actividad en Google Sheets (fire & forget) ─────
+function registrarActividad(usuario, accion, detalle) {
+  fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify({ accion: "registrarActividad", usuario, accion, detalle })
+  }).catch(() => {}); // silencioso — el log nunca debe bloquear la UI
+}
+
 // ── Bloquear navegación atrás/adelante ────────────────────────────────────
 history.pushState(null, null, location.href);
 
@@ -61,6 +70,7 @@ async function iniciarSesion() {
       sessionStorage.clear();
       sessionStorage.setItem("miaa_usuario", username);
       sessionStorage.setItem("miaa_rol",     datos.rol);
+      registrarActividad(username, "LOGIN", "Inicio de sesión exitoso");
       mostrarApp(username, datos.rol);
     } else {
       mostrarError(errorMsg, "Usuario o contraseña incorrectos.");
@@ -118,6 +128,8 @@ function mostrarApp(usuario, rol) {
 
 // ── Cerrar sesión ─────────────────────────────────────────────────────────
 function cerrarSesion() {
+  const usuario = sessionStorage.getItem("miaa_usuario") || "desconocido";
+  registrarActividad(usuario, "LOGOUT", "Cerró sesión");
   sessionStorage.clear();
   location.replace(location.href);
 }
