@@ -140,11 +140,20 @@ function guardarDatos() { try { localStorage.setItem('tramitesData', JSON.string
         function limpiarFiltros() { document.getElementById('filtroNombre').value=''; document.getElementById('filtroCategoria').value=''; renderizar(); }
         function cargarDatosIniciales() { localStorage.removeItem('tramitesData'); localStorage.setItem('tramitesVersion', 'v2_conceptos'); inicializarTramites(); actualizarSelects(); renderizar(); document.getElementById('btnCargarDatos').style.display='none'; alert('✅ '+datos.categorias.reduce((s,c)=>s+c.tramites.length,0)+' trámites cargados con conceptos obligatorios y opcionales'); }
         function descargarExcel() { let csv='\uFEFFClave,Nombre,Categoría,Estado,Descripción,Requisitos,Conceptos Obligatorios,Conceptos Opcionales,Etapas,Resultado\n'; datos.categorias.forEach(cat=>{cat.tramites.forEach(t=>{const ob=(t.presupuesto?.conceptosObligatorios||[]).map(c=>`(${c.clave}) ${c.nombre}`).join(' | ')||'N/A'; const op=(t.presupuesto?.conceptosOpcionales||[]).map(c=>`(${c.clave}) ${c.nombre}`).join(' | ')||'N/A'; const et=t.etapas.map((e,i)=>`${i+1}. ${e.nombre}`).join(' | ')||'N/A'; csv+=[t.clave,`"${t.nombre}"`,`"${cat.nombre}"`,`"${t.estado}"`,`"${t.descripcion.replace(/"/g,'""')}"`,`"${t.requisitos.replace(/"/g,'""')}"`,`"${ob.replace(/"/g,'""')}"`,`"${op.replace(/"/g,'""')}"`,`"${et.replace(/"/g,'""')}"`,`"${(t.resultado||'').replace(/"/g,'""')}"`].join(',')+`\n`;});}); const b=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const l=document.createElement('a'); l.href=URL.createObjectURL(b); l.download=`tramites_2026_${new Date().toISOString().split('T')[0]}.csv`; document.body.appendChild(l); l.click(); document.body.removeChild(l); }
-        function solicitarSalir() { const p=prompt('🔐 Contraseña:'); if(p===null)return; if(p!==PASSWORD){alert('❌ Incorrecta');return;} document.body.innerHTML='<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:linear-gradient(135deg,#667eea,#764ba2);color:white;font-size:24px;font-weight:bold;">Sesión finalizada.</div>'; }
-        function volverAlMenu() { document.getElementById('modalMenuPrincipal').style.display='block'; document.getElementById('inputPasswordMenu').value=''; document.getElementById('errorMsgMenu').style.display='none'; }
-        function cerrarModalMenu() { document.getElementById('modalMenuPrincipal').style.display='none'; }
-        function verificarPasswordMenu() { if(document.getElementById('inputPasswordMenu').value===PASSWORD){document.getElementById('modalMenuPrincipal').style.display='none';window.location.href=URL_MENU_PRINCIPAL;}else{document.getElementById('errorMsgMenu').textContent='❌ Incorrecta';document.getElementById('errorMsgMenu').style.display='block';document.getElementById('inputPasswordMenu').value='';} }
-        document.addEventListener('DOMContentLoaded',()=>{document.getElementById('inputPasswordMenu')?.addEventListener('keypress',e=>{if(e.key==='Enter')verificarPasswordMenu();});});
+        // Salir — limpia sesión y regresa al login
+        function solicitarSalir() {
+            sessionStorage.clear();
+            window.location.href = URL_MENU_PRINCIPAL;
+        }
+
+        // Menú — directo, sin contraseña (el usuario ya está autenticado por auth.js)
+        function volverAlMenu() {
+            window.location.href = URL_MENU_PRINCIPAL;
+        }
+
+        // Funciones vacías: ya no se usan (modal de contraseña eliminado del HTML)
+        function cerrarModalMenu() {}
+        function verificarPasswordMenu() {}
         // Datos originales del código fuente (respaldo)
         const DATOS_ORIGINALES = JSON.parse(JSON.stringify(datos));
 

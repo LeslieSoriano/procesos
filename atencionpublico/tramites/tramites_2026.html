@@ -22,15 +22,19 @@
             <input type="text" id="filtroNombre" placeholder="Nombre o Clave..." onkeyup="filtrar()">
             <label>📂 Categoría:</label>
             <select id="filtroCategoria" onchange="filtrar()"><option value="">Todas</option></select>
-            <!-- <button class="btn-primary" onclick="limpiarFiltros()">🔄 Limpiar</button> -->
             <button class="btn-primary" onclick="descargarExcel()" style="background:#27ae60;">📥 Descargar Excel</button>
             <button class="btn-primary" onclick="cargarDatosIniciales()" style="background:#e74c3c;" id="btnCargarDatos">⬇️ Cargar Datos</button>
         </div>
         <div class="categorias" id="categoriasContainer"></div>
     </div>
+
+    <!-- Modal zoom imagen -->
     <div id="zoomModal" class="modal-zoom"><span class="close-zoom" onclick="cerrarZoom()">&times;</span><img id="zoomImg" class="zoom-image"></div>
-    <div id="modalMenuPrincipal" class="modal"><div class="modal-content" style="max-width:400px;"><h2 style="text-align:center;">🔐 Contraseña Requerida</h2><div class="form-group"><label>Contraseña:</label><input type="password" id="inputPasswordMenu" placeholder="Ingresa contraseña..."></div><div id="errorMsgMenu" style="color:#e74c3c;text-align:center;margin:15px 0;display:none;font-weight:600;"></div><div class="button-group"><button class="btn btn-save" onclick="verificarPasswordMenu()">✅ Aceptar</button><button class="btn btn-cancel" onclick="cerrarModalMenu()">❌ Cancelar</button></div></div></div>
+
+    <!-- Modal ver trámite -->
     <div id="modalVer" class="modal"><div class="modal-content"><span class="close" onclick="cerrarModalVer()">&times;</span><div id="detalleContenido"></div><div class="button-group"><button class="btn btn-cancel" onclick="cerrarModalVer()">Cerrar</button></div></div></div>
+
+    <!-- Modal editar/agregar trámite -->
     <div id="modalEditar" class="modal"><div class="modal-content"><span class="close" onclick="cerrarModalEditar()">&times;</span><h2 id="tituloModal">Agregar Nuevo Trámite</h2>
         <div class="tabs"><button class="tab active" onclick="cambiarTab('info')">📋 Info</button><button class="tab" onclick="cambiarTab('etapas')">📍 Etapas</button><button class="tab" onclick="cambiarTab('requisitos')">✅ Requisitos</button><button class="tab" onclick="cambiarTab('presupuesto')">💰 Presupuesto</button><button class="tab" onclick="cambiarTab('imagenes')">🖼️ Imágenes</button></div>
         <div id="info" class="tab-content active"><div class="form-group"><label>Nombre *</label><input type="text" id="nombreTramite"></div><div class="form-row"><div class="form-group"><label>Clave *</label><input type="number" id="claveTramite"></div><div class="form-group"><label>Estado *</label><select id="estadoTramite"><option>Agregar</option><option>Se modificó</option><option>Se queda igual</option></select></div></div><div class="form-row"><div class="form-group"><label>Categoría *</label><select id="categoriaTramite"></select></div><div class="form-group"><label>Filtros</label><input type="text" id="filtrosTramite"></div></div><div class="form-group"><label>Descripción *</label><textarea id="descripcionTramite"></textarea></div><div class="form-group"><label>Resultado</label><textarea id="resultadoTramite"></textarea></div></div>
@@ -46,7 +50,7 @@
             <option value="101">101 - Reconexión con costo</option>
             <option value="102">102 - Limpieza fosa séptica casa habitación</option>
             <option value="103">103 - Limpieza fosa séptica comercio/industria</option>
-            <option value="106">106 - Reubicación medidor 1/2&quot;</option>
+            <option value="106">106 - Reubicación medidor 1/2"</option>
             <option value="130">130 - Tierra albañal, toma, cuadro y medidor</option>
             <option value="131">131 - Venta medidor y/o cuadro</option>
             <option value="132">132 - Tierra Conexión albañal</option>
@@ -64,13 +68,13 @@
             <option value="159">159 - Construcción caja registro banqueta</option>
             <option value="160">160 - Venta caja polietileno</option>
             <option value="161">161 - Parcialidades Tierra</option>
-            <option value="162">162 - Reubicación medidor 1-1/2&quot; GU</option>
-            <option value="163">163 - Reubicación medidor 2&quot; GU</option>
-            <option value="169">169 - Reubicación medidor 3&quot; GU</option>
-            <option value="170">170 - Reubicación medidor 4&quot; GU</option>
-            <option value="171">171 - Reubicación cuadro 1/2 a 1&quot;</option>
-            <option value="172">172 - Reubicación medidor 1&quot; GU</option>
-            <option value="174">174 - Reconexión toma 1&quot; GU</option>
+            <option value="162">162 - Reubicación medidor 1-1/2" GU</option>
+            <option value="163">163 - Reubicación medidor 2" GU</option>
+            <option value="169">169 - Reubicación medidor 3" GU</option>
+            <option value="170">170 - Reubicación medidor 4" GU</option>
+            <option value="171">171 - Reubicación cuadro 1/2 a 1"</option>
+            <option value="172">172 - Reubicación medidor 1" GU</option>
+            <option value="174">174 - Reconexión toma 1" GU</option>
             <option value="176">176 - Venta bases licitación</option>
             <option value="204">204 - Reconexión toma cuadro y/o registro</option>
             <option value="205">205 - Reconexión voluntaria temporal</option>
@@ -80,9 +84,10 @@
         <div id="imagenes" class="tab-content"><div class="form-group"><label>Subir Imágenes (máx 5)</label><input type="file" id="inputImagenes" multiple accept="image/*" onchange="agregarImagenes(event)"><div id="imagenesContainer" class="imagenes-container" style="margin-top:15px;"></div><div id="contadorImagenes" style="margin-top:10px;color:#667eea;font-weight:600;">0/5</div></div></div>
         <div class="button-group"><button class="btn btn-save" onclick="guardarTramite()">💾 Guardar</button><button class="btn btn-cancel" onclick="cerrarModalEditar()">❌ Cancelar</button></div>
     </div></div>
+
+    <!-- Modal contraseña para GUARDAR / ELIMINAR trámites (se conserva) -->
     <div id="passwordModal" class="password-modal"><div class="password-content"><h3>🔐 Contraseña requerida</h3><div class="password-group"><label>Contraseña:</label><input type="password" id="passwordInput" placeholder="Contraseña..." onkeypress="if(event.key==='Enter')verificarPassword()"></div><div class="password-buttons"><button class="btn-ok" onclick="verificarPassword()">✅ Aceptar</button><button class="btn-cancel-pwd" onclick="cerrarPassword()">❌ Cancelar</button></div></div></div>
 
-    <!-- Scripts separados por módulo -->
     <script src="js/seguridad.js"></script>
     <script src="js/conceptos.js"></script>
     <script src="js/datos.js"></script>
