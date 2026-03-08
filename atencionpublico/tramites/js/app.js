@@ -3,16 +3,56 @@
 // ============================================================
 
 const PASSWORD = "admin123";
-        const URL_MENU_PRINCIPAL = "../../indexmenu.html";
+const URL_MENU_PRINCIPAL = "../../indexmenu.html";
+
+// ── URL del mismo Apps Script que usas para el login ──────────
+const API_URL = "https://script.google.com/macros/s/AKfycbzAD3rNYkjEhJ2HzhFI0lmz2pjUENsKlW_QgwR-rsI_l_EF-2KNnw9_rSCsiDmjxIi0/exec";
 
 // Rol del usuario autenticado — viene de auth.js vía sessionStorage
 const ROL_ACTUAL = sessionStorage.getItem("miaa_rol") || "";
 const ES_ADMIN   = ROL_ACTUAL === "admin";
 
 let modoEdicion = false, tramiteEnEdicion = null, accionPendiente = null;
-        let imagenes = [], etapas = [], conceptos = [];
+let imagenes = [], etapas = [], conceptos = [];
 
-function guardarDatos() { try { localStorage.setItem('tramitesData', JSON.stringify(datos)); } catch(e) { try { localStorage.clear(); localStorage.setItem('tramitesData', JSON.stringify(datos)); } catch(e2) {} } }
+// ── guardarDatos: ya no usa localStorage, solo en memoria ─────
+// Los cambios reales se envían a Sheets en verificarPassword()
+function guardarDatos() {
+    // no-op: los datos en memoria (objeto `datos`) ya están actualizados
+    // el envío a Sheets ocurre explícitamente al guardar/eliminar
+}
+
+// ── Llamada genérica al Apps Script ──────────────────────────
+async function llamarAPI(body) {
+    const resp = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(body)
+    });
+    return await resp.json();
+}
+
+// ── Aplicar overrides de Sheets sobre los datos de datos.js ──
+// Solo modifica los trámites que admin haya tocado
+function aplicarOverrides(overrides) {
+    overrides.forEach(o => {
+        const cat = datos.categorias.find(c => c.id === o.catId);
+        if (!cat) return;
+
+        if (o.eliminado) {
+            // Quitar el trámite de memoria
+            cat.tramites = cat.tramites.filter(t => t.clave !== o.clave);
+        } else if (o.datos) {
+            // Reemplazar o agregar el trámite
+            const idx = cat.tramites.findIndex(t => t.clave === o.clave);
+            if (idx !== -1) {
+                cat.tramites[idx] = o.datos;
+            } else {
+                cat.tramites.push(o.datos);
+            }
+        }
+    });
+}
 
         function getEstadoBadge(estado) {
             if (!estado) return '';
@@ -137,7 +177,108 @@ function guardarDatos() { try { localStorage.setItem('tramitesData', JSON.string
         function abrirZoom(s) { document.getElementById('zoomImg').src=s; document.getElementById('zoomModal').style.display='block'; }
         function cerrarZoom() { document.getElementById('zoomModal').style.display='none'; }
         function guardarTramite() { const n=document.getElementById('nombreTramite').value.trim(),cl=parseInt(document.getElementById('claveTramite').value),ci=parseInt(document.getElementById('categoriaTramite').value),d=document.getElementById('descripcionTramite').value.trim(),r=document.getElementById('requisitosTramite').value.trim(); if(!n||!cl||!ci||!d||!r){alert('Completa campos obligatorios');return;} const cat=datos.categorias.find(c=>c.id==ci); if(!modoEdicion&&cat.tramites.find(t=>t.clave==cl)){alert('Clave duplicada');return;} accionPendiente='guardar'; document.getElementById('passwordInput').value=''; document.getElementById('passwordModal').style.display='block'; }
-        function verificarPassword() { if(document.getElementById('passwordInput').value!==PASSWORD){alert('Contraseña incorrecta');return;} if(accionPendiente==='eliminar'){const cat=datos.categorias.find(c=>c.id==tramiteEnEdicion.catId);const i=cat.tramites.findIndex(t=>t.clave==tramiteEnEdicion.clave);if(i!==-1){alert('✅ Eliminado: '+cat.tramites[i].nombre);cat.tramites.splice(i,1);}guardarDatos();cerrarPassword();renderizar();return;} const t={clave:parseInt(document.getElementById('claveTramite').value),nombre:document.getElementById('nombreTramite').value.trim(),estado:document.getElementById('estadoTramite').value,filtros:document.getElementById('filtrosTramite').value.trim(),descripcion:document.getElementById('descripcionTramite').value.trim(),resultado:document.getElementById('resultadoTramite').value.trim(),requisitos:document.getElementById('requisitosTramite').value.trim(),ordenesTrabajo:document.getElementById('ordenesTrabajo').value.split(',').map(o=>o.trim()).filter(o=>o),etapas:etapas.filter(e=>e.nombre.trim()),presupuesto:{nombre:document.getElementById('nombrePresupuesto').value?document.getElementById('nombrePresupuesto').options[document.getElementById('nombrePresupuesto').selectedIndex].text:'',cantidadM3:parseFloat(document.getElementById('cantidadM3').value)||0,conceptosObligatorios:[],conceptosOpcionales:[],conceptos},imagenes}; const ci=parseInt(document.getElementById('categoriaTramite').value); const cat=datos.categorias.find(c=>c.id==ci); if(modoEdicion){const old=cat.tramites.find(x=>x.clave==tramiteEnEdicion.clave); if(old?.presupuesto){t.presupuesto.conceptosObligatorios=old.presupuesto.conceptosObligatorios||[];t.presupuesto.conceptosOpcionales=old.presupuesto.conceptosOpcionales||[];t.presupuesto.negociable=old.presupuesto.negociable;t.presupuesto.metodoPago=old.presupuesto.metodoPago;} const idx=cat.tramites.findIndex(x=>x.clave==tramiteEnEdicion.clave);cat.tramites[idx]=t;alert('✅ Actualizado');} else{cat.tramites.push(t);alert('✅ Agregado');} guardarDatos();cerrarModalEditar();cerrarPassword();renderizar(); }
+        async function verificarPassword() {
+            if (document.getElementById('passwordInput').value !== PASSWORD) {
+                alert('Contraseña incorrecta');
+                return;
+            }
+
+            // Deshabilitar botón mientras se procesa
+            const btnOk = document.querySelector('.btn-ok');
+            if (btnOk) { btnOk.disabled = true; btnOk.textContent = '⏳ Guardando...'; }
+
+            try {
+                // ── ELIMINAR ──────────────────────────────────────────
+                if (accionPendiente === 'eliminar') {
+                    const cat = datos.categorias.find(c => c.id == tramiteEnEdicion.catId);
+                    const i   = cat.tramites.findIndex(t => t.clave == tramiteEnEdicion.clave);
+                    const nombre = i !== -1 ? cat.tramites[i].nombre : '';
+
+                    // 1. Enviar a Google Sheets
+                    const res = await llamarAPI({
+                        accion: 'eliminarTramite',
+                        clave:  tramiteEnEdicion.clave,
+                        catId:  tramiteEnEdicion.catId
+                    });
+
+                    if (!res.success) throw new Error(res.error || 'Error al eliminar');
+
+                    // 2. Actualizar memoria local
+                    if (i !== -1) cat.tramites.splice(i, 1);
+
+                    alert('✅ Eliminado: ' + nombre);
+                    cerrarPassword();
+                    renderizar();
+                    return;
+                }
+
+                // ── GUARDAR / ACTUALIZAR ──────────────────────────────
+                const ci  = parseInt(document.getElementById('categoriaTramite').value);
+                const cat = datos.categorias.find(c => c.id == ci);
+
+                const t = {
+                    clave:        parseInt(document.getElementById('claveTramite').value),
+                    nombre:       document.getElementById('nombreTramite').value.trim(),
+                    estado:       document.getElementById('estadoTramite').value,
+                    filtros:      document.getElementById('filtrosTramite').value.trim(),
+                    descripcion:  document.getElementById('descripcionTramite').value.trim(),
+                    resultado:    document.getElementById('resultadoTramite').value.trim(),
+                    requisitos:   document.getElementById('requisitosTramite').value.trim(),
+                    ordenesTrabajo: document.getElementById('ordenesTrabajo').value.split(',').map(o => o.trim()).filter(o => o),
+                    etapas:       etapas.filter(e => e.nombre.trim()),
+                    presupuesto: {
+                        nombre:     document.getElementById('nombrePresupuesto').value
+                                    ? document.getElementById('nombrePresupuesto').options[document.getElementById('nombrePresupuesto').selectedIndex].text
+                                    : '',
+                        cantidadM3: parseFloat(document.getElementById('cantidadM3').value) || 0,
+                        conceptosObligatorios: [],
+                        conceptosOpcionales:   [],
+                        conceptos
+                    },
+                    imagenes
+                };
+
+                // Conservar conceptos obligatorios/opcionales si ya existían
+                if (modoEdicion) {
+                    const old = cat.tramites.find(x => x.clave == tramiteEnEdicion.clave);
+                    if (old?.presupuesto) {
+                        t.presupuesto.conceptosObligatorios = old.presupuesto.conceptosObligatorios || [];
+                        t.presupuesto.conceptosOpcionales   = old.presupuesto.conceptosOpcionales   || [];
+                        t.presupuesto.negociable  = old.presupuesto.negociable;
+                        t.presupuesto.metodoPago  = old.presupuesto.metodoPago;
+                    }
+                }
+
+                // 1. Enviar a Google Sheets
+                const res = await llamarAPI({
+                    accion:  'guardarTramite',
+                    clave:   t.clave,
+                    catId:   ci,
+                    tramite: t
+                });
+
+                if (!res.success) throw new Error(res.error || 'Error al guardar');
+
+                // 2. Actualizar memoria local
+                if (modoEdicion) {
+                    const idx = cat.tramites.findIndex(x => x.clave == tramiteEnEdicion.clave);
+                    cat.tramites[idx] = t;
+                    alert('✅ Actualizado');
+                } else {
+                    cat.tramites.push(t);
+                    alert('✅ Agregado');
+                }
+
+                cerrarModalEditar();
+                cerrarPassword();
+                renderizar();
+
+            } catch (err) {
+                alert('❌ Error al sincronizar: ' + err.message);
+            } finally {
+                if (btnOk) { btnOk.disabled = false; btnOk.textContent = '✅ Aceptar'; }
+            }
+        }
         function cerrarPassword() { document.getElementById('passwordModal').style.display='none'; }
         function editarTramite(clave,catId) { const cat=datos.categorias.find(c=>c.id==catId); const t=cat.tramites.find(x=>x.clave==clave); modoEdicion=true; tramiteEnEdicion={clave,catId}; document.getElementById('nombreTramite').value=t.nombre; document.getElementById('claveTramite').value=t.clave; document.getElementById('claveTramite').disabled=true; document.getElementById('estadoTramite').value=t.estado; document.getElementById('categoriaTramite').value=catId; document.getElementById('categoriaTramite').disabled=true; document.getElementById('filtrosTramite').value=t.filtros||''; document.getElementById('descripcionTramite').value=t.descripcion; document.getElementById('resultadoTramite').value=t.resultado||''; document.getElementById('requisitosTramite').value=t.requisitos; document.getElementById('ordenesTrabajo').value=(t.ordenesTrabajo||[]).join(', '); etapas=t.etapas?t.etapas.map(e=>({...e})):[{nombre:'',descripcion:''}]; imagenes=t.imagenes?[...t.imagenes]:[]; if(t.presupuesto){document.getElementById('cantidadM3').value=t.presupuesto.cantidadM3||'';conceptos=t.presupuesto.conceptos?t.presupuesto.conceptos.map(c=>({...c})):[];}else{conceptos=[];} renderizarEtapas();renderizarConceptos();renderizarImagenes();actualizarResumen(); document.getElementById('tituloModal').textContent='✏️ Editar Trámite'; document.getElementById('modalEditar').style.display='block'; }
         function eliminarTramite(clave,catId) { accionPendiente='eliminar'; tramiteEnEdicion={clave,catId}; document.getElementById('passwordInput').value=''; document.getElementById('passwordModal').style.display='block'; }
@@ -195,40 +336,34 @@ function guardarDatos() { try { localStorage.setItem('tramitesData', JSON.string
             });
         }
 
-        window.onload = function() {
-            // SIEMPRE partir de los datos del archivo datos.js
-            // Solo rescatar del localStorage: imágenes y conceptos manuales que el usuario haya agregado
-            const s = localStorage.getItem('tramitesData');
-            if (s) {
-                try {
-                    const datosGuardados = JSON.parse(s);
-                    // Rescatar solo datos del USUARIO (imágenes, conceptos manuales)
-                    datosGuardados.categorias.forEach(catG => {
-                        const catD = datos.categorias.find(c => c.id === catG.id);
-                        if (!catD) return;
-                        catG.tramites.forEach(tG => {
-                            const tD = catD.tramites.find(t => t.clave === tG.clave);
-                            if (!tD) return;
-                            // Solo rescatar lo que el usuario agrega desde la interfaz
-                            if (tG.imagenes && tG.imagenes.length) tD.imagenes = tG.imagenes;
-                            if (tG.presupuesto && tG.presupuesto.conceptos && tG.presupuesto.conceptos.length) {
-                                if (!tD.presupuesto) tD.presupuesto = {};
-                                tD.presupuesto.conceptos = tG.presupuesto.conceptos;
-                            }
-                        });
-                    });
-                } catch(e) {}
+        window.onload = async function() {
+            // ── 1. Mostrar indicador de carga ─────────────────────────
+            document.getElementById('categoriasContainer').innerHTML =
+                '<p style="text-align:center;padding:40px;color:#667eea;font-size:16px;">⏳ Cargando trámites...</p>';
+
+            // ── 2. Cargar overrides desde Google Sheets ───────────────
+            try {
+                const res = await llamarAPI({ accion: 'leerTramites' });
+                if (res.success && res.tramites.length > 0) {
+                    aplicarOverrides(res.tramites);
+                }
+            } catch (err) {
+                // Si falla la red, muestra los datos base de datos.js sin override
+                console.warn('No se pudieron cargar overrides de Sheets:', err.message);
             }
-            guardarDatos();
+
+            // ── 3. Renderizar con datos actualizados ──────────────────
             actualizarSelects();
             renderizar();
-            const t = datos.categorias.reduce((s,c) => s + (c.tramites ? c.tramites.length : 0), 0);
-            if (t > 0) document.getElementById('btnCargarDatos').style.display = 'none';
 
-            // Ocultar controles de edicion si no es admin
+            // ── 4. Controles solo para admin ──────────────────────────
             if (sessionStorage.getItem("miaa_rol") !== "admin") {
                 const btnAgregar = document.querySelector('.btn-primary[onclick="abrirAgregar()"]');
                 if (btnAgregar) btnAgregar.style.display = 'none';
                 document.getElementById('btnCargarDatos').style.display = 'none';
+            } else {
+                // Para admin: ocultar "Cargar Datos" si ya hay trámites cargados
+                const total = datos.categorias.reduce((s,c) => s + (c.tramites ? c.tramites.length : 0), 0);
+                if (total > 0) document.getElementById('btnCargarDatos').style.display = 'none';
             }
         };
