@@ -72,10 +72,13 @@ function mostrarApp(usuario, rol) {
   if (span) span.textContent = `${usuario} (${rol})`;
 
   // Ocultar módulos que el rol no puede ver
-  // aplicarPermisosPorRol está definida en indexmenu.html
-  if (typeof aplicarPermisosPorRol === "function") {
-    aplicarPermisosPorRol(rol);
-  }
+  // Usamos setTimeout(0) para asegurar que el script inline del HTML
+  // ya definió aplicarPermisosPorRol antes de llamarla
+  setTimeout(function () {
+    if (typeof aplicarPermisosPorRol === "function") {
+      aplicarPermisosPorRol(rol);
+    }
+  }, 0);
 }
 
 // ── Cerrar sesión ─────────────────────────────────────────────────────────

@@ -364,6 +364,17 @@
     }
   });
 
+  // ── Aplicar permisos cuando el DOM ya está listo ───────────────────────
+  // Esto cubre el caso de recargar la página con sesión activa
+  // login.js puede llamar aplicarPermisosPorRol() DESPUÉS de que esta
+  // función ya esté definida gracias a DOMContentLoaded
+  document.addEventListener("DOMContentLoaded", function () {
+    const rol = sessionStorage.getItem("miaa_rol");
+    if (rol) {
+      aplicarPermisosPorRol(rol);
+    }
+  });
+
 </script>
 </body>
 </html>
