@@ -25,6 +25,8 @@ function guardarDatos() { try { localStorage.setItem('tramitesData', JSON.string
         }
 
         function renderizar() {
+            // Leer rol en cada render (defensa contra caché)
+            const esAdmin = sessionStorage.getItem("miaa_rol") === "admin";
             const container = document.getElementById('categoriasContainer');
             const fn = document.getElementById('filtroNombre').value.toLowerCase();
             const fc = document.getElementById('filtroCategoria').value;
@@ -39,7 +41,7 @@ function guardarDatos() { try { localStorage.setItem('tramitesData', JSON.string
                 tf.forEach(t => {
                     const c = document.createElement('div'); c.className = 'tramite-card';
                     const hasP = t.presupuesto && (t.presupuesto.conceptosObligatorios?.length || t.presupuesto.conceptosOpcionales?.length);
-                    c.innerHTML = `<h3>${t.nombre} ${getEstadoBadge(t.estado)}</h3><p>${t.descripcion.substring(0,100)}${t.descripcion.length>100?'...':''}</p><div style="font-size:12px;color:#667eea;margin:10px 0;">📋 ${t.etapas.length} etapas | 🔑 ${t.clave}${hasP?' | 💰 Presupuesto':''}</div><div class="tramite-buttons"><button class="btn-ver" onclick="verTramite(${t.clave},${cat.id})">👁️ Ver</button>${ES_ADMIN ? `<button class="btn-editar" onclick="editarTramite(${t.clave},${cat.id})">✏️ Editar</button><button class="btn-eliminar" onclick="eliminarTramite(${t.clave},${cat.id})">🗑️ Eliminar</button>` : ''}</div>`;
+                    c.innerHTML = `<h3>${t.nombre} ${getEstadoBadge(t.estado)}</h3><p>${t.descripcion.substring(0,100)}${t.descripcion.length>100?'...':''}</p><div style="font-size:12px;color:#667eea;margin:10px 0;">📋 ${t.etapas.length} etapas | 🔑 ${t.clave}${hasP?' | 💰 Presupuesto':''}</div><div class="tramite-buttons"><button class="btn-ver" onclick="verTramite(${t.clave},${cat.id})">👁️ Ver</button>${esAdmin ? `<button class="btn-editar" onclick="editarTramite(${t.clave},${cat.id})">✏️ Editar</button><button class="btn-eliminar" onclick="eliminarTramite(${t.clave},${cat.id})">🗑️ Eliminar</button>` : ''}</div>`;
                     g.appendChild(c);
                 });
                 container.appendChild(d);
@@ -224,7 +226,7 @@ function guardarDatos() { try { localStorage.setItem('tramitesData', JSON.string
             if (t > 0) document.getElementById('btnCargarDatos').style.display = 'none';
 
             // Ocultar controles de edicion si no es admin
-            if (!ES_ADMIN) {
+            if (sessionStorage.getItem("miaa_rol") !== "admin") {
                 const btnAgregar = document.querySelector('.btn-primary[onclick="abrirAgregar()"]');
                 if (btnAgregar) btnAgregar.style.display = 'none';
                 document.getElementById('btnCargarDatos').style.display = 'none';
