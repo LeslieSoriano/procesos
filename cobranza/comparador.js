@@ -3,10 +3,7 @@
 //  Optimizado para archivos pesados (varios MB)
 // ============================================================
 
-const CONTRASEÑA_CORRECTA = '013201';
-
 // Límite de filas que se renderizan en pantalla (para no bloquear el DOM)
-// El resto igual se descarga completo en Excel
 const MAX_RENDER = 500;
 
 let file1Data  = null;
@@ -16,7 +13,7 @@ let allData2   = null;
 let currentComparison = null;
 
 // ============================================================
-//  BLOQUEOS DE SEGURIDAD (sin debugger → ese era el bug)
+//  BLOQUEOS DE SEGURIDAD
 // ============================================================
 window.history.pushState(null, null, window.location.href);
 window.addEventListener('popstate', () => {
@@ -29,21 +26,19 @@ window.addEventListener('beforeunload', (e) => {
     return '';
 });
 
-// Bloquear clic derecho
 document.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     showWarning('⚠️ Acceso denegado');
     return false;
 });
 
-// Bloquear atajos de herramientas de desarrollo
 document.addEventListener('keydown', (e) => {
     const bloqueados = [
-        e.keyCode === 123,                               // F12
-        e.ctrlKey && e.shiftKey && e.keyCode === 73,    // Ctrl+Shift+I
-        e.ctrlKey && e.shiftKey && e.keyCode === 74,    // Ctrl+Shift+J
-        e.ctrlKey && e.shiftKey && e.keyCode === 67,    // Ctrl+Shift+C
-        e.ctrlKey && e.keyCode === 85,                  // Ctrl+U
+        e.keyCode === 123,
+        e.ctrlKey && e.shiftKey && e.keyCode === 73,
+        e.ctrlKey && e.shiftKey && e.keyCode === 74,
+        e.ctrlKey && e.shiftKey && e.keyCode === 67,
+        e.ctrlKey && e.keyCode === 85,
     ];
     if (bloqueados.some(Boolean)) {
         e.preventDefault();
@@ -60,19 +55,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================================
-//  CONFIGURACIÓN DE ZONAS DE CARGA (drag & drop + click)
+//  CONFIGURACIÓN DE ZONAS DE CARGA
 // ============================================================
 function setupFileUpload(fileNumber) {
     const uploadArea = document.getElementById(`uploadArea${fileNumber}`);
     const fileInput  = document.getElementById(`fileInput${fileNumber}`);
 
-    // Click en el área (evita abrir el diálogo si ya hay archivo)
     uploadArea.addEventListener('click', () => {
         const yaHayArchivo = (fileNumber === 1 && file1Data) || (fileNumber === 2 && file2Data);
         if (!yaHayArchivo) fileInput.click();
     });
 
-    // Drag over
     uploadArea.addEventListener('dragover', (e) => {
         e.preventDefault();
         const yaHayArchivo = (fileNumber === 1 && file1Data) || (fileNumber === 2 && file2Data);
@@ -81,7 +74,6 @@ function setupFileUpload(fileNumber) {
 
     uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
 
-    // Drop
     uploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadArea.classList.remove('dragover');
@@ -89,7 +81,6 @@ function setupFileUpload(fileNumber) {
         if (file) handleFile(file, fileNumber);
     });
 
-    // Selección normal
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) handleFile(file, fileNumber);
@@ -98,27 +89,20 @@ function setupFileUpload(fileNumber) {
 
 // ============================================================
 //  LECTURA DE ARCHIVOS
-//  Se usa setTimeout(fn, 0) para ceder el hilo al navegador
-//  entre la lectura y el parseo, así no congela la UI
 // ============================================================
 function handleFile(file, fileNumber) {
-    // Mostrar progreso de lectura
     mostrarProgreso(`Leyendo ${file.name}...`, 10);
 
     const reader = new FileReader();
 
     reader.onload = function(e) {
-        // Ceder el hilo antes del parseo (operación pesada)
         setTimeout(() => {
             try {
                 actualizarProgreso(40, `Procesando hoja de cálculo...`);
 
-                // { dense: true } usa arrays en lugar de objetos → menos memoria
                 const data     = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array', dense: true });
                 const sheet    = workbook.Sheets[workbook.SheetNames[0]];
-
-                // header:1 → primera fila como encabezados, resto como arrays
                 const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
 
                 actualizarProgreso(80, `Archivo listo (${jsonData.length - 1} filas)`);
@@ -135,7 +119,6 @@ function handleFile(file, fileNumber) {
 
                 actualizarProgreso(100, '✅ Archivo cargado');
 
-                // Si ambos archivos están listos, mostrar selector de columnas
                 if (file1Data && file2Data) {
                     setTimeout(() => {
                         ocultarProgreso();
@@ -149,7 +132,7 @@ function handleFile(file, fileNumber) {
                 ocultarProgreso();
                 showError(`Error al leer archivo ${fileNumber}: ${error.message}`);
             }
-        }, 0); // setTimeout(0) → cede el hilo antes de parsear
+        }, 0);
     };
 
     reader.onerror = () => {
@@ -183,7 +166,6 @@ function populateColumnSelectors() {
     document.getElementById('columnSelector').classList.add('active');
 }
 
-// Genera un elemento <div class="checkbox-item">
 function crearCheckbox(id, value, label) {
     const div = document.createElement('div');
     div.className = 'checkbox-item';
@@ -195,16 +177,7 @@ function crearCheckbox(id, value, label) {
 }
 
 // ============================================================
-//  COMPARACIÓN OPTIMIZADA CON Set (O(n) en vez de O(n²))
-//
-//  LÓGICA:
-//  1. Convierte data2 a un Set de strings "val1|val2|..."
-//  2. Por cada fila de data1, busca en el Set → O(1) por búsqueda
-//  3. Resultado final: O(n + m) en vez de O(n * m)
-//
-//  Ejemplo con 10,000 filas c/u:
-//    Antes: 10,000 × 10,000 = 100,000,000 operaciones  ← se traba
-//    Ahora: 10,000 + 10,000 = 20,000 operaciones       ← instantáneo
+//  COMPARACIÓN OPTIMIZADA O(n)
 // ============================================================
 function compareFiles() {
     const selCols1 = getSelectedColumns('#columns1', allData1);
@@ -217,24 +190,19 @@ function compareFiles() {
 
     mostrarProgreso('Preparando datos...', 5);
 
-    // Ceder el hilo antes de procesar (archivos grandes)
     setTimeout(() => {
         try {
-            // Extraer solo las columnas seleccionadas (saltamos la fila de encabezados con slice(1))
             actualizarProgreso(20, 'Extrayendo columnas...');
             const data1 = allData1.slice(1).map(row => selCols1.map(col => String(row[col.index] ?? '')));
             const data2 = allData2.slice(1).map(row => selCols2.map(col => String(row[col.index] ?? '')));
 
-            // Convertir data2 a un Set para búsquedas O(1)
             actualizarProgreso(40, 'Indexando archivo 2...');
-            const set2 = new Map(); // key: "val1|val2", value: conteo de veces que aparece
-
+            const set2 = new Map();
             data2.forEach((row) => {
                 const key = row.join('|');
                 set2.set(key, (set2.get(key) || 0) + 1);
             });
 
-            // Convertir data1 a Map también
             actualizarProgreso(55, 'Indexando archivo 1...');
             const set1 = new Map();
             data1.forEach((row) => {
@@ -247,7 +215,6 @@ function compareFiles() {
             const matches     = [];
             const differences = [];
 
-            // Buscar coincidencias: filas que están en set1 Y en set2
             set1.forEach((count1, key) => {
                 if (set2.has(key)) {
                     const row = key.split('|');
@@ -257,14 +224,12 @@ function compareFiles() {
 
             actualizarProgreso(85, 'Calculando diferencias...');
 
-            // Diferencias: filas de data1 que NO están en data2
             set1.forEach((count, key) => {
                 if (!set2.has(key)) {
                     differences.push({ row: key.split('|'), source: 'archivo1', count });
                 }
             });
 
-            // Diferencias: filas de data2 que NO están en data1
             set2.forEach((count, key) => {
                 if (!set1.has(key)) {
                     differences.push({ row: key.split('|'), source: 'archivo2', count });
@@ -287,7 +252,6 @@ function compareFiles() {
     }, 0);
 }
 
-// Obtiene las columnas seleccionadas con su índice y encabezado
 function getSelectedColumns(selector, data) {
     return Array.from(document.querySelectorAll(`${selector} input[type="checkbox"]:checked`)).map(cb => ({
         index : parseInt(cb.value),
@@ -297,8 +261,6 @@ function getSelectedColumns(selector, data) {
 
 // ============================================================
 //  MOSTRAR RESULTADOS
-//  Renderiza máximo MAX_RENDER filas para no bloquear el DOM
-//  El Excel de descarga incluye TODOS los datos
 // ============================================================
 function displayResults(results) {
     document.getElementById('totalMatches').textContent     = results.matches.length.toLocaleString();
@@ -310,16 +272,13 @@ function displayResults(results) {
     if (results.matches.length === 0 && results.differences.length === 0) {
         list.innerHTML = '<div class="no-results">✅ No hay datos para comparar</div>';
     } else {
-        // Fragment para hacer una sola inserción al DOM (más rápido)
         const fragment = document.createDocumentFragment();
 
-        // Coincidencias
         const matchLimit = Math.min(results.matches.length, MAX_RENDER);
         results.matches.slice(0, matchLimit).forEach((item, idx) => {
             fragment.appendChild(crearItemCoincidencia(item, idx, results));
         });
 
-        // Diferencias
         const diffLimit = Math.min(results.differences.length, MAX_RENDER - matchLimit);
         results.differences.slice(0, Math.max(0, diffLimit)).forEach((item) => {
             fragment.appendChild(crearItemDiferencia(item, results));
@@ -327,7 +286,6 @@ function displayResults(results) {
 
         list.appendChild(fragment);
 
-        // Aviso si se cortó el renderizado
         const totalRender = matchLimit + Math.max(0, diffLimit);
         const totalItems  = results.matches.length + results.differences.length;
         if (totalItems > MAX_RENDER) {
@@ -376,7 +334,7 @@ function crearItemDiferencia(item, results) {
 }
 
 // ============================================================
-//  DESCARGA DE RESULTADOS (TODOS los datos, sin límite)
+//  DESCARGA DE RESULTADOS
 // ============================================================
 function downloadResults() {
     if (!currentComparison) return;
@@ -386,20 +344,15 @@ function downloadResults() {
     setTimeout(() => {
         try {
             const { selCols1, selCols2, matches, differences } = currentComparison;
-
             const rows = [];
 
-            // Encabezado de coincidencias
             rows.push(['TIPO', ...selCols1.map(c => `${c.header} (Archivo 1)`), ...selCols2.map(c => `${c.header} (Archivo 2)`), 'REPETICIONES']);
-
             matches.forEach(item => {
                 rows.push(['✅ Coincidencia', ...item.row1, ...item.row2, item.count]);
             });
 
-            // Separador
             rows.push([]);
             rows.push(['TIPO', 'FUENTE', 'REPETICIONES', ...selCols1.map(c => c.header)]);
-
             differences.forEach(item => {
                 const fuente = item.source === 'archivo1' ? 'Archivo 1' : 'Archivo 2';
                 rows.push(['❌ Diferencia', fuente, item.count, ...item.row]);
@@ -481,32 +434,18 @@ function showMessage(msg, type) {
 }
 
 // ============================================================
-//  MODAL CONTRASEÑA
+//  REGRESAR AL MENÚ — usa la sesión activa, sin contraseña
 // ============================================================
-function solicitarContraseña() {
-    document.getElementById('modalContraseña').classList.add('active');
-    document.getElementById('inputContraseña').value = '';
-    document.getElementById('errorMsg').style.display = 'none';
-    document.getElementById('inputContraseña').focus();
-}
+function regresarMenu() {
+    const usuario = sessionStorage.getItem("miaa_usuario");
+    const rol     = sessionStorage.getItem("miaa_rol");
 
-function verificarContraseña() {
-    const input    = document.getElementById('inputContraseña').value;
-    const errorMsg = document.getElementById('errorMsg');
-
-    if (input === CONTRASEÑA_CORRECTA) {
-        document.getElementById('modalContraseña').classList.remove('active');
-        window.location.href = '../indexmenu.html';
-    } else {
-        errorMsg.textContent   = '❌ Contraseña incorrecta. Intenta nuevamente.';
-        errorMsg.style.display = 'block';
-        document.getElementById('inputContraseña').value = '';
-        document.getElementById('inputContraseña').focus();
+    if (!usuario || !rol) {
+        // Sin sesión → regresar al login
+        window.location.href = "https://lesliesoriano.github.io/procesos/indexmenu.html";
+        return;
     }
-}
 
-function cancelarAcceso() {
-    document.getElementById('modalContraseña').classList.remove('active');
-    document.getElementById('inputContraseña').value = '';
-    document.getElementById('errorMsg').style.display = 'none';
+    // Sesión válida → regresar directo al menú
+    window.location.href = "https://lesliesoriano.github.io/procesos/indexmenu.html";
 }

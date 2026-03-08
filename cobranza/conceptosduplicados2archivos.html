@@ -5,11 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comparador de Archivos Excel</title>
-
-    <!-- Librería XLSX para leer/escribir Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-    <!-- Estilos separados -->
     <link rel="stylesheet" href="comparador.css">
 </head>
 <body>
@@ -19,9 +15,7 @@
     <h1>📊 Comparador de Archivos Excel</h1>
     <p class="subtitle">Sube dos archivos y compara columnas de ambos — soporta archivos grandes</p>
 
-    <!-- =====================
-         CARGA DE ARCHIVOS
-         ===================== -->
+    <!-- CARGA DE ARCHIVOS -->
     <div class="upload-section">
         <div>
             <div class="upload-area" id="uploadArea1">
@@ -47,10 +41,7 @@
         </div>
     </div>
 
-    <!-- =====================
-         BARRA DE PROGRESO
-         Visible mientras se lee / compara
-         ===================== -->
+    <!-- BARRA DE PROGRESO -->
     <div class="progress-container" id="progressContainer">
         <div class="progress-title">⏳ Procesando...</div>
         <div class="progress-bar-wrap">
@@ -59,9 +50,7 @@
         <div class="progress-status" id="progressStatus"></div>
     </div>
 
-    <!-- =====================
-         SELECTOR DE COLUMNAS
-         ===================== -->
+    <!-- SELECTOR DE COLUMNAS -->
     <div id="columnSelector" class="column-selector-section">
         <div class="selector-title">Selecciona las columnas a comparar</div>
         <div class="column-grid">
@@ -80,9 +69,7 @@
         </div>
     </div>
 
-    <!-- =====================
-         RESULTADOS
-         ===================== -->
+    <!-- RESULTADOS -->
     <div id="results" class="results">
         <div class="stats">
             <div class="stat-card">
@@ -104,38 +91,15 @@
         </div>
     </div>
 
-    <!-- Botón menú principal -->
+    <!-- Botón menú principal — ya NO pide contraseña -->
     <div class="botones-control">
-        <button class="btn-secundario" onclick="solicitarContraseña()">
+        <button class="btn-secundario" onclick="regresarMenu()">
             <span>🏠</span><span>Menú Principal</span>
         </button>
     </div>
 
 </div><!-- /container -->
 
-<!-- =====================
-     MODAL CONTRASEÑA
-     ===================== -->
-<div class="modal-overlay" id="modalContraseña">
-    <div class="modal-content">
-        <h2>🔐 Acceso Restringido</h2>
-        <p>Ingresa la contraseña para regresar al menú principal</p>
-        <div class="error-modal" id="errorMsg" style="display:none;"></div>
-        <input
-            type="password"
-            id="inputContraseña"
-            class="password-input"
-            placeholder="Contraseña"
-            onkeypress="if(event.key==='Enter') verificarContraseña()"
-        >
-        <div class="modal-buttons">
-            <button class="btn-confirmar" onclick="verificarContraseña()">Confirmar</button>
-            <button class="btn-cancelar"  onclick="cancelarAcceso()">Cancelar</button>
-        </div>
-    </div>
-</div>
-
-<!-- Script separado -->
 <script src="comparador.js"></script>
 
 </body>
