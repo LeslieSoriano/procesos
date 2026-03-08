@@ -200,6 +200,7 @@
         }
         .badge-LOGIN    { background: #dcfce7; color: #15803d; }
         .badge-LOGOUT   { background: #fef3c7; color: #92400e; }
+        .badge-VISITA   { background: #e0f2fe; color: #0369a1; }
         .badge-AGREGAR  { background: #dbeafe; color: #1e40af; }
         .badge-EDITAR   { background: #ede9fe; color: #6d28d9; }
         .badge-ELIMINAR { background: #fee2e2; color: #dc2626; }
@@ -487,6 +488,7 @@
         <option value="">Todas las acciones</option>
         <option value="LOGIN">LOGIN</option>
         <option value="LOGOUT">LOGOUT</option>
+        <option value="VISITA">VISITA</option>
         <option value="AGREGAR">AGREGAR TRÁMITE</option>
         <option value="EDITAR">EDITAR TRÁMITE</option>
         <option value="ELIMINAR">ELIMINAR TRÁMITE</option>
@@ -631,6 +633,7 @@
   function badgeClass(accion) {
     if (accion.includes('LOGIN'))    return 'badge-LOGIN';
     if (accion.includes('LOGOUT'))   return 'badge-LOGOUT';
+    if (accion.includes('VISITA'))   return 'badge-VISITA';
     if (accion.includes('AGREGAR'))  return 'badge-AGREGAR';
     if (accion.includes('EDITAR'))   return 'badge-EDITAR';
     if (accion.includes('ELIMINAR')) return 'badge-ELIMINAR';

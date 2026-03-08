@@ -1,6 +1,18 @@
 // auth.js — Control de acceso por rol y área
 // MIAA - SSCA 2026
 
+const _API_URL = "https://script.google.com/macros/s/AKfycbzAD3rNYkjEhJ2HzhFI0lmz2pjUENsKlW_QgwR-rsI_l_EF-2KNnw9_rSCsiDmjxIi0/exec";
+
+// ── Registrar actividad — disponible globalmente en todos los módulos ─────
+function registrarActividad(tipo, detalle) {
+  const usuario = sessionStorage.getItem("miaa_usuario") || "desconocido";
+  fetch(_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify({ accion: "registrarActividad", usuario: usuario, tipo: tipo, detalle: detalle })
+  }).catch(() => {});
+}
+
 // ── Modal de acceso denegado ──────────────────────────────────────────────
 function mostrarAccesoDenegado(callback) {
 
@@ -137,12 +149,18 @@ function mostrarAccesoDenegado(callback) {
     return;
   }
 
-  // 6. Acceso permitido
+  // 6. Acceso permitido — registrar visita
   window.sesion = { usuario, rol };
+
+  // Nombre legible de la página para el log
+  const nombrePagina = document.title || rutaActual.split("/").filter(Boolean).pop() || "página";
 
   document.addEventListener("DOMContentLoaded", function () {
     const span = document.getElementById("usuario-activo");
-    if (span) span.textContent = `${usuario}`;
+    if (span) span.textContent = usuario;
+
+    // Registrar visita (después del DOM para no bloquear carga)
+    registrarActividad("VISITA", nombrePagina);
   });
 
 })();
