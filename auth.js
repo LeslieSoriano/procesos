@@ -1,65 +1,121 @@
 // auth.js — Control de acceso por rol y área
 // MIAA - SSCA 2026
+
+// ── Modal de acceso denegado ──────────────────────────────────────────────
+function mostrarAccesoDenegado(callback) {
+
+  // Crear estilos si no existen aún
+  if (!document.getElementById("miaa-modal-styles")) {
+    const style = document.createElement("style");
+    style.id = "miaa-modal-styles";
+    style.textContent = `
+      #miaa-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 99999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        animation: miaa-fadeIn 0.2s ease;
+      }
+      @keyframes miaa-fadeIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+      }
+      #miaa-modal-box {
+        background: white;
+        border-radius: 16px;
+        padding: 2.5rem 2rem;
+        width: 340px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        animation: miaa-slideUp 0.25s ease;
+      }
+      @keyframes miaa-slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to   { transform: translateY(0);    opacity: 1; }
+      }
+      #miaa-modal-box .miaa-icono {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+      }
+      #miaa-modal-box h3 {
+        color: #1a2744;
+        font-size: 1.2rem;
+        font-family: 'Segoe UI', sans-serif;
+        margin-bottom: 0.6rem;
+      }
+      #miaa-modal-box p {
+        color: #666;
+        font-size: 0.9rem;
+        font-family: 'Segoe UI', sans-serif;
+        margin-bottom: 1.8rem;
+        line-height: 1.5;
+      }
+      #miaa-modal-btn {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.7rem 2rem;
+        font-size: 0.95rem;
+        font-family: 'Segoe UI', sans-serif;
+        cursor: pointer;
+        transition: opacity 0.2s;
+      }
+      #miaa-modal-btn:hover { opacity: 0.85; }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Crear overlay
+  const overlay = document.createElement("div");
+  overlay.id = "miaa-modal-overlay";
+  overlay.innerHTML = `
+    <div id="miaa-modal-box">
+      <div class="miaa-icono">🔒</div>
+      <h3>Acceso restringido</h3>
+      <p>No tienes permiso para acceder a esta sección.<br>Serás redirigido al menú principal.</p>
+      <button id="miaa-modal-btn" onclick="document.getElementById('miaa-modal-overlay').remove(); (${callback})();">
+        Entendido
+      </button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+// ── Lógica principal de auth ──────────────────────────────────────────────
 (function () {
 
   const usuario = sessionStorage.getItem("miaa_usuario");
   const rol     = sessionStorage.getItem("miaa_rol");
   const LOGIN   = "https://lesliesoriano.github.io/procesos/indexmenu.html";
 
-  // ── 1. Si no hay sesión → regresar al login ──────────────────────────
+  // 1. Sin sesión → regresar al login
   if (!usuario || !rol) {
     window.location.href = LOGIN;
     return;
   }
 
-  // ── 2. Detectar en qué página estamos ahorita ────────────────────────
+  // 2. Ruta actual
   const rutaActual = window.location.pathname.toLowerCase();
 
-  // ── 3. Mapa completo de páginas y roles permitidos ───────────────────
-  //    Formato: "fragmento-de-url": ["rol1", "rol2", ...]
+  // 3. Permisos por área
   const permisos = {
-
-    // ── Atención al público ──────────────────────────────────────────
-    // /atencionpublico/tramites/tramites_2026.html
-    // /atencionpublico/parcialidades/index.html
-    // /atencionpublico/parcialidades/calculo/index.html
-    // /atencionpublico/tramites/listados.html
-    "atencionpublico":            ["admin", "atencion"],
-
-    // ── Área técnica ─────────────────────────────────────────────────
-    // /areatecnica/procesorden.html
-    // /areatecnica/pipas.html
-    "areatecnica":                ["admin", "areatecnica"],
-
-    // ── Cobranza ─────────────────────────────────────────────────────
-    // /cobranza/conceptosduplicados.html
-    // /cobranza/conceptosduplicados2archivos.html
-    "cobranza":                   ["admin", "cobranza"],
-
-    // ── Recaudación / Financiero ──────────────────────────────────────
-    // /recfinancier/iva.html
-    // /recfinancier/calculadordv.html
-    // /recfinancier/conciliacion/index.html
-    "recfinancier":               ["admin", "recfinancier"],
-
-    // ── Extras ───────────────────────────────────────────────────────
-    // /extras/separadorexcel.html
-    "extras":                     ["admin"],
-
-    // ── USCA / Saneamiento ───────────────────────────────────────────
-    // /usca/diagrama.html
-    "usca":                       ["admin", "saneamiento"],
-
-    // ── Miaa ─────────────────────────────────────────────────────────
-    "miaa":                       ["admin", "saneamiento"],
-
-    // ── Cajas ────────────────────────────────────────────────────────
-    "cajas":                      ["admin", "cajas"],
-
+    "atencionpublico": ["admin", "atencion"],
+    "areatecnica":     ["admin", "areatecnica"],
+    "cobranza":        ["admin", "cobranza"],
+    "recfinancier":    ["admin", "recfinancier"],
+    "extras":          ["admin"],
+    "usca":            ["admin", "saneamiento"],
+    "miaa":            ["admin", "saneamiento"],
+    "cajas":           ["admin", "cajas"],
   };
 
-  // ── 4. Buscar qué área coincide con la ruta actual ───────────────────
-  let areaDetectada  = null;
+  // 4. Detectar área
+  let areaDetectada   = null;
   let rolesPermitidos = [];
 
   for (const area in permisos) {
@@ -70,21 +126,23 @@
     }
   }
 
-  // ── 5. Verificar permiso ─────────────────────────────────────────────
+  // 5. Verificar permiso
   if (areaDetectada && !rolesPermitidos.includes(rol)) {
-    alert(`No tienes acceso a esta sección.\nTu rol: ${rol}`);
-    window.location.href = LOGIN;
+    // Esperar a que el DOM esté listo para mostrar el modal
+    document.addEventListener("DOMContentLoaded", function () {
+      mostrarAccesoDenegado(function() {
+        window.location.href = LOGIN;
+      });
+    });
     return;
   }
 
-  // ── 6. Acceso permitido → exponer sesión para uso en cada página ─────
+  // 6. Acceso permitido
   window.sesion = { usuario, rol };
 
-  // Opcional: mostrar usuario activo si la página tiene un elemento con
-  // id="usuario-activo" (como en indexmenu.html)
   document.addEventListener("DOMContentLoaded", function () {
     const span = document.getElementById("usuario-activo");
-    if (span) span.textContent = `${usuario} (${rol})`;
+    if (span) span.textContent = `${usuario}`;
   });
 
 })();
